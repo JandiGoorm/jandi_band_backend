@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ClubMemberRepository extends JpaRepository<ClubMember, Long> {
-    List<ClubMember> findByClubId(Long clubId);
-    Optional<ClubMember> findByClubIdAndUserId(Long clubId, Long userId);
-    void deleteByClubIdAndUserId(Long clubId, Long userId);
+public interface ClubMemberRepository extends JpaRepository<ClubMember, Integer> {
+    List<ClubMember> findByClubId(Integer clubId);
+    Optional<ClubMember> findByClubIdAndUserId(Integer clubId, Integer userId);
+    void deleteByClubIdAndUserId(Integer clubId, Integer userId);
 }

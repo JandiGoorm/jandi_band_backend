@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ClubRepository extends JpaRepository<Club, Long> {
+public interface ClubRepository extends JpaRepository<Club, Integer> {
     List<Club> findAll();
-    Optional<Club> findById(Long clubId);
+    Optional<Club> findById(Integer clubId);
 }

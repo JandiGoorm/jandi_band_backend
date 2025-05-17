@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ClubUniversityRepository extends JpaRepository<ClubUniversity, Long> {
-    List<ClubUniversity> findByClubId(Long clubId);
-    void deleteByClubId(Long clubId);
+public interface ClubUniversityRepository extends JpaRepository<ClubUniversity, Integer> {
+    List<ClubUniversity> findByClubId(Integer clubId);
+    void deleteByClubId(Integer clubId);
 }

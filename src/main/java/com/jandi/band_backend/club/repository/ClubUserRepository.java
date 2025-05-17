@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ClubUserRepository extends JpaRepository<Users, Long> {
-    Optional<Users> findById(Long id);
+public interface ClubUserRepository extends JpaRepository<Users, Integer> {
+    Optional<Users> findById(Integer id);
 }
