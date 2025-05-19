@@ -26,6 +26,12 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// TODO: 커스텀 예외 처리를 위한 GlobalExceptionHandler 클래스 구현
+// 단순히 각 메서드마다 ResponseStatusException을 사용하는 대신,
+// GlobalExceptionHandler 클래스를 생성하여 각종 예외를 중앙에서 처리하는 것도 좋은 방법입니다.
+// 이 접근 방식을 사용하면 서비스 클래스는 비즈니스 로직에 집중하고,
+// 예외 처리와 HTTP 응답 코드 설정은 별도의 핸들러가 담당하게 됩니다.
+
 @Service
 @RequiredArgsConstructor
 public class ClubService {
@@ -40,6 +46,8 @@ public class ClubService {
     public ClubRespDTO createClub(ClubReqDTO request, Integer userId) {
         // 사용자 확인
         Users user = userRepository.findById(userId)
+                // TODO: 사용자를 찾지 못한 경우 404 Not Found 반환
+                // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 동아리 생성
@@ -54,6 +62,7 @@ public class ClubService {
         // 대학 정보 설정 (연합 동아리인 경우 null)
         if (request.getUniversityId() != null) {
             University university = universityRepository.findById(request.getUniversityId())
+                    // TODO: 대학을 찾지 못한 경우 404 Not Found 반환
                     .orElseThrow(() -> new IllegalArgumentException("대학을 찾을 수 없습니다. ID: " + request.getUniversityId()));
             club.setUniversity(university);
         }
@@ -85,7 +94,8 @@ public class ClubService {
 
     @Transactional(readOnly = true)
     public PageRespDTO<ClubSimpleRespDTO> getClubList(Pageable pageable) {
-        Page<Club> clubPage = clubRepository.findAll(pageable);
+        // deletedAt이 null인 동아리만 조회하도록 수정
+        Page<Club> clubPage = clubRepository.findAllByDeletedAtIsNull(pageable);
 
         List<ClubSimpleRespDTO> content = clubPage.getContent().stream()
                 .map(club -> {
@@ -110,7 +120,11 @@ public class ClubService {
 
     @Transactional(readOnly = true)
     public ClubRespDTO getClubDetail(Integer clubId) {
-        Club club = clubRepository.findById(clubId)
+        Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
+                // TODO: 403 대신 404 응답을 반환
+                // import org.springframework.web.server.ResponseStatusException;
+                // import org.springframework.http.HttpStatus;
+                // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "동아리를 찾을 수 없습니다."));
                 .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
 
         int memberCount = clubMemberRepository.countByClubId(clubId);
@@ -123,12 +137,14 @@ public class ClubService {
 
     @Transactional
     public ClubRespDTO updateClub(Integer clubId, ClubUpdateReqDTO request, Integer userId) {
-        Club club = clubRepository.findById(clubId)
+        Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
+                // TODO: 403 대신 404 응답을 반환
                 .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
 
         // 권한 확인 (대표자만 수정 가능)
         clubMemberRepository.findByClubIdAndUserId(clubId, userId)
                 .filter(member -> member.getRole() == ClubMember.MemberRole.REPRESENTATIVE)
+                // TODO: 권한 오류는 403 Forbidden이 적절합니다
                 .orElseThrow(() -> new IllegalArgumentException("동아리 정보 수정 권한이 없습니다."));
 
         // 동아리 정보 수정
@@ -148,6 +164,7 @@ public class ClubService {
         // 대학 정보 업데이트
         if (request.getUniversityId() != null) {
             University university = universityRepository.findById(request.getUniversityId())
+                    // TODO: 대학을 찾지 못한 경우도 404로 처리
                     .orElseThrow(() -> new IllegalArgumentException("대학을 찾을 수 없습니다. ID: " + request.getUniversityId()));
             club.setUniversity(university);
         } else {
@@ -184,12 +201,14 @@ public class ClubService {
 
     @Transactional
     public void deleteClub(Integer clubId, Integer userId) {
-        Club club = clubRepository.findById(clubId)
+        Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
+                // TODO: 403 대신 404 응답을 반환하려면 다음과 같이 수정
                 .orElseThrow(() -> new IllegalArgumentException("동아리를 찾을 수 없습니다."));
 
         // 권한 확인 (대표자만 삭제 가능)
         clubMemberRepository.findByClubIdAndUserId(clubId, userId)
                 .filter(member -> member.getRole() == ClubMember.MemberRole.REPRESENTATIVE)
+                // TODO: 권한 오류는 403 Forbidden이 적절합니다
                 .orElseThrow(() -> new IllegalArgumentException("동아리 삭제 권한이 없습니다."));
 
         // 동아리 대표 사진 소프트 삭제
