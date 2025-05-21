@@ -1,4 +1,4 @@
-package com.jandi.band_backend.image.config;
+package com.jandi.band_backend.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;

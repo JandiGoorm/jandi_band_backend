@@ -5,15 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClubReqDTO {
-    @NotBlank(message = "동아리 이름은 필수입니다")
+public class ClubUpdateReqDTO {
     @Size(max = 100, message = "동아리 이름은 100자 이내여야 합니다")
     private String name;
 

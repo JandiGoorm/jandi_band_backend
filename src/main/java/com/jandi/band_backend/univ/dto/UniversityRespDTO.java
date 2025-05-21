@@ -5,14 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UniversityRespDTO {
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SimpleResponse {
-        private Integer id;
-        private String name;
-    }
+    private Integer id;
+    private String name;
 }

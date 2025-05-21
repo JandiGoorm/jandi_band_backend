@@ -1,6 +1,8 @@
 package com.jandi.band_backend.club.repository;
 
+import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.club.entity.ClubMember;
+import com.jandi.band_backend.user.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +22,6 @@ public interface ClubMemberRepository extends JpaRepository<ClubMember, Integer>
      */
     @Query("SELECT COUNT(cm) FROM ClubMember cm WHERE cm.club.id = :clubId")
     int countByClubId(@Param("clubId") Integer clubId);
+
+    boolean existsByClubAndUser(Club club, Users user);
 }

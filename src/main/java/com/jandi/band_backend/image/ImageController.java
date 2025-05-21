@@ -1,16 +1,14 @@
-package com.jandi.band_backend.image.controller;
+package com.jandi.band_backend.image;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.jandi.band_backend.image.service.S3Service;
-
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/images")
+@RequestMapping("/api/images")
 @RequiredArgsConstructor
 public class ImageController {
 

@@ -1,15 +1,22 @@
 package com.jandi.band_backend.auth.service.kakao;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
+import com.jandi.band_backend.global.exception.FailKakaoLoginException;
+import com.jandi.band_backend.global.exception.FailKakaoReadUserException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class KakaoUserService {
@@ -33,36 +40,49 @@ public class KakaoUserService {
         );
     }
 
-    // 카카오 토큰으로 카카오 계정 정보 요청
-    private Map requestKakaoUserInfo(String accessToken){
+    /// 내부 메소드
+    // 카카오 계정 정보 조회를 위한 HTTP 요청 전송
+    private ResponseEntity<Map> responseForm(String accessToken){
         // 헤더에 Authorization 추가
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
-        // GET 요청
+        // 요청 전송
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.exchange(
+        return restTemplate.exchange(
                 kakaoUserInfoUri,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
                 Map.class
         );
+    }
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new RuntimeException("카카오 사용자 정보 조회 실패: " + response.getStatusCode());
+    // 카카오 토큰으로 카카오 계정 정보 요청 및 예외 핸들링
+    // 정상일 경우 Map 반환, 오류 발생 시 FailKakaoReadUserException 예외를 던짐
+    private Map requestKakaoUserInfo(String accessToken){
+        try {
+            ResponseEntity<Map> response = responseForm(accessToken);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new FailKakaoReadUserException("카카오 사용자 정보 조회 실패: " + response.getStatusCode());
+            }
+
+            return Optional.ofNullable(response.getBody())
+                    .orElseThrow(() -> new FailKakaoReadUserException("카카오 응답 없음"));
+
+        }catch (HttpClientErrorException | HttpServerErrorException e){
+            try {
+                // 카카오 오류 응답을 적절히 파싱하여 에러 처리
+                Map errorBody = new ObjectMapper().readValue(e.getResponseBodyAsString(), Map.class);
+                throw new FailKakaoLoginException(errorBody);
+
+            } catch (IOException ex) {
+                throw new FailKakaoLoginException("카카오 응답 파싱 실패");
+            }
         }
 
-        Map body = response.getBody();
-        if (body.get("kakao_account") == null) {
-            throw new RuntimeException("카카오 사용자 계정 정보 조회 실패: " + response.getStatusCode());
-        }
 
-        Map account = (Map) body.get("kakao_account");
-        if(account.get("profile") == null){
-            throw new RuntimeException("카카오 사용자 프로필 정보 조회 실패: " + response.getStatusCode());
-        }
 
-        return response.getBody();
     }
 }
 

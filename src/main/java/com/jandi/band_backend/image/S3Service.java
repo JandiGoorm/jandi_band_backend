@@ -1,4 +1,4 @@
-package com.jandi.band_backend.image.service;
+package com.jandi.band_backend.image;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;

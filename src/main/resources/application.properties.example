@@ -16,6 +16,8 @@ spring.jackson.time-zone=UTC
 
 #jwt
 jwt.secret=
+jwt.access-token-validity=900000
+jwt.refresh-token-validity=604800000
 
 #Kakao OAuth Secret
 kakao.rest-api-key=

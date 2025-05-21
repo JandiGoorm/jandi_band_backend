@@ -26,6 +26,7 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "users")
@@ -138,7 +139,15 @@ public class Users {
     }
     
     public enum Position {
-        VOCAL, GUITAR, KEYBOARD, BASS, DRUM, OTHER
+        VOCAL, GUITAR, KEYBOARD, BASS, DRUM, OTHER;
+
+        public static Position from(String name) {
+            try {
+                return Position.valueOf(name);
+            } catch (Exception e) {
+                return null;
+            }
+        }
     }
     
     public enum AdminRole {
