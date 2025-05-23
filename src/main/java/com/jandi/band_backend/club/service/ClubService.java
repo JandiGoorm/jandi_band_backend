@@ -132,16 +132,6 @@ public class ClubService {
             club.setInstagramId(request.getInstagramId());
         }
 
-        // 대학 정보 업데이트
-        if (request.getUniversityId() != null) {
-            University university = universityRepository.findById(request.getUniversityId())
-                    .orElseThrow(() -> new UniversityNotFoundException("대학을 찾을 수 없습니다. ID: " + request.getUniversityId()));
-            club.setUniversity(university);
-        } else {
-            // universityId가 null로 들어온 경우 연합 동아리로 설정
-            club.setUniversity(null);
-        }
-
         club.setUpdatedAt(LocalDateTime.now());
 
         Club updatedClub = clubRepository.save(club);
