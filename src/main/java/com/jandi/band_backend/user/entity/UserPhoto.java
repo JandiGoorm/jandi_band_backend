@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_photo", 
@@ -31,13 +31,13 @@ public class UserPhoto {
     private Boolean isCurrent = true;
 
     @Column(name = "uploaded_at", nullable = false, updatable = false)
-    private Instant uploadedAt;
+    private LocalDateTime uploadedAt;
 
     @Column(name = "deleted_at")
-    private Instant deletedAt;
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {
-        uploadedAt = Instant.now();
+        uploadedAt = LocalDateTime.now();
     }
 } 

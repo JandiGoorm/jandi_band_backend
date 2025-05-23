@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,10 +30,10 @@ public class ClubEvent {
     private String name;
 
     @Column(name = "start_datetime", nullable = false)
-    private Instant startDatetime;
+    private LocalDateTime startDatetime;
 
     @Column(name = "end_datetime", nullable = false)
-    private Instant endDatetime;
+    private LocalDateTime endDatetime;
 
     @Column(name = "location", length = 255)
     private String location;
@@ -49,25 +49,25 @@ public class ClubEvent {
     private Users creator;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
-    private Instant deletedAt;
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "clubEvent")
     private List<ClubEventParticipant> participants = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        updatedAt = LocalDateTime.now();
     }
 }

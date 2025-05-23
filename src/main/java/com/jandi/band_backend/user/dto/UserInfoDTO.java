@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class UserInfoDTO {
-    private int id;
+    private Integer id; // 자체 고유 아이디 (카카오 회원번호 아님)
     private String nickname;
     private String profilePhoto;
     private String position;

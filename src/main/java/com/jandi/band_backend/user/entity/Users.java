@@ -23,9 +23,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "users")
@@ -56,15 +57,18 @@ public class Users {
     @Enumerated(EnumType.STRING)
     @Column(name = "admin_role", nullable = false)
     private AdminRole adminRole = AdminRole.USER;
+  
+    @Column(name = "is_registered", nullable = false)
+    private Boolean isRegistered = Boolean.FALSE;
     
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
     
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
     
     @Column(name = "deleted_at")
-    private Instant deletedAt;
+    private LocalDateTime deletedAt;
     
     @OneToMany(mappedBy = "user")
     private List<UserPhoto> photos = new ArrayList<>();
@@ -122,23 +126,31 @@ public class Users {
     
     @OneToMany(mappedBy = "reporter")
     private List<PromoCommentReport> promoCommentReports = new ArrayList<>();
-    
+
     @PrePersist
     protected void onCreate() {
         position = null;
         university = null;
 
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = Instant.now();
+        updatedAt = LocalDateTime.now();
     }
-    
+
     public enum Position {
-        VOCAL, GUITAR, KEYBOARD, BASS, DRUM, OTHER
+        VOCAL, GUITAR, KEYBOARD, BASS, DRUM, OTHER;
+
+        public static Position from(String name) {
+            try {
+                return Position.valueOf(name);
+            } catch (Exception e) {
+                return null;
+            }
+        }
     }
     
     public enum AdminRole {

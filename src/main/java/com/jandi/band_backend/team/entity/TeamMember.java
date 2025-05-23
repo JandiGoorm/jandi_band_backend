@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "team_member")
@@ -29,10 +29,10 @@ public class TeamMember {
     private Users user;
     
     @Column(name = "joined_at", nullable = false, updatable = false)
-    private Instant joinedAt;
+    private LocalDateTime joinedAt;
     
     @PrePersist
     protected void onCreate() {
-        joinedAt = Instant.now();
+        joinedAt = LocalDateTime.now();
     }
 } 
