@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,4 +20,8 @@ public interface TeamEventRepository extends JpaRepository<TeamEvent, Integer> {
     // 팀의 모든 연습 일정 조회
     @Query("SELECT te FROM TeamEvent te WHERE te.deletedAt IS NULL AND te.team.id = :teamId ORDER BY te.startDatetime ASC")
     Page<TeamEvent> findPracticeSchedulesByTeamId(@Param("teamId") Integer teamId, Pageable pageable);
+
+    // 팀의 모든 연습 일정 조회 (List 반환)
+    @Query("SELECT te FROM TeamEvent te WHERE te.deletedAt IS NULL AND te.team.id = :teamId")
+    List<TeamEvent> findAllByTeamIdAndDeletedAtIsNull(@Param("teamId") Integer teamId);
 }

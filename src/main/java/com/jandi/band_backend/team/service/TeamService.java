@@ -12,8 +12,10 @@ import com.jandi.band_backend.team.dto.TeamReqDTO;
 import com.jandi.band_backend.team.dto.TeamRespDTO;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;
+import com.jandi.band_backend.team.entity.TeamEvent;
 import com.jandi.band_backend.team.repository.TeamMemberRepository;
 import com.jandi.band_backend.team.repository.TeamRepository;
+import com.jandi.band_backend.team.repository.TeamEventRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.team.util.TeamTimetableUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
@@ -37,6 +39,7 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final TeamEventRepository teamEventRepository;
     private final ClubRepository clubRepository;
     private final TeamTimetableUtil teamTimetableUtil;
     private final PermissionValidationUtil permissionValidationUtil;
@@ -150,8 +153,19 @@ public class TeamService {
         // 팀 멤버 권한 확인
         permissionValidationUtil.validateTeamMemberAccess(teamId, currentUserId, "팀 멤버만 팀을 삭제할 수 있습니다.");
 
-        // 소프트 삭제
-        team.setDeletedAt(LocalDateTime.now());
+        // 팀 멤버들 소프트 삭제
+        LocalDateTime deletedTime = LocalDateTime.now();
+        List<TeamMember> teamMembers = teamMemberRepository.findByTeamIdAndDeletedAtIsNull(teamId);
+        teamMembers.forEach(teamMember -> teamMember.setDeletedAt(deletedTime));
+        teamMemberRepository.saveAll(teamMembers);
+
+        // 팀 이벤트들 소프트 삭제
+        List<TeamEvent> teamEvents = teamEventRepository.findAllByTeamIdAndDeletedAtIsNull(teamId);
+        teamEvents.forEach(teamEvent -> teamEvent.setDeletedAt(deletedTime));
+        teamEventRepository.saveAll(teamEvents);
+
+        // 팀 소프트 삭제
+        team.setDeletedAt(deletedTime);
         teamRepository.save(team);
     }
 
