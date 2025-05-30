@@ -1,17 +1,20 @@
 package com.jandi.band_backend.club.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
-@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClubEventReqDTO {
     private String name;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
-    private String location;
-    private String address;
-    private String description;
+    private List<Integer> participantUserIds;
 }

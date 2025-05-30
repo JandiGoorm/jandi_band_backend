@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "club_event_participant", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"club_event_id", "user_id"})
@@ -27,4 +29,7 @@ public class ClubEventParticipant {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

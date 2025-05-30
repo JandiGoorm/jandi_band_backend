@@ -2,6 +2,7 @@ package com.jandi.band_backend.club.controller;
 
 import com.jandi.band_backend.club.dto.ClubEventReqDTO;
 import com.jandi.band_backend.club.dto.ClubEventRespDTO;
+import com.jandi.band_backend.club.dto.ClubEventDetailRespDTO;
 import com.jandi.band_backend.club.service.ClubEventService;
 import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.security.CustomUserDetails;
@@ -31,21 +32,21 @@ public class ClubEventController {
     ) {
         Integer userId = userDetails.getUserId();
         ClubEventRespDTO response = clubEventService.createClubEvent(clubId, userId, dto);
-        
+
         return ResponseEntity.ok(CommonRespDTO.success("동아리 일정이 생성되었습니다.", response));
     }
 
     // 동아리 일정 상세 조회 API
     @Operation(summary = "동아리 일정 상세 조회", description = "특정 동아리에 일정을 상세조회합니다.")
     @GetMapping("/events/{eventId}")
-    public ResponseEntity<CommonRespDTO<ClubEventRespDTO>> getClubEventDetail(
+    public ResponseEntity<CommonRespDTO<ClubEventDetailRespDTO>> getClubEventDetail(
             @PathVariable Integer clubId,
             @PathVariable Integer eventId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Integer userId = userDetails.getUserId();
 
-        ClubEventRespDTO response = clubEventService.getClubEventDetail(clubId, eventId, userId);
+        ClubEventDetailRespDTO response = clubEventService.getClubEventDetail(clubId, eventId, userId);
 
         return ResponseEntity.ok(CommonRespDTO.success("동아리 일정 상세 조회 성공", response));
     }
