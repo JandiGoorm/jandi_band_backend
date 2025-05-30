@@ -12,8 +12,11 @@ import java.util.Optional;
 
 @Repository
 public interface ClubEventRepository extends JpaRepository<ClubEvent, Long> {
+    // 특정 동아리의 모든 삭제되지 않은 이벤트 조회
+    List<ClubEvent> findByClubIdAndDeletedAtIsNull(Integer clubId);
 
-    Optional<ClubEvent> findByIdAndClubIdAndDeletedAtIsNull(Integer id, Integer club_id);
+    // 특정 동아리의 특정 이벤트를 ID로 조회
+    Optional<ClubEvent> findByIdAndClubIdAndDeletedAtIsNull(Integer id, Integer clubId);
 
     @Query("SELECT e FROM ClubEvent e WHERE e.club.id = :clubId AND e.deletedAt IS NULL AND " +
             "(e.startDatetime <= :end AND e.endDatetime >= :start)")
