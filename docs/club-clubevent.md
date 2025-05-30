@@ -8,8 +8,8 @@ JWT 인증 필요 (Spring Security + @AuthenticationPrincipal CustomUserDetails)
 
 ## 권한 관리
 - **조회**: 로그인한 모든 사용자
-- **생성**: 로그인한 모든 사용자  
-- **삭제**: 일정을 생성한 사용자 또는 ADMIN 권한 사용자
+- **생성**: 동아리 멤버만 가능  
+- **삭제**: 일정을 생성한 사용자, 동아리 대표자, 또는 ADMIN 권한 사용자
 
 ---
 
@@ -28,9 +28,7 @@ curl -X POST "http://localhost:8080/api/clubs/1/events" \
     "name": "2024년 정기 공연",
     "startDatetime": "2024-03-15T19:00:00",
     "endDatetime": "2024-03-15T21:30:00",
-    "location": "대학교 대강당",
-    "address": "서울특별시 강남구 테헤란로 123",
-    "description": "우리 밴드의 첫 번째 정기 공연입니다."
+    "participantUserIds": [2, 3, 5, 7]
   }'
 ```
 
@@ -38,9 +36,7 @@ curl -X POST "http://localhost:8080/api/clubs/1/events" \
 - `name` (string, 필수): 이벤트 이름 (최대 255자)
 - `startDatetime` (string, 필수): 시작 일시 (ISO 8601 형식: YYYY-MM-DDTHH:mm:ss)
 - `endDatetime` (string, 필수): 종료 일시 (시작 일시 이후여야 함)
-- `location` (string, 선택): 장소명 (최대 255자)
-- `address` (string, 선택): 상세 주소 (최대 255자)
-- `description` (string, 선택): 이벤트 설명
+- `participantUserIds` (array, 선택): 참여자 사용자 ID 목록
 
 #### 응답 (200 OK)
 ```json
@@ -51,10 +47,7 @@ curl -X POST "http://localhost:8080/api/clubs/1/events" \
     "id": 15,
     "name": "2024년 정기 공연",
     "startDatetime": "2024-03-15T19:00:00",
-    "endDatetime": "2024-03-15T21:30:00",
-    "location": "대학교 대강당",
-    "address": "서울특별시 강남구 테헤란로 123",
-    "description": "우리 밴드의 첫 번째 정기 공연입니다."
+    "endDatetime": "2024-03-15T21:30:00"
   }
 }
 ```
@@ -84,9 +77,20 @@ curl -X GET "http://localhost:8080/api/clubs/1/events/15" \
     "name": "2024년 정기 공연",
     "startDatetime": "2024-03-15T19:00:00",
     "endDatetime": "2024-03-15T21:30:00",
-    "location": "대학교 대강당",
-    "address": "서울특별시 강남구 테헤란로 123",
-    "description": "우리 밴드의 첫 번째 정기 공연입니다."
+    "participants": [
+      {
+        "userId": 2,
+        "userName": "김철수"
+      },
+      {
+        "userId": 3,
+        "userName": "이영희"
+      },
+      {
+        "userId": 5,
+        "userName": "박민수"
+      }
+    ]
   }
 }
 ```
@@ -117,19 +121,13 @@ curl -X GET "http://localhost:8080/api/clubs/1/events/list/2024/3" \
       "id": 15,
       "name": "2024년 정기 공연",
       "startDatetime": "2024-03-15T19:00:00",
-      "endDatetime": "2024-03-15T21:30:00",
-      "location": "대학교 대강당",
-      "address": "서울특별시 강남구 테헤란로 123",
-      "description": "우리 밴드의 첫 번째 정기 공연입니다."
+      "endDatetime": "2024-03-15T21:30:00"
     },
     {
       "id": 16,
       "name": "합주 연습",
       "startDatetime": "2024-03-20T18:00:00",
-      "endDatetime": "2024-03-20T20:00:00",
-      "location": "연습실 A",
-      "address": null,
-      "description": "정기 공연 준비 연습"
+      "endDatetime": "2024-03-20T20:00:00"
     }
   ]
 }
@@ -160,7 +158,7 @@ curl -X DELETE "http://localhost:8080/api/clubs/1/events/15" \
 ```
 
 #### 접근 권한
-- 일정을 생성한 사용자 또는 ADMIN 권한 사용자만 삭제 가능
+- 일정을 생성한 사용자, 동아리 대표자, 또는 ADMIN 권한 사용자만 삭제 가능
 - 권한이 없는 경우 403 Forbidden 응답
 
 ---
@@ -191,11 +189,13 @@ curl -X DELETE "http://localhost:8080/api/clubs/1/events/15" \
 ```json
 {
   "success": false,
-  "message": "일정을 삭제할 권한이 없습니다.",
+  "message": "동아리 부원만 이벤트를 생성할 수 있습니다.",
   "errorCode": "FORBIDDEN"
 }
 ```
-**발생 케이스**: 일정 삭제 시 생성자나 ADMIN이 아닌 경우
+**발생 케이스**: 
+- 동아리 멤버가 아닌 사용자가 일정 생성 시도
+- 일정 삭제 시 생성자, 동아리 대표자, ADMIN이 아닌 경우
 
 ### 404 Not Found - 리소스 없음
 ```json
@@ -205,7 +205,7 @@ curl -X DELETE "http://localhost:8080/api/clubs/1/events/15" \
   "errorCode": "NOT_FOUND"
 }
 ```
-**발생 케이스**: 존재하지 않는 동아리 ID 또는 일정 ID
+**발생 케이스**: 존재하지 않는 동아리 ID 또는 일정 ID, 참여자 ID
 
 ---
 
@@ -214,38 +214,58 @@ curl -X DELETE "http://localhost:8080/api/clubs/1/events/15" \
 ### ClubEventReqDTO (요청)
 ```typescript
 interface ClubEventReqDTO {
-  name: string;           // 일정 이름 (필수, 최대 255자)
-  startDatetime: string;  // 시작 시간 (필수, LocalDateTime)
-  endDatetime: string;    // 종료 시간 (필수, LocalDateTime, 시작시간 이후)
-  location?: string;      // 장소명 (선택, 최대 255자)
-  address?: string;       // 주소 (선택, 최대 255자)
-  description?: string;   // 설명 (선택)
+  name: string;                    // 일정 이름 (필수, 최대 255자)
+  startDatetime: string;           // 시작 시간 (필수, LocalDateTime)
+  endDatetime: string;             // 종료 시간 (필수, LocalDateTime, 시작시간 이후)
+  participantUserIds?: number[];   // 참여자 사용자 ID 목록 (선택)
 }
 ```
 
-### ClubEventRespDTO (응답)
+### ClubEventRespDTO (응답 - 목록 조회용)
 ```typescript
 interface ClubEventRespDTO {
   id: number;            // 일정 ID (Long 타입)
   name: string;          // 일정 이름
   startDatetime: string; // 시작 시간 (LocalDateTime)
   endDatetime: string;   // 종료 시간 (LocalDateTime)
-  location: string;      // 장소명 (null 가능)
-  address: string;       // 주소 (null 가능)
-  description: string;   // 설명 (null 가능)
+}
+```
+
+### ClubEventDetailRespDTO (응답 - 상세 조회용)
+```typescript
+interface ClubEventDetailRespDTO {
+  id: number;            // 일정 ID (Long 타입)
+  name: string;          // 일정 이름
+  startDatetime: string; // 시작 시간 (LocalDateTime)
+  endDatetime: string;   // 종료 시간 (LocalDateTime)
+  participants: ParticipantRespDTO[]; // 참여자 목록
+}
+
+interface ParticipantRespDTO {
+  userId: number;        // 참여자 사용자 ID
+  userName: string;      // 참여자 닉네임
 }
 ```
 
 ## 참고사항
 
 ### 소프트 삭제
-- 삭제된 일정은 DB에서 물리적으로 제거되지 않고 `deletedAt` 필드로 관리
-- 조회 시 삭제된 일정은 자동으로 제외됨
+- 삭제된 일정과 참여자는 DB에서 물리적으로 제거되지 않고 `deletedAt` 필드로 관리
+- 조회 시 삭제된 일정과 참여자는 자동으로 제외됨
+- 일정 삭제 시 관련된 모든 참여자도 함께 소프트 삭제됨
 
 ### 권한 관리
 - **ADMIN 권한**: Users 테이블의 admin_role이 'ADMIN'인 사용자는 모든 일정 삭제 가능
+- **동아리 대표자**: ClubMember 테이블에서 role이 'REPRESENTATIVE'인 사용자는 해당 동아리의 모든 일정 삭제 가능
 - **일반 사용자**: 본인이 생성한 일정만 삭제 가능
+- **일정 생성**: 동아리 멤버만 가능 (ClubMember 테이블에 등록된 사용자)
+
+### 참여자 관리
+- 일정 생성 시 `participantUserIds` 배열로 참여자 지정 가능
+- 참여자로 지정되는 사용자는 실제 존재하는 사용자여야 함
+- 참여자 정보는 상세 조회 시에만 포함됨 (목록 조회에서는 제외)
 
 ### 데이터 타입
 - **ID**: Entity는 Integer, 응답 DTO는 Long으로 변환
 - **날짜시간**: LocalDateTime 타입 사용 (JSON 직렬화 시 ISO 8601 형식)
+- **Builder 패턴**: 모든 DTO는 Builder 패턴 지원
