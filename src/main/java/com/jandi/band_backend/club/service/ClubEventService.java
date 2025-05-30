@@ -2,13 +2,10 @@ package com.jandi.band_backend.club.service;
 
 import com.jandi.band_backend.club.dto.ClubEventReqDTO;
 import com.jandi.band_backend.club.dto.ClubEventRespDTO;
-import com.jandi.band_backend.club.dto.ClubEventDetailRespDTO;
 import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.club.entity.ClubEvent;
-import com.jandi.band_backend.club.entity.ClubEventParticipant;
 import com.jandi.band_backend.club.entity.ClubMember;
 import com.jandi.band_backend.club.repository.ClubEventRepository;
-import com.jandi.band_backend.club.repository.ClubEventParticipantRepository;
 import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.club.repository.ClubMemberRepository;
 import com.jandi.band_backend.global.util.UserValidationUtil;
@@ -21,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +26,6 @@ public class ClubEventService {
     private final ClubRepository clubRepository;
     private final UserRepository userRepository;
     private final ClubEventRepository clubEventRepository;
-    private final ClubEventParticipantRepository clubEventParticipantRepository;
     private final ClubMemberRepository clubMemberRepository;
     private final UserValidationUtil userValidationUtil;
 
@@ -54,24 +49,11 @@ public class ClubEventService {
 
         ClubEvent saved = clubEventRepository.save(clubEvent);
 
-        if (dto.getParticipantUserIds() != null && !dto.getParticipantUserIds().isEmpty()) {
-            for (Integer participantUserId : dto.getParticipantUserIds()) {
-                Users participantUser = userRepository.findById(participantUserId)
-                        .orElseThrow(() -> new IllegalArgumentException("참여 멤버를 찾을 수 없습니다. ID: " + participantUserId));
-
-                ClubEventParticipant participant = new ClubEventParticipant();
-                participant.setClubEvent(saved);
-                participant.setUser(participantUser);
-
-                clubEventParticipantRepository.save(participant);
-            }
-        }
-
         return convertToClubEventRespDTO(saved);
     }
 
     @Transactional(readOnly = true)
-    public ClubEventDetailRespDTO getClubEventDetail(Integer clubId, Integer eventId, Integer userId) {
+    public ClubEventRespDTO getClubEventDetail(Integer clubId, Integer eventId, Integer userId) {
         ClubEvent event = clubEventRepository
                 .findByIdAndClubIdAndDeletedAtIsNull(eventId, clubId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 동아리에 속한 일정을 찾을 수 없습니다."));
@@ -79,7 +61,7 @@ public class ClubEventService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return convertToClubEventDetailRespDTO(event);
+        return convertToClubEventRespDTO(event);
     }
 
     @Transactional(readOnly = true)
@@ -114,18 +96,8 @@ public class ClubEventService {
             throw new IllegalArgumentException("일정을 삭제할 권한이 없습니다.");
         }
 
-        // 해당 이벤트의 모든 참여자 소프트 삭제
-        LocalDateTime now = LocalDateTime.now();
-        List<ClubEventParticipant> participants = clubEventParticipantRepository
-                .findByClubEventIdAndDeletedAtIsNull(eventId);
-
-        for (ClubEventParticipant participant : participants) {
-            participant.setDeletedAt(now);
-            clubEventParticipantRepository.save(participant);
-        }
-
         // 이벤트 소프트 삭제
-        event.setDeletedAt(now);
+        event.setDeletedAt(LocalDateTime.now());
         clubEventRepository.save(event);
     }
 
@@ -136,27 +108,6 @@ public class ClubEventService {
                 .name(event.getName())
                 .startDatetime(event.getStartDatetime())
                 .endDatetime(event.getEndDatetime())
-                .build();
-    }
-
-    // ClubEvent 엔터티를 ClubEventDetailRespDTO로 변환하는 헬퍼 메서드
-    private ClubEventDetailRespDTO convertToClubEventDetailRespDTO(ClubEvent event) {
-        List<ClubEventParticipant> participants = clubEventParticipantRepository
-                .findByClubEventIdAndDeletedAtIsNull(event.getId());
-
-        List<ClubEventDetailRespDTO.ParticipantRespDTO> participantDTOs = participants.stream()
-                .map(participant -> ClubEventDetailRespDTO.ParticipantRespDTO.builder()
-                        .userId(participant.getUser().getId())
-                        .userName(participant.getUser().getNickname())
-                        .build())
-                .collect(Collectors.toList());
-
-        return ClubEventDetailRespDTO.builder()
-                .id(event.getId().longValue())
-                .name(event.getName())
-                .startDatetime(event.getStartDatetime())
-                .endDatetime(event.getEndDatetime())
-                .participants(participantDTOs)
                 .build();
     }
 

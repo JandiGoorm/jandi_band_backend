@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Builder
@@ -16,5 +15,4 @@ public class ClubEventReqDTO {
     private String name;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
-    private List<Integer> participantUserIds;
 }

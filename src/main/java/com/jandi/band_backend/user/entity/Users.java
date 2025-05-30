@@ -1,7 +1,6 @@
 package com.jandi.band_backend.user.entity;
 
 import com.jandi.band_backend.club.entity.ClubMember;
-import com.jandi.band_backend.club.entity.ClubEventParticipant;
 import com.jandi.band_backend.club.entity.ClubGalPhoto;
 import com.jandi.band_backend.club.entity.ClubEvent;
 import com.jandi.band_backend.team.entity.TeamMember;
@@ -77,9 +76,6 @@ public class Users {
     
     @OneToMany(mappedBy = "user")
     private List<ClubMember> clubMemberships = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "user")
-    private List<ClubEventParticipant> clubEventParticipations = new ArrayList<>();
     
     @OneToMany(mappedBy = "uploader")
     private List<ClubGalPhoto> uploadedClubGalPhotos = new ArrayList<>();
