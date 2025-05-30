@@ -4,7 +4,11 @@
 `/api`
 
 ## 인증
-생성, 삭제는 JWT 인증 필요 (Spring Security + @AuthenticationPrincipal CustomUserDetails). 조회는 인증 불필요.
+**모든 API에 JWT 인증 필요** (Spring Security + @AuthenticationPrincipal CustomUserDetails)
+
+## 권한 체계
+- **일정 조회 (목록/상세)**: 동아리 멤버 또는 ADMIN
+- **일정 생성/삭제**: 팀 멤버 또는 ADMIN
 
 ## 페이지네이션 응답 구조
 연습 일정 목록 조회 API는 다음과 같은 페이지네이션 구조를 사용합니다:
@@ -35,7 +39,8 @@
 
 #### 요청
 ```bash
-curl -X GET "http://localhost:8080/api/teams/1/practice-schedules?page=0&size=20"
+curl -X GET "http://localhost:8080/api/teams/1/practice-schedules?page=0&size=20" \
+  -H "Authorization: Bearer {JWT_TOKEN}"
 ```
 
 #### 쿼리 파라미터
@@ -53,25 +58,14 @@ curl -X GET "http://localhost:8080/api/teams/1/practice-schedules?page=0&size=20
         "id": 1,
         "teamId": 1,
         "teamName": "락밴드 A팀",
-        "songName": "Bohemian Rhapsody",
-        "artistName": "Queen",
-        "youtubeUrl": "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+        "name": "Bohemian Rhapsody - Queen",
         "startDatetime": "2024-03-15T19:00:00",
         "endDatetime": "2024-03-15T21:00:00",
-        "location": "연습실 1",
-        "address": "서울시 강남구 테헤란로 123",
-        "additionalDescription": "보컬 파트 중점 연습",
+        "noPosition": "VOCAL",
         "creatorId": 1,
         "creatorName": "홍길동",
         "createdAt": "2024-03-15T10:30:00",
-        "updatedAt": "2024-03-15T10:30:00",
-        "participants": [
-          {
-            "id": 1,
-            "userId": 1,
-            "userName": "홍길동"
-          }
-        ]
+        "updatedAt": "2024-03-15T10:30:00"
       }
     ],
     "pageInfo": {
@@ -94,7 +88,8 @@ curl -X GET "http://localhost:8080/api/teams/1/practice-schedules?page=0&size=20
 
 #### 요청
 ```bash
-curl -X GET "http://localhost:8080/api/practice-schedules/1"
+curl -X GET "http://localhost:8080/api/practice-schedules/1" \
+  -H "Authorization: Bearer {JWT_TOKEN}"
 ```
 
 #### 응답 (200 OK)
@@ -106,25 +101,14 @@ curl -X GET "http://localhost:8080/api/practice-schedules/1"
     "id": 1,
     "teamId": 1,
     "teamName": "락밴드 A팀",
-    "songName": "Bohemian Rhapsody",
-    "artistName": "Queen",
-    "youtubeUrl": "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+    "name": "Bohemian Rhapsody - Queen",
     "startDatetime": "2024-03-15T19:00:00",
     "endDatetime": "2024-03-15T21:00:00",
-    "location": "연습실 1",
-    "address": "서울시 강남구 테헤란로 123",
-    "additionalDescription": "보컬 파트 중점 연습",
+    "noPosition": "VOCAL",
     "creatorId": 1,
     "creatorName": "홍길동",
     "createdAt": "2024-03-15T10:30:00",
-    "updatedAt": "2024-03-15T10:30:00",
-    "participants": [
-      {
-        "id": 1,
-        "userId": 1,
-        "userName": "홍길동"
-      }
-    ]
+    "updatedAt": "2024-03-15T10:30:00"
   }
 }
 ```
@@ -140,26 +124,18 @@ curl -X POST "http://localhost:8080/api/teams/1/practice-schedules" \
   -H "Authorization: Bearer {JWT_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{
-    "songName": "Bohemian Rhapsody",
-    "artistName": "Queen",
-    "youtubeUrl": "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+    "name": "Bohemian Rhapsody - Queen",
     "startDatetime": "2024-03-15T19:00:00",
     "endDatetime": "2024-03-15T21:00:00",
-    "location": "연습실 1",
-    "address": "서울시 강남구 테헤란로 123",
-    "additionalDescription": "보컬 파트 중점 연습"
+    "noPosition": "VOCAL"
   }'
 ```
 
 #### 요청 필드
-- `songName` (string, 필수): 곡명 (최대 100자)
-- `artistName` (string, 선택): 아티스트명 (최대 100자)
-- `youtubeUrl` (string, 선택): YouTube URL (최대 500자)
+- `name` (string, 필수): 연습 일정명 (최대 255자)
 - `startDatetime` (string, 필수): 연습 시작 일시 (ISO 8601)
 - `endDatetime` (string, 필수): 연습 종료 일시 (ISO 8601)
-- `location` (string, 선택): 장소명 (최대 255자)
-- `address` (string, 선택): 상세 주소 (최대 255자)
-- `additionalDescription` (string, 선택): 추가 설명 (최대 길이 제한 없음)
+- `noPosition` (string, 선택): 연습에서 제외되는 포지션 (VOCAL, GUITAR, KEYBOARD, BASS, DRUM, NONE)
 
 #### 응답 (200 OK)
 ```json
@@ -170,19 +146,14 @@ curl -X POST "http://localhost:8080/api/teams/1/practice-schedules" \
     "id": 1,
     "teamId": 1,
     "teamName": "락밴드 A팀",
-    "songName": "Bohemian Rhapsody",
-    "artistName": "Queen",
-    "youtubeUrl": "https://www.youtube.com/watch?v=fJ9rUzIMcZQ",
+    "name": "Bohemian Rhapsody - Queen",
     "startDatetime": "2024-03-15T19:00:00",
     "endDatetime": "2024-03-15T21:00:00",
-    "location": "연습실 1",
-    "address": "서울시 강남구 테헤란로 123",
-    "additionalDescription": "보컬 파트 중점 연습",
+    "noPosition": "VOCAL",
     "creatorId": 1,
     "creatorName": "홍길동",
     "createdAt": "2024-03-15T10:30:00",
-    "updatedAt": "2024-03-15T10:30:00",
-    "participants": []
+    "updatedAt": "2024-03-15T10:30:00"
   }
 }
 ```
@@ -214,6 +185,7 @@ curl -X DELETE "http://localhost:8080/api/practice-schedules/1" \
 {
   "success": false,
   "message": "에러 메시지",
+  "errorCode": "ERROR_CODE",
   "data": null
 }
 ```
@@ -222,14 +194,33 @@ curl -X DELETE "http://localhost:8080/api/practice-schedules/1" \
 - `200 OK`: 성공
 - `400 Bad Request`: 잘못된 요청
 - `401 Unauthorized`: 인증 실패
-- `403 Forbidden`: 권한 없음
-- `404 Not Found`: 리소스 없음
+- `403 Forbidden`: 권한 없음 (UNAUTHORIZED_CLUB_ACCESS)
+- `404 Not Found`: 리소스 없음 (TEAM_NOT_FOUND, USER_NOT_FOUND, RESOURCE_NOT_FOUND)
+
+### 주요 에러 코드
+- `TEAM_NOT_FOUND`: 팀을 찾을 수 없음
+- `USER_NOT_FOUND`: 사용자를 찾을 수 없음
+- `RESOURCE_NOT_FOUND`: 연습 일정을 찾을 수 없음
+- `UNAUTHORIZED_CLUB_ACCESS`: 권한 없음 (동아리 멤버 아님 또는 팀 멤버 아님)
 
 ## 참고사항
-- **권한**: 연습 일정 생성은 JWT 인증 필요, 삭제는 생성자만 가능
-- **데이터 저장**: 곡명과 아티스트명은 "곡명 - 아티스트명" 형태로 name 필드에 저장
-- **URL 파싱**: YouTube URL과 추가 설명을 description 필드에 저장 후 응답 시 파싱
+
+### 권한 체계
+- **조회 권한**: 해당 팀이 속한 동아리의 멤버여야 함
+- **생성/삭제 권한**: 해당 팀의 멤버여야 함
+- **ADMIN**: 모든 권한 보유
+
+### 데이터 구조
+- **name**: 연습 일정명 (자유 형식, 곡명-아티스트명 등)
+- **noPosition**: 연습에서 제외되는 포지션 (VOCAL, GUITAR, KEYBOARD, BASS, DRUM, NONE)
 - **페이지네이션**: 기본 크기 20개, PagedRespDTO 구조 사용
 - **정렬**: 연습 시작 일시(startDatetime) 오름차순 정렬
 - **소프트 삭제**: 실제 삭제가 아닌 deletedAt 설정
-- **연습 일정 구분**: TeamEvent의 name 필드에 " - "가 포함된 경우를 연습 일정으로 판별
+
+### 변경사항 (이전 버전 대비)
+- **인증 필수**: 모든 API에 JWT 토큰 필요
+- **참여자 제거**: participants 필드 및 관련 기능 제거
+- **필드 간소화**: songName, artistName → name 통합
+- **불필요 필드 제거**: location, address, youtubeUrl, additionalDescription 제거
+- **포지션 필드 추가**: noPosition 필드로 제외 포지션 지정
+- **권한 체계 개선**: 동아리 멤버(조회) vs 팀 멤버(생성/삭제) 구분
