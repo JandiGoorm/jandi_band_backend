@@ -28,16 +28,21 @@ public class PracticeScheduleController {
     @GetMapping("/teams/{teamId}/practice-schedules")
     public ResponseEntity<CommonRespDTO<PagedRespDTO<PracticeScheduleRespDTO>>> getPracticeSchedulesByTeam(
             @PathVariable Integer teamId,
-            Pageable pageable) {
-        Page<PracticeScheduleRespDTO> result = practiceScheduleService.getPracticeSchedulesByTeam(teamId, pageable);
+            Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
+        Page<PracticeScheduleRespDTO> result = practiceScheduleService.getPracticeSchedulesByTeam(teamId, pageable, userId);
         return ResponseEntity.ok(CommonRespDTO.success("팀별 곡 연습 일정 목록 조회 성공", PagedRespDTO.from(result)));
     }
 
     @Operation(summary = "연습 일정 상세 조회")
     @GetMapping("/practice-schedules/{scheduleId}")
-    public ResponseEntity<CommonRespDTO<PracticeScheduleRespDTO>> getPracticeSchedule(@PathVariable Integer scheduleId) {
+    public ResponseEntity<CommonRespDTO<PracticeScheduleRespDTO>> getPracticeSchedule(
+            @PathVariable Integer scheduleId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
         return ResponseEntity.ok(CommonRespDTO.success("곡 연습 일정 상세 조회 성공",
-                practiceScheduleService.getPracticeSchedule(scheduleId)));
+                practiceScheduleService.getPracticeSchedule(scheduleId, userId)));
     }
 
     @Operation(summary = "연습 일정 생성")
@@ -49,7 +54,7 @@ public class PracticeScheduleController {
         // teamId를 request에 설정
         request.setTeamId(teamId);
         Integer userId = userDetails.getUserId();
-        
+
         return ResponseEntity.ok(CommonRespDTO.success("곡 연습 일정 생성 성공",
                 practiceScheduleService.createPracticeSchedule(request, userId)));
     }

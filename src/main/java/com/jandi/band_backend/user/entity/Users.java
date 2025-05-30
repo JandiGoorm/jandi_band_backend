@@ -5,7 +5,6 @@ import com.jandi.band_backend.club.entity.ClubEventParticipant;
 import com.jandi.band_backend.club.entity.ClubGalPhoto;
 import com.jandi.band_backend.club.entity.ClubEvent;
 import com.jandi.band_backend.team.entity.TeamMember;
-import com.jandi.band_backend.team.entity.TeamEventParticipant;
 import com.jandi.band_backend.team.entity.TeamEvent;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.poll.entity.PollSong;
@@ -89,9 +88,6 @@ public class Users {
     
     @OneToMany(mappedBy = "user")
     private List<TeamMember> teamMemberships = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "user")
-    private List<TeamEventParticipant> teamEventParticipations = new ArrayList<>();
     
     @OneToMany(mappedBy = "creator")
     private List<TeamEvent> createdTeamEvents = new ArrayList<>();

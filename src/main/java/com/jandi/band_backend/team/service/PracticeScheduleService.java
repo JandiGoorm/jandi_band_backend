@@ -1,7 +1,9 @@
 package com.jandi.band_backend.team.service;
 
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
-import com.jandi.band_backend.global.util.UserValidationUtil;
+import com.jandi.band_backend.global.exception.TeamNotFoundException;
+import com.jandi.band_backend.global.exception.UserNotFoundException;
+import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.team.dto.PracticeScheduleReqDTO;
 import com.jandi.band_backend.team.dto.PracticeScheduleRespDTO;
 import com.jandi.band_backend.team.entity.Team;
@@ -26,92 +28,90 @@ public class PracticeScheduleService {
     private final TeamEventRepository teamEventRepository;
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-    private final UserValidationUtil userValidationUtil;
+    private final PermissionValidationUtil permissionValidationUtil;
 
-    /**
-     * ADMIN 권한 확인
-     */
-    private boolean isAdmin(Integer userId) {
-        Users user = userValidationUtil.getUserById(userId);
-        return user.getAdminRole() == Users.AdminRole.ADMIN;
-    }
+    // 팀별 곡 연습 일정 목록 조회 (동아리 멤버면 조회 가능)
+    public Page<PracticeScheduleRespDTO> getPracticeSchedulesByTeam(Integer teamId, Pageable pageable, Integer userId) {
+        // 팀 존재 여부 확인
+        Team team = teamRepository.findByIdAndDeletedAtIsNull(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀을 찾을 수 없습니다."));
 
-    // 팀별 곡 연습 일정 목록 조회
-    public Page<PracticeScheduleRespDTO> getPracticeSchedulesByTeam(Integer teamId, Pageable pageable) {
+        // 동아리 멤버십 확인 (ADMIN은 자동 통과)
+        permissionValidationUtil.validateClubMemberAccess(
+            team.getClub().getId(),
+            userId,
+            "해당 팀의 일정을 조회할 권한이 없습니다."
+        );
+
         return teamEventRepository.findPracticeSchedulesByTeamId(teamId, pageable)
                 .map(PracticeScheduleRespDTO::from);
     }
 
-    // 곡 연습 일정 상세 조회
-    public PracticeScheduleRespDTO getPracticeSchedule(Integer scheduleId) {
+    // 곡 연습 일정 상세 조회 (동아리 멤버면 조회 가능)
+    public PracticeScheduleRespDTO getPracticeSchedule(Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = teamEventRepository.findByIdAndNotDeleted(scheduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("연습 일정을 찾을 수 없습니다."));
-        
-        // 곡 연습 일정인지 확인 (name에 " - "가 포함되어 있는지)
-        if (!teamEvent.getName().contains(" - ")) {
-            throw new ResourceNotFoundException("곡 연습 일정이 아닙니다.");
-        }
-        
+
+        // 동아리 멤버십 확인 (ADMIN은 자동 통과)
+        permissionValidationUtil.validateClubMemberAccess(
+            teamEvent.getTeam().getClub().getId(),
+            userId,
+            "해당 연습 일정을 조회할 권한이 없습니다."
+        );
+
         return PracticeScheduleRespDTO.from(teamEvent);
     }
 
-    // 곡 연습 일정 생성
+    // 곡 연습 일정 생성 (팀 멤버만 가능)
     @Transactional
     public PracticeScheduleRespDTO createPracticeSchedule(PracticeScheduleReqDTO request, Integer creatorId) {
         Team team = teamRepository.findByIdAndDeletedAtIsNull(request.getTeamId())
-                .orElseThrow(() -> new ResourceNotFoundException("팀을 찾을 수 없습니다."));
-        
+                .orElseThrow(() -> new TeamNotFoundException("팀을 찾을 수 없습니다."));
+
         Users creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 팀 멤버십 확인 (ADMIN은 자동 통과)
+        permissionValidationUtil.validateTeamMemberAccess(
+            request.getTeamId(),
+            creatorId,
+            "해당 팀에 연습 일정을 생성할 권한이 없습니다."
+        );
 
         TeamEvent teamEvent = new TeamEvent();
         teamEvent.setTeam(team);
         teamEvent.setCreator(creator);
-        
-        // 곡명과 아티스트명을 " - "로 연결하여 name 필드에 저장
-        String eventName = request.getSongName();
-        if (request.getArtistName() != null && !request.getArtistName().trim().isEmpty()) {
-            eventName += " - " + request.getArtistName();
-        }
-        teamEvent.setName(eventName);
-        
+        teamEvent.setName(request.getName());
         teamEvent.setStartDatetime(request.getStartDatetime());
         teamEvent.setEndDatetime(request.getEndDatetime());
-        teamEvent.setLocation(request.getLocation());
-        teamEvent.setAddress(request.getAddress());
-        
-        // YouTube URL과 추가 설명을 description에 저장
-        String description = "";
-        if (request.getYoutubeUrl() != null && !request.getYoutubeUrl().trim().isEmpty()) {
-            description = request.getYoutubeUrl();
-        }
-        if (request.getAdditionalDescription() != null && !request.getAdditionalDescription().trim().isEmpty()) {
-            if (!description.isEmpty()) {
-                description += "\n" + request.getAdditionalDescription();
-            } else {
-                description = request.getAdditionalDescription();
+
+        // noPosition 설정 (String을 enum으로 변환)
+        if (request.getNoPosition() != null && !request.getNoPosition().trim().isEmpty()) {
+            try {
+                TeamEvent.NoPosition noPosition = TeamEvent.NoPosition.valueOf(request.getNoPosition().toUpperCase());
+                teamEvent.setNoPosition(noPosition);
+            } catch (IllegalArgumentException e) {
+                teamEvent.setNoPosition(TeamEvent.NoPosition.NONE);
             }
+        } else {
+            teamEvent.setNoPosition(TeamEvent.NoPosition.NONE);
         }
-        teamEvent.setDescription(description);
 
         return PracticeScheduleRespDTO.from(teamEventRepository.save(teamEvent));
     }
 
-    // 곡 연습 일정 삭제 (소프트 삭제, ADMIN은 모든 일정 삭제 가능)
+    // 곡 연습 일정 삭제 (팀 멤버만 가능)
     @Transactional
     public void deletePracticeSchedule(Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = teamEventRepository.findByIdAndNotDeleted(scheduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("연습 일정을 찾을 수 없습니다."));
 
-        // 곡 연습 일정인지 확인
-        if (!teamEvent.getName().contains(" - ")) {
-            throw new ResourceNotFoundException("곡 연습 일정이 아닙니다.");
-        }
-
-        // 권한 체크 (작성자 또는 ADMIN)
-        if (!isAdmin(userId) && !teamEvent.getCreator().getId().equals(userId)) {
-            throw new IllegalStateException("연습 일정을 삭제할 권한이 없습니다.");
-        }
+        // 팀 멤버십 확인 (ADMIN은 자동 통과)
+        permissionValidationUtil.validateTeamMemberAccess(
+            teamEvent.getTeam().getId(),
+            userId,
+            "연습 일정을 삭제할 권한이 없습니다."
+        );
 
         teamEvent.setDeletedAt(LocalDateTime.now());
     }
