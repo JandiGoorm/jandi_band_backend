@@ -66,7 +66,7 @@ public class PollService {
     public PollDetailRespDTO getPollDetail(Integer pollId, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
 
-        List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
+        List<PollSong> pollSongs = pollSongRepository.findAllByPollWithVotesAndSuggester(poll);
 
         List<PollSongRespDTO> songResponseDtos = pollSongs.stream()
                 .map(pollSong -> convertToPollSongRespDTO(pollSong, currentUserId))
@@ -77,8 +77,9 @@ public class PollService {
 
     @Transactional(readOnly = true)
     public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order, Integer currentUserId) {
+        Poll poll = entityValidationUtil.validatePollExists(pollId);
 
-        List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
+        List<PollSong> pollSongs = pollSongRepository.findAllByPollWithVotesAndSuggester(poll);
 
         List<PollSongResultRespDTO> songResultDtos = pollSongs.stream()
                 .map(this::convertToPollSongResultRespDTO)
