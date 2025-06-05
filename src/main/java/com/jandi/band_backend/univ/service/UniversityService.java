@@ -9,6 +9,7 @@ import com.jandi.band_backend.univ.enums.UnivType;
 import com.jandi.band_backend.univ.repository.RegionRepository;
 import com.jandi.band_backend.univ.repository.UniversityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class UniversityService {
     private final UniversityRepository universityRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "universities", key = "#filter + '_' + (#type != null ? #type : 'null') + '_' + (#region != null ? #region : 'null')")
     public List<UniversityRespDTO> getAllUniversity(String filter, String type, String region) {
         UnivFilter enumFilter = UnivFilter.valueOf(filter.toUpperCase());
         List<University> univList = switch (enumFilter) {
@@ -35,6 +37,7 @@ public class UniversityService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "universities", key = "'detail_' + #id")
     public UniversityDetailRespDTO getUniversityById(Integer id) {
         University university = universityRepository.findById(id)
                 .orElseThrow(() -> new UniversityNotFoundException("대학 정보가 없습니다"));

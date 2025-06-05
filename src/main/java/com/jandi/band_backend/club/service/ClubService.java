@@ -31,6 +31,8 @@ import com.jandi.band_backend.global.util.S3FileManagementUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,6 +65,7 @@ public class ClubService {
     private static final String DEFAULT_CLUB_PHOTO_URL = "https://jandi-rhythmeet.s3.ap-northeast-2.amazonaws.com/club-photo/rhythmeet.webp";
 
     @Transactional
+    @CacheEvict(value = {"clubs", "clubMembers"}, allEntries = true)
     public ClubDetailRespDTO createClub(ClubReqDTO request, Integer userId) {
         Users user = userValidationUtil.getUserById(userId);
 
@@ -102,6 +105,7 @@ public class ClubService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "clubs", key = "'list_' + #pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort.toString()")
     public Page<ClubRespDTO> getClubList(Pageable pageable) {
         Page<Club> clubPage = clubRepository.findAllByDeletedAtIsNull(pageable);
 
@@ -114,6 +118,7 @@ public class ClubService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "clubs", key = "'detail_' + #clubId")
     public ClubDetailRespDTO getClubDetail(Integer clubId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -125,6 +130,7 @@ public class ClubService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "clubMembers", key = "'members_' + #clubId")
     public ClubMembersRespDTO getClubMembers(Integer clubId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -163,6 +169,7 @@ public class ClubService {
     }
 
     @Transactional
+    @CacheEvict(value = {"clubs", "clubMembers"}, key = "'detail_' + #clubId")
     public ClubDetailRespDTO updateClub(Integer clubId, ClubUpdateReqDTO request, Integer userId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -218,6 +225,7 @@ public class ClubService {
     }
 
     @Transactional
+    @CacheEvict(value = {"clubs", "clubMembers"}, allEntries = true)
     public void deleteClub(Integer clubId, Integer userId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -276,6 +284,7 @@ public class ClubService {
     }
 
     @Transactional
+    @CacheEvict(value = {"clubs", "clubMembers"}, allEntries = true)
     public void leaveClub(Integer clubId, Integer currentUserId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -291,6 +300,7 @@ public class ClubService {
     }
 
     @Transactional
+    @CacheEvict(value = {"clubs", "clubMembers"}, allEntries = true)
     public void kickMember(Integer clubId, Integer currentUserId, Integer targetUserId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 

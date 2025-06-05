@@ -14,6 +14,8 @@ import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.global.util.S3FileManagementUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,7 @@ public class PromoService {
     private static final String PROMO_PHOTO_DIR = "promo-photo";
 
     // 공연 홍보 목록 조회
+    @Cacheable(value = "promos", key = "'list_' + #pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort.toString()")
     public Page<PromoRespDTO> getPromos(Pageable pageable) {
         return promoRepository.findAllNotDeleted(pageable)
                 .map(PromoRespDTO::from);
@@ -84,6 +87,7 @@ public class PromoService {
 
     // 공연 홍보 생성 (이미지 포함)
     @Transactional
+    @CacheEvict(value = {"promos", "promoSearch"}, allEntries = true)
     public PromoSimpleRespDTO createPromo(PromoReqDTO request, Integer creatorId) {
         Users creator = userValidationUtil.getUserById(creatorId);
 
@@ -109,6 +113,7 @@ public class PromoService {
 
     // 공연 홍보 수정
     @Transactional
+    @CacheEvict(value = {"promos", "promoSearch"}, allEntries = true)
     public void updatePromo(Integer promoId, PromoReqDTO request, Integer userId) {
         Promo promo = promoRepository.findByIdAndNotDeleted(promoId);
         if (promo == null) {
@@ -154,6 +159,7 @@ public class PromoService {
 
     // 공연 홍보 삭제 (소프트 삭제)
     @Transactional
+    @CacheEvict(value = {"promos", "promoSearch"}, allEntries = true)
     public void deletePromo(Integer promoId, Integer userId) {
         Promo promo = promoRepository.findByIdAndNotDeleted(promoId);
         if (promo == null) {
@@ -212,6 +218,7 @@ public class PromoService {
     }
 
     // 공연 홍보 검색
+    @Cacheable(value = "promoSearch", key = "'search_' + #keyword + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<PromoRespDTO> searchPromos(String keyword, Pageable pageable) {
         return promoRepository.searchByKeyword(keyword, pageable)
                 .map(PromoRespDTO::from);
@@ -228,6 +235,7 @@ public class PromoService {
     }
 
     // 공연 홍보 필터링
+    @Cacheable(value = "promoSearch", key = "'filter_' + (#startDate != null ? #startDate.toString() : 'null') + '_' + (#endDate != null ? #endDate.toString() : 'null') + '_' + (#teamName != null ? #teamName : 'null') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<PromoRespDTO> filterPromos(
             LocalDateTime startDate,
             LocalDateTime endDate,
