@@ -11,6 +11,8 @@ import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserTimetableRepository;
 import com.jandi.band_backend.user.util.UserTimetableUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class UserTimetableService {
 
     /// 내 시간표 목록 조회 (userId 기반)
     @Transactional(readOnly = true)
+    @Cacheable(value = "userTimetables", key = "'list_' + #userId")
     public List<UserTimetableRespDTO> getMyTimetables(Integer userId) {
         Users user = userService.getMyInfo(userId);
 
@@ -47,6 +50,7 @@ public class UserTimetableService {
 
     /// 특정 시간표 조회 (userId 기반)
     @Transactional(readOnly = true)
+    @Cacheable(value = "userTimetables", key = "'detail_' + #userId + '_' + #timetableId")
     public UserTimetableDetailsRespDTO getMyTimetableById(Integer userId, Integer timetableId) {
         UserTimetable myTimetable = getIfMyTimetable(userId, timetableId);
 
@@ -59,6 +63,7 @@ public class UserTimetableService {
 
     /// 새 시간표 생성 (userId 기반)
     @Transactional
+    @CacheEvict(value = "userTimetables", key = "'list_' + #userId")
     public UserTimetableDetailsRespDTO createTimetable(Integer userId, UserTimetableReqDTO requestDTO) {
         Users user = userService.getMyInfo(userId);
         userTimetableUtil.validateTimetableRequest(requestDTO); // DTO 형식 검사
@@ -80,6 +85,7 @@ public class UserTimetableService {
 
     /// 내 시간표 수정 (userId 기반, ADMIN은 모든 시간표 수정 가능)
     @Transactional
+    @CacheEvict(value = "userTimetables", allEntries = true)
     public UserTimetableDetailsRespDTO updateTimetable(Integer userId, Integer timetableId, UserTimetableReqDTO requestDTO) {
         UserTimetable myTimetable = getIfMyTimetable(userId, timetableId); // 본인의 시간표일 때만 GET (ADMIN은 모든 시간표 가능)
         userTimetableUtil.validateTimetableRequest(requestDTO); // DTO 형식 검사
@@ -99,6 +105,7 @@ public class UserTimetableService {
 
     /// 내 시간표 삭제 (userId 기반, ADMIN은 모든 시간표 삭제 가능)
     @Transactional
+    @CacheEvict(value = "userTimetables", allEntries = true)
     public void deleteMyTimetable(Integer userId, Integer timetableId) {
         UserTimetable myTimetable = getIfMyTimetable(userId, timetableId); // 본인의 시간표일 때만 GET (ADMIN은 모든 시간표 가능)
 

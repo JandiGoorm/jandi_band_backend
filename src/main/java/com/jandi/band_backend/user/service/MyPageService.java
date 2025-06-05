@@ -9,6 +9,7 @@ import com.jandi.band_backend.team.repository.TeamMemberRepository;
 import com.jandi.band_backend.user.dto.MyClubRespDTO;
 import com.jandi.band_backend.user.dto.MyTeamRespDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class MyPageService {
     /**
      * 내가 참가한 동아리 목록 조회
      */
+    @Cacheable(value = "myPages", key = "'clubs_' + #userId")
     public List<MyClubRespDTO> getMyClubs(Integer userId) {
         List<ClubMember> clubMembers = clubMemberRepository.findByUserIdAndClubDeletedAtIsNullAndDeletedAtIsNullOrderByJoinedAtDesc(userId);
 
@@ -42,6 +44,7 @@ public class MyPageService {
     /**
      * 내가 참가한 팀 목록 조회
      */
+    @Cacheable(value = "myPages", key = "'teams_' + #userId")
     public List<MyTeamRespDTO> getMyTeams(Integer userId) {
         List<TeamMember> teamMembers = teamMemberRepository.findByUserIdAndTeamDeletedAtIsNullAndDeletedAtIsNullOrderByJoinedAtDesc(userId);
 

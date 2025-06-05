@@ -19,6 +19,8 @@ import com.jandi.band_backend.team.repository.TeamEventRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,7 @@ public class ClubEventService {
     private final UserValidationUtil userValidationUtil;
 
     @Transactional
+    @CacheEvict(value = "calendarEvents", allEntries = true)
     public ClubEventRespDTO createClubEvent(Integer clubId, Integer userId, ClubEventReqDTO dto) {
         Club club = entityValidationUtil.validateClubExists(clubId);
         Users creator = userValidationUtil.getUserById(userId);
@@ -62,6 +65,7 @@ public class ClubEventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "calendarEvents", key = "'club_event_' + #clubId + '_' + #eventId")
     public ClubEventRespDTO getClubEventDetail(Integer clubId, Integer eventId, Integer userId) {
         ClubEvent event = clubEventRepository
                 .findByIdAndClubIdAndDeletedAtIsNull(eventId, clubId)
@@ -74,6 +78,7 @@ public class ClubEventService {
 
     // 캘린더용 통합 일정 조회 (동아리 일정 + 모든 하위 팀 일정)
     @Transactional(readOnly = true)
+    @Cacheable(value = "calendarEvents", key = "'calendar_' + #clubId + '_' + #year + '_' + #month")
     public List<CalendarEventRespDTO> getCalendarEventsForClub(Integer clubId, Integer userId, int year, int month) {
         userValidationUtil.getUserById(userId);
 
@@ -112,6 +117,7 @@ public class ClubEventService {
 
     // 클럽 이벤트 삭제 (ADMIN은 모든 이벤트 삭제 가능)
     @Transactional
+    @CacheEvict(value = "calendarEvents", allEntries = true)
     public void deleteClubEvent(Integer clubId, Integer eventId, Integer userId) {
         Users user = userValidationUtil.getUserById(userId);
 

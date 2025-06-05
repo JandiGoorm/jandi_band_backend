@@ -80,6 +80,20 @@ public class RedisConfig {
         // 동아리 정보 - 1시간 캐시
         cacheConfigurations.put("clubs", defaultCacheConfig.entryTtl(Duration.ofHours(1)));
         cacheConfigurations.put("clubMembers", defaultCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        
+        // 중간 우선순위 캐시
+        // 사용자 개인 정보 - 1시간 캐시
+        cacheConfigurations.put("userInfo", defaultCacheConfig.entryTtl(Duration.ofHours(1)));
+        cacheConfigurations.put("myPages", defaultCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        cacheConfigurations.put("userTimetables", defaultCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        
+        // 팀 정보 - 30분 캐시
+        cacheConfigurations.put("teams", defaultCacheConfig.entryTtl(Duration.ofMinutes(30)));
+        cacheConfigurations.put("teamDetails", defaultCacheConfig.entryTtl(Duration.ofMinutes(15)));
+        
+        // 일정 정보 - 15분 캐시
+        cacheConfigurations.put("schedules", defaultCacheConfig.entryTtl(Duration.ofMinutes(15)));
+        cacheConfigurations.put("calendarEvents", defaultCacheConfig.entryTtl(Duration.ofMinutes(15)));
 
         return RedisCacheManager.builder(redisConnectionFactory())
                 .cacheDefaults(defaultCacheConfig)

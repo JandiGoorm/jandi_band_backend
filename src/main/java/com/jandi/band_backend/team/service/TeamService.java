@@ -23,6 +23,8 @@ import com.jandi.band_backend.global.util.EntityValidationUtil;
 import com.jandi.band_backend.global.util.TimetableValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,7 @@ public class TeamService {
     private final TimetableValidationUtil timetableValidationUtil;
 
     @Transactional
+    @CacheEvict(value = {"teams", "myPages"}, allEntries = true)
     public TeamDetailRespDTO createTeam(Integer clubId, TeamReqDTO teamReqDTO, Integer currentUserId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
         Users currentUser = userValidationUtil.getUserById(currentUserId);
@@ -70,6 +73,7 @@ public class TeamService {
         return createTeamDetailRespDTO(savedTeam, teamMembers);
     }
 
+    @Cacheable(value = "teams", key = "'club_' + #clubId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<TeamRespDTO> getTeamsByClub(Integer clubId, Pageable pageable, Integer currentUserId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
@@ -87,6 +91,7 @@ public class TeamService {
         });
     }
 
+    @Cacheable(value = "teamDetails", key = "'detail_' + #teamId")
     public TeamDetailRespDTO getTeamDetail(Integer teamId, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
@@ -102,6 +107,7 @@ public class TeamService {
     }
 
     @Transactional
+    @CacheEvict(value = {"teams", "teamDetails"}, allEntries = true)
     public TeamRespDTO updateTeam(Integer teamId, TeamReqDTO teamReqDTO, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
@@ -121,6 +127,7 @@ public class TeamService {
     }
 
     @Transactional
+    @CacheEvict(value = {"teams", "teamDetails", "myPages"}, allEntries = true)
     public void deleteTeam(Integer teamId, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
@@ -134,6 +141,7 @@ public class TeamService {
     }
 
     @Transactional
+    @CacheEvict(value = {"teams", "teamDetails", "myPages"}, allEntries = true)
     public void leaveTeam(Integer teamId, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 

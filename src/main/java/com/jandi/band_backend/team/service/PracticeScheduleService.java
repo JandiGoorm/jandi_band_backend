@@ -15,6 +15,8 @@ import com.jandi.band_backend.team.repository.TeamRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class PracticeScheduleService {
     private final EntityValidationUtil entityValidationUtil;
     private final UserValidationUtil userValidationUtil;
 
+    @Cacheable(value = "schedules", key = "'team_' + #teamId + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<PracticeScheduleRespDTO> getPracticeSchedulesByTeam(Integer teamId, Pageable pageable, Integer userId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
@@ -47,6 +50,7 @@ public class PracticeScheduleService {
                 .map(PracticeScheduleRespDTO::from);
     }
 
+    @Cacheable(value = "schedules", key = "'schedule_' + #scheduleId")
     public PracticeScheduleRespDTO getPracticeSchedule(Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = entityValidationUtil.validateTeamEventExists(scheduleId);
 
@@ -59,6 +63,7 @@ public class PracticeScheduleService {
         return PracticeScheduleRespDTO.from(teamEvent);
     }
 
+    @Cacheable(value = "schedules", key = "'detail_' + #teamId + '_' + #scheduleId")
     public PracticeScheduleRespDTO getPracticeScheduleDetail(Integer teamId, Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = entityValidationUtil.validateTeamEventBelongsToTeam(teamId, scheduleId);
 
@@ -72,6 +77,7 @@ public class PracticeScheduleService {
     }
 
     @Transactional
+    @CacheEvict(value = {"schedules", "calendarEvents"}, allEntries = true)
     public PracticeScheduleRespDTO createPracticeSchedule(Integer teamId, PracticeScheduleReqDTO request, Integer creatorId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
         Users creator = userValidationUtil.getUserById(creatorId);
@@ -87,6 +93,7 @@ public class PracticeScheduleService {
     }
 
     @Transactional
+    @CacheEvict(value = {"schedules", "calendarEvents"}, allEntries = true)
     public void deletePracticeSchedule(Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = entityValidationUtil.validateTeamEventExists(scheduleId);
 
@@ -100,6 +107,7 @@ public class PracticeScheduleService {
     }
 
     @Transactional
+    @CacheEvict(value = {"schedules", "calendarEvents"}, allEntries = true)
     public void deletePracticeScheduleByTeam(Integer teamId, Integer scheduleId, Integer userId) {
         TeamEvent teamEvent = entityValidationUtil.validateTeamEventBelongsToTeam(teamId, scheduleId);
 

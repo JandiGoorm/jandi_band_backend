@@ -7,6 +7,8 @@ import com.jandi.band_backend.user.dto.UpdateUserInfoReqDTO;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class UserService {
 
     /// 사용자 조회 (카카오 ID 기반) - 인증/로그인 시 사용자 찾기 전용
     @Transactional(readOnly = true)
+    @Cacheable(value = "userInfo", key = "'kakao_' + #kakaoOauthId")
     public Users getMyInfoByKakaoId(String kakaoOauthId) {
         return userRepository.findByKakaoOauthId(kakaoOauthId)
                 .orElseThrow(UserNotFoundException::new);
@@ -25,6 +28,7 @@ public class UserService {
 
     /// 사용자 조회 (userId 기반) - 내부 비즈니스 로직에서 사용
     @Transactional(readOnly = true)
+    @Cacheable(value = "userInfo", key = "'user_' + #userId")
     public Users getMyInfo(Integer userId) {
         return userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -32,6 +36,7 @@ public class UserService {
 
     /// 내 기본 정보 수정 (userId 기반)
     @Transactional
+    @CacheEvict(value = {"userInfo", "myPages"}, key = "'user_' + #userId")
     public Integer updateMyInfo(Integer userId, UpdateUserInfoReqDTO updateDTO) {
         Users user = getMyInfo(userId);
         return updateUser(user, updateDTO);
