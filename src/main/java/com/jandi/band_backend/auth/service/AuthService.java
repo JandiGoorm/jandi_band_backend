@@ -29,6 +29,7 @@ import com.jandi.band_backend.user.repository.UserRepository;
 import com.jandi.band_backend.user.repository.UserTimetableRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +65,9 @@ public class AuthService {
     private final PromoLikeRepository promoLikeRepository;
     private final PromoCommentLikeRepository promoCommentLikeRepository;
 
+    @Value("${user-withdraw.days}")
+    private Integer userWithdrawDays;
+
     /// 로그인
     @Transactional
     public TokenRespDTO login(KakaoUserInfoDTO kakaoUserInfo) {
@@ -72,7 +76,7 @@ public class AuthService {
 
         // 만약 탈퇴 회원이라면 로그인 불가
         if(user.getDeletedAt() != null) { // 탈퇴 회원이라면 로그인 불가
-            throw new InvalidAccessException("탈퇴 후 7일간 서비스 이용이 불가합니다.");
+            throw new InvalidAccessException("탈퇴 후 "+ userWithdrawDays + "+일간 서비스 이용이 불가합니다.");
         }
 
         // 자체 jwt 토큰 발급

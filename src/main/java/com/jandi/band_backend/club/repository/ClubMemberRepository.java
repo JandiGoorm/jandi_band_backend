@@ -42,4 +42,6 @@ public interface ClubMemberRepository extends JpaRepository<ClubMember, Integer>
 
     // deleted_at 상태와 관계없이 동아리 ID와 사용자 ID로 멤버 조회 (재가입 처리용)
     Optional<ClubMember> findByClubIdAndUserId(Integer clubId, Integer userId);
+
+    int deleteAllByUser(Users user);
 }

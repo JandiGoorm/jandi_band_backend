@@ -24,4 +24,8 @@ public interface UserTimetableRepository extends JpaRepository<UserTimetable, In
     @Modifying
     @Query("UPDATE UserTimetable ut SET ut.deletedAt = :deletedAt WHERE ut.user.id = :userId AND ut.deletedAt IS NULL")
     int softDeleteByUserId(@Param("userId") Integer userId, @Param("deletedAt") LocalDateTime deletedAt);
+
+    List<UserTimetable> findAllByUser(Users user);
+
+    int deleteAllByUser(Users user);
 }

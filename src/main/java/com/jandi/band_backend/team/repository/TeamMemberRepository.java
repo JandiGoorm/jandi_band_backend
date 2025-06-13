@@ -1,6 +1,7 @@
 package com.jandi.band_backend.team.repository;
 
 import com.jandi.band_backend.team.entity.TeamMember;
+import com.jandi.band_backend.user.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Integer>
 
     // deleted_at 상태와 관계없이 팀 ID와 사용자 ID로 멤버 조회 (재가입 처리용)
     Optional<TeamMember> findByTeamIdAndUserId(Integer teamId, Integer userId);
+
+    int deleteAllByUser(Users user);
 }
