@@ -168,8 +168,11 @@ public class TeamService {
     }
 
     private void performTeamSoftDelete(Integer teamId) {
-        LocalDateTime deletedTime = LocalDateTime.now();
+        performTeamSoftDelete(teamId, LocalDateTime.now());
+    }
 
+    @Transactional
+    public void performTeamSoftDelete(Integer teamId, LocalDateTime deletedTime) {
         List<TeamMember> teamMembers = teamMemberRepository.findByTeamIdAndDeletedAtIsNull(teamId);
         teamMembers.forEach(teamMember -> teamMember.setDeletedAt(deletedTime));
         teamMemberRepository.saveAll(teamMembers);

@@ -21,6 +21,7 @@ import com.jandi.band_backend.team.repository.TeamEventRepository;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;
 import com.jandi.band_backend.team.entity.TeamEvent;
+import com.jandi.band_backend.team.service.TeamService;
 import com.jandi.band_backend.univ.dto.UniversityRespDTO;
 import com.jandi.band_backend.univ.entity.University;
 import com.jandi.band_backend.univ.repository.UniversityRepository;
@@ -62,6 +63,7 @@ public class ClubService {
     private final S3FileManagementUtil s3FileManagementUtil;
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
+    private final TeamService teamService;
 
     private static final String CLUB_PHOTO_DIR = "club-photo";
     private static final String DEFAULT_CLUB_PHOTO_URL = "https://jandi-rhythmeet.s3.ap-northeast-2.amazonaws.com/club-photo/rhythmeet.webp";
@@ -439,6 +441,12 @@ public class ClubService {
                     .ifPresent(teamMember -> {
                         teamMember.setDeletedAt(deletedTime);
                         teamMemberRepository.save(teamMember);
+
+                        // 팀에서 해당 사용자를 제거한 후 남은 팀원 수 확인, 팀원이 0명이면 팀을 소프트 삭제
+                        int remainingMemberCount = teamMemberRepository.countByTeamIdAndDeletedAtIsNull(team.getId());
+                        if (remainingMemberCount == 0) {
+                            teamService.performTeamSoftDelete(team.getId(), deletedTime);
+                        }
                     });
         }
     }
