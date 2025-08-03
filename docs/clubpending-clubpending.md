@@ -46,7 +46,7 @@ curl -X POST "http://localhost:8080/api/clubs/1/pendings" \
 - **400**: 이미 가입한 동아리
 - **400**: 이미 신청한 동아리
 - **403**: 강퇴된 사용자의 재가입 시도
-- **404**: 존재하지 않는 동아리
+- **404**: 존재하지 않거나 삭제된 동아리
 
 ### 비즈니스 규칙
 - 가입 신청은 7일 후 자동 만료
@@ -217,6 +217,7 @@ curl -X PATCH "http://localhost:8080/api/clubs/pendings/1" \
 ### 실패 응답
 - **403**: 동아리 대표자가 아님
 - **404**: 존재하지 않는 신청
+- **404**: 삭제된 동아리의 가입 신청
 - **400**: 이미 처리된 신청
 - **400**: 만료된 신청
 
@@ -295,7 +296,10 @@ curl -X DELETE "http://localhost:8080/api/clubs/pendings/1" \
 ## 성능 최적화
 
 ### 쿼리 최적화
-- 대기 목록 조회 시 JOIN FETCH를 사용하여 N+1 쿼리 문제 해결
+- **모든 조회 메소드에 JOIN FETCH 적용으로 N+1 쿼리 문제 해결**
+  - `findById`: @EntityGraph를 사용하여 user, club, processedBy 엔티티 즉시 로딩
+  - `findPendingByClubIdAndUserId`: JOIN FETCH로 user, club 엔티티 즉시 로딩
+  - `findPendingsByClubId`: JOIN FETCH로 user, club 엔티티 즉시 로딩
 - 회원 상태 확인을 한 번의 쿼리로 통합하여 DB 조회 최소화
 
 ### 보안 강화
