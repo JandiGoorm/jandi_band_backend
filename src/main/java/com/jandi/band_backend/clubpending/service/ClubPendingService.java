@@ -44,31 +44,28 @@ public class ClubPendingService {
         Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("동아리를 찾을 수 없습니다."));
 
-        // 회원 상태를 한 번의 조회로 확인
+        // 유저의 동아리 가입 상태 확인
         Optional<ClubMember> memberOptional = clubMemberRepository.findByClubIdAndUserId(club.getId(), userId);
-        
+
         if (memberOptional.isPresent()) {
             ClubMember member = memberOptional.get();
-            
-            // 강퇴된 회원인지 확인
+
             if (member.getRole() == ClubMember.MemberRole.BANNED) {
                 throw new BannedMemberJoinAttemptException("강퇴된 사용자는 해당 동아리에 재가입할 수 없습니다.");
             }
-            
-            // 현재 활성 회원인지 확인
+
             if (member.getDeletedAt() == null) {
                 throw new InvalidAccessException("이미 가입한 동아리입니다.");
             }
         }
 
-        // PENDING 상태의 신청이 있는지 확인
         Optional<ClubPending> pendingApplication = clubPendingRepository.findPendingByClubIdAndUserId(club.getId(), userId);
 
         if (pendingApplication.isPresent()) {
-            throw new DuplicateApplicationException("이미 신청한 동아리입니다.");
+            throw new DuplicateApplicationException("이미 가입 신청한 동아리입니다.");
         }
 
-        // 새로운 신청 생성 (거부/만료된 신청이 있어도 새로 생성)
+        // 새로운 신청 생성
         try {
             ClubPending newPending = new ClubPending();
             newPending.setClub(club);
@@ -76,8 +73,7 @@ public class ClubPendingService {
 
             return ClubPendingRespDTO.from(clubPendingRepository.save(newPending));
         } catch (DataIntegrityViolationException e) {
-            // 동시성으로 인한 중복 신청이 발생한 경우
-            throw new DuplicateApplicationException("이미 신청한 동아리입니다.");
+            throw new DuplicateApplicationException("이미 가입 신청한 동아리입니다.");
         }
     }
 
@@ -104,9 +100,8 @@ public class ClubPendingService {
 
 
     public ClubPendingRespDTO getMyPendingForClub(Integer clubId, Integer userId) {
-        // PENDING 상태의 신청만 조회 (현재 대기중인 신청)
         Optional<ClubPending> pending = clubPendingRepository.findPendingByClubIdAndUserId(clubId, userId);
-        
+
         return pending.map(ClubPendingRespDTO::from).orElse(null);
     }
 
@@ -151,7 +146,6 @@ public class ClubPendingService {
             throw new AlreadyProcessedException("대기중인 신청만 취소할 수 있습니다.");
         }
 
-        // 소프트 삭제: 상태를 CANCELED로 변경
         pending.setStatus(PendingStatus.CANCELED);
         pending.setProcessedAt(LocalDateTime.now());
         clubPendingRepository.save(pending);
