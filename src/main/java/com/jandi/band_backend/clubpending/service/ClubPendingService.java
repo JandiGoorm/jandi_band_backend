@@ -37,7 +37,7 @@ public class ClubPendingService {
     private final PermissionValidationUtil permissionValidationUtil;
 
     @Transactional
-    public ClubPendingRespDTO applyToClub(Integer userId, Integer clubId) {
+    public ClubPendingRespDTO applyToClub(Integer clubId, Integer userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -111,7 +111,7 @@ public class ClubPendingService {
     }
 
     @Transactional
-    public ClubPendingRespDTO processPending(Integer pendingId, Integer userId, ClubPendingProcessReqDTO reqDTO) {
+    public ClubPendingRespDTO processPending(Integer pendingId, ClubPendingProcessReqDTO request, Integer userId) {
         ClubPending pending = clubPendingRepository.findById(pendingId)
                 .orElseThrow(PendingNotFoundException::new);
 
@@ -124,14 +124,14 @@ public class ClubPendingService {
         Users processor = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        pending.setStatus(reqDTO.getApprove() ? PendingStatus.APPROVED : PendingStatus.REJECTED);
+        pending.setStatus(request.getApprove() ? PendingStatus.APPROVED : PendingStatus.REJECTED);
         pending.setProcessedBy(processor);
         pending.setProcessedAt(LocalDateTime.now());
 
         ClubPending savedPending = clubPendingRepository.save(pending);
 
         // 승인시 ClubMember로 등록
-        if (reqDTO.getApprove()) {
+        if (request.getApprove()) {
             createClubMember(pending.getClub(), pending.getUser());
         }
 
