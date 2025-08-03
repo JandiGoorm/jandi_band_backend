@@ -54,22 +54,22 @@ public class NoticeService {
         }
     }
 
-    private void validateUpdateRequest(NoticeUpdateReqDTO reqDTO, Notice notice) {
+    private void validateUpdateRequest(NoticeUpdateReqDTO request, Notice notice) {
         // 제목이 빈 문자열인지 검증
-        if (reqDTO.getTitle() != null && reqDTO.getTitle().trim().isEmpty()) {
+        if (request.getTitle() != null && request.getTitle().trim().isEmpty()) {
             throw new BadRequestException("제목은 비어있을 수 없습니다.");
         }
 
         // 이미지 파일 검증
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
             // 파일 크기 검증 (예: 10MB 제한)
             long maxSize = 10 * 1024 * 1024; // 10MB
-            if (reqDTO.getImage().getSize() > maxSize) {
+            if (request.getImage().getSize() > maxSize) {
                 throw new BadRequestException("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
             }
 
             // 파일 타입 검증
-            String contentType = reqDTO.getImage().getContentType();
+            String contentType = request.getImage().getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 throw new BadRequestException("이미지 파일만 업로드 가능합니다.");
             }
@@ -106,23 +106,23 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDetailRespDTO createNotice(NoticeReqDTO reqDTO, Integer creatorId) {
+    public NoticeDetailRespDTO createNotice(NoticeReqDTO request, Integer creatorId) {
         Users creator = validateAdminPermissionAndGetUser(creatorId);
 
-        validateDateTimeRange(reqDTO.getStartDatetime(), reqDTO.getEndDatetime());
+        validateDateTimeRange(request.getStartDatetime(), request.getEndDatetime());
 
         Notice notice = new Notice();
         notice.setCreator(creator);
-        notice.setTitle(reqDTO.getTitle());
-        notice.setContent(reqDTO.getContent());
-        notice.setStartDatetime(reqDTO.getStartDatetime());
-        notice.setEndDatetime(reqDTO.getEndDatetime());
-        notice.setIsPaused(reqDTO.getIsPaused());
+        notice.setTitle(request.getTitle());
+        notice.setContent(request.getContent());
+        notice.setStartDatetime(request.getStartDatetime());
+        notice.setEndDatetime(request.getEndDatetime());
+        notice.setIsPaused(request.getIsPaused());
 
         // 이미지 업로드 처리
         String imageUrl = null;
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
-            imageUrl = uploadImage(reqDTO.getImage());
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            imageUrl = uploadImage(request.getImage());
         }
         notice.setImageUrl(imageUrl);
 
@@ -140,19 +140,19 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeUpdateReqDTO reqDTO, Integer userId) {
+    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeUpdateReqDTO request, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
         Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
         // 입력값 검증
-        validateUpdateRequest(reqDTO, notice);
+        validateUpdateRequest(request, notice);
 
         // 시작/종료 시각 유효성 검사
-        if (reqDTO.getStartDatetime() != null || reqDTO.getEndDatetime() != null) {
-            LocalDateTime startTime = reqDTO.getStartDatetime() != null ? reqDTO.getStartDatetime() : notice.getStartDatetime();
-            LocalDateTime endTime = reqDTO.getEndDatetime() != null ? reqDTO.getEndDatetime() : notice.getEndDatetime();
+        if (request.getStartDatetime() != null || request.getEndDatetime() != null) {
+            LocalDateTime startTime = request.getStartDatetime() != null ? request.getStartDatetime() : notice.getStartDatetime();
+            LocalDateTime endTime = request.getEndDatetime() != null ? request.getEndDatetime() : notice.getEndDatetime();
             validateDateTimeRange(startTime, endTime);
 
             // 과거 날짜 검증
@@ -163,17 +163,17 @@ public class NoticeService {
         }
 
         // 부분 업데이트 - null이 아닌 값만 업데이트
-        if (reqDTO.getTitle() != null) {
-            notice.setTitle(reqDTO.getTitle());
+        if (request.getTitle() != null) {
+            notice.setTitle(request.getTitle());
         }
-        if (reqDTO.getContent() != null) {
-            notice.setContent(reqDTO.getContent());
+        if (request.getContent() != null) {
+            notice.setContent(request.getContent());
         }
-        if (reqDTO.getStartDatetime() != null) {
-            notice.setStartDatetime(reqDTO.getStartDatetime());
+        if (request.getStartDatetime() != null) {
+            notice.setStartDatetime(request.getStartDatetime());
         }
-        if (reqDTO.getEndDatetime() != null) {
-            notice.setEndDatetime(reqDTO.getEndDatetime());
+        if (request.getEndDatetime() != null) {
+            notice.setEndDatetime(request.getEndDatetime());
         }
 
         // 이미지 처리 로직 개선
@@ -182,17 +182,17 @@ public class NoticeService {
         boolean shouldDeleteOldImage = false;
 
         // 이미지 삭제와 업로드가 동시에 요청된 경우 업로드를 우선시
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
             // 새 이미지 업로드
             try {
-                newImageUrl = uploadImage(reqDTO.getImage());
+                newImageUrl = uploadImage(request.getImage());
                 notice.setImageUrl(newImageUrl);
                 shouldDeleteOldImage = (oldImageUrl != null);
             } catch (Exception e) {
                 log.error("이미지 업로드 실패 - noticeId: {}", noticeId, e);
                 throw new BadRequestException("이미지 업로드에 실패했습니다. 파일 크기나 형식을 확인해주세요.");
             }
-        } else if (reqDTO.getDeleteImage() != null && reqDTO.getDeleteImage()) {
+        } else if (request.getDeleteImage() != null && request.getDeleteImage()) {
             // 이미지 삭제만 요청된 경우
             notice.setImageUrl(null);
             shouldDeleteOldImage = (oldImageUrl != null);
