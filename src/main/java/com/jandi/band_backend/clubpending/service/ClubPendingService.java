@@ -41,7 +41,7 @@ public class ClubPendingService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        Club club = clubRepository.findById(clubId)
+        Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("동아리를 찾을 수 없습니다."));
 
         // 회원 상태를 한 번의 조회로 확인
@@ -84,7 +84,7 @@ public class ClubPendingService {
     public ClubPendingListRespDTO getPendingListByClub(Integer clubId, Integer userId) {
         permissionValidationUtil.validateClubRepresentativeAccess(clubId, userId, "신청 목록 조회 권한이 없습니다.");
 
-        Club club = clubRepository.findById(clubId)
+        Club club = clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("동아리를 찾을 수 없습니다."));
 
         List<ClubPending> pendings = clubPendingRepository.findPendingsByClubId(clubId);
