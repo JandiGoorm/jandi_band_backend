@@ -147,7 +147,10 @@ public class ClubPendingService {
             throw new AlreadyProcessedException("대기중인 신청만 취소할 수 있습니다.");
         }
 
-        clubPendingRepository.delete(pending);
+        // 소프트 삭제: 상태를 CANCELED로 변경
+        pending.setStatus(PendingStatus.CANCELED);
+        pending.setProcessedAt(LocalDateTime.now());
+        clubPendingRepository.save(pending);
     }
 
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정 실행

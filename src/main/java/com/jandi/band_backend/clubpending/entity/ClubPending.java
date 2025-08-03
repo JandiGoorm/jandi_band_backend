@@ -52,7 +52,8 @@ public class ClubPending {
         PENDING,
         APPROVED,
         REJECTED,
-        EXPIRED
+        EXPIRED,
+        CANCELED
     }
 
     @PrePersist
