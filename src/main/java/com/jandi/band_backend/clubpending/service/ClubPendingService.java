@@ -115,6 +115,10 @@ public class ClubPendingService {
         ClubPending pending = clubPendingRepository.findById(pendingId)
                 .orElseThrow(PendingNotFoundException::new);
 
+        if (pending.getClub().getDeletedAt() != null) {
+            throw new ClubNotFoundException("삭제된 동아리의 가입 신청은 처리할 수 없습니다.");
+        }
+
         validateProcessingAuthority(pending, userId);
 
         Users processor = userRepository.findById(userId)
