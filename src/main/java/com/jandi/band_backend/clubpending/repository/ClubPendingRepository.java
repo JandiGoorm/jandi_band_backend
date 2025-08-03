@@ -1,6 +1,7 @@
 package com.jandi.band_backend.clubpending.repository;
 
 import com.jandi.band_backend.clubpending.entity.ClubPending;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,10 +15,14 @@ import java.util.Optional;
 @Repository
 public interface ClubPendingRepository extends JpaRepository<ClubPending, Integer> {
 
-    @Query("SELECT cp FROM ClubPending cp WHERE cp.club.id = :clubId AND cp.user.id = :userId AND cp.status = 'PENDING'")
+    @Override
+    @EntityGraph(attributePaths = {"user", "club", "processedBy"})
+    Optional<ClubPending> findById(Integer id);
+
+    @Query("SELECT cp FROM ClubPending cp JOIN FETCH cp.user JOIN FETCH cp.club WHERE cp.club.id = :clubId AND cp.user.id = :userId AND cp.status = 'PENDING'")
     Optional<ClubPending> findPendingByClubIdAndUserId(@Param("clubId") Integer clubId, @Param("userId") Integer userId);
 
-    @Query("SELECT cp FROM ClubPending cp JOIN FETCH cp.user WHERE cp.club.id = :clubId AND cp.status = 'PENDING' ORDER BY cp.appliedAt DESC")
+    @Query("SELECT cp FROM ClubPending cp JOIN FETCH cp.user JOIN FETCH cp.club WHERE cp.club.id = :clubId AND cp.status = 'PENDING' ORDER BY cp.appliedAt DESC")
     List<ClubPending> findPendingsByClubId(@Param("clubId") Integer clubId);
 
     @Modifying
