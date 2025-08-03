@@ -4,6 +4,7 @@ import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.notice.dto.NoticeReqDTO;
+import com.jandi.band_backend.notice.dto.NoticeUpdateReqDTO;
 import com.jandi.band_backend.notice.dto.NoticeDetailRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeRespDTO;
 import com.jandi.band_backend.notice.entity.Notice;
@@ -50,6 +51,28 @@ public class NoticeService {
     private void validateDateTimeRange(LocalDateTime startDatetime, LocalDateTime endDatetime) {
         if (!endDatetime.isAfter(startDatetime)) {
             throw new BadRequestException("종료 시각은 시작 시각보다 늦어야 합니다.");
+        }
+    }
+
+    private void validateUpdateRequest(NoticeUpdateReqDTO reqDTO, Notice notice) {
+        // 제목이 빈 문자열인지 검증
+        if (reqDTO.getTitle() != null && reqDTO.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("제목은 비어있을 수 없습니다.");
+        }
+
+        // 이미지 파일 검증
+        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
+            // 파일 크기 검증 (예: 10MB 제한)
+            long maxSize = 10 * 1024 * 1024; // 10MB
+            if (reqDTO.getImage().getSize() > maxSize) {
+                throw new BadRequestException("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
+            }
+
+            // 파일 타입 검증
+            String contentType = reqDTO.getImage().getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new BadRequestException("이미지 파일만 업로드 가능합니다.");
+            }
         }
     }
 
@@ -117,37 +140,81 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeReqDTO reqDTO, Integer userId) {
+    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeUpdateReqDTO reqDTO, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
         Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
-        validateDateTimeRange(reqDTO.getStartDatetime(), reqDTO.getEndDatetime());
+        // 입력값 검증
+        validateUpdateRequest(reqDTO, notice);
 
-        notice.setTitle(reqDTO.getTitle());
-        notice.setContent(reqDTO.getContent());
-        notice.setStartDatetime(reqDTO.getStartDatetime());
-        notice.setEndDatetime(reqDTO.getEndDatetime());
+        // 시작/종료 시각 유효성 검사
+        if (reqDTO.getStartDatetime() != null || reqDTO.getEndDatetime() != null) {
+            LocalDateTime startTime = reqDTO.getStartDatetime() != null ? reqDTO.getStartDatetime() : notice.getStartDatetime();
+            LocalDateTime endTime = reqDTO.getEndDatetime() != null ? reqDTO.getEndDatetime() : notice.getEndDatetime();
+            validateDateTimeRange(startTime, endTime);
 
-        // 이미지 교체 처리
-        String oldImageUrl = notice.getImageUrl();
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
-            String newImageUrl = uploadImage(reqDTO.getImage());
-            notice.setImageUrl(newImageUrl);
+            // 과거 날짜 검증
+            LocalDateTime now = LocalDateTime.now();
+            if (endTime.isBefore(now)) {
+                log.warn("종료 시각이 현재보다 과거로 설정됨 - noticeId: {}, endTime: {}", noticeId, endTime);
+            }
         }
-        // isPaused는 별도의 토글 API에서 변경 가능
+
+        // 부분 업데이트 - null이 아닌 값만 업데이트
+        if (reqDTO.getTitle() != null) {
+            notice.setTitle(reqDTO.getTitle());
+        }
+        if (reqDTO.getContent() != null) {
+            notice.setContent(reqDTO.getContent());
+        }
+        if (reqDTO.getStartDatetime() != null) {
+            notice.setStartDatetime(reqDTO.getStartDatetime());
+        }
+        if (reqDTO.getEndDatetime() != null) {
+            notice.setEndDatetime(reqDTO.getEndDatetime());
+        }
+
+        // 이미지 처리 로직 개선
+        String oldImageUrl = notice.getImageUrl();
+        String newImageUrl = null;
+        boolean shouldDeleteOldImage = false;
+
+        // 이미지 삭제와 업로드가 동시에 요청된 경우 업로드를 우선시
+        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
+            // 새 이미지 업로드
+            try {
+                newImageUrl = uploadImage(reqDTO.getImage());
+                notice.setImageUrl(newImageUrl);
+                shouldDeleteOldImage = (oldImageUrl != null);
+            } catch (Exception e) {
+                log.error("이미지 업로드 실패 - noticeId: {}", noticeId, e);
+                throw new BadRequestException("이미지 업로드에 실패했습니다. 파일 크기나 형식을 확인해주세요.");
+            }
+        } else if (reqDTO.getDeleteImage() != null && reqDTO.getDeleteImage()) {
+            // 이미지 삭제만 요청된 경우
+            notice.setImageUrl(null);
+            shouldDeleteOldImage = (oldImageUrl != null);
+        }
 
         try {
             Notice updatedNotice = noticeRepository.save(notice);
-            // 새 이미지로 교체된 경우에만 기존 이미지 삭제
-            if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty() && oldImageUrl != null) {
+
+            // DB 저장 성공 후 기존 이미지 삭제
+            if (shouldDeleteOldImage) {
                 deleteImage(oldImageUrl);
             }
+
             log.info("공지사항 수정 완료 - ID: {}, 제목: {}", updatedNotice.getId(), sanitizeTitle(updatedNotice.getTitle()));
             return new NoticeDetailRespDTO(updatedNotice);
         } catch (Exception e) {
-            throw new RuntimeException("DB 저장 실패: " + e.getMessage(), e);
+            // DB 저장 실패 시 업로드된 새 이미지 삭제 (롤백)
+            if (newImageUrl != null) {
+                deleteImage(newImageUrl);
+            }
+            log.error("공지사항 수정 실패 - noticeId: {}", noticeId, e);
+            throw new BadRequestException("공지사항 수정에 실패했습니다. 다시 시도해주세요.");
         }
     }
 
