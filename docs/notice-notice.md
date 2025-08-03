@@ -203,7 +203,7 @@ curl -X POST "http://localhost:8080/api/notices" \
 
 ## 5. 공지사항 수정 (관리자 전용)
 ```
-PUT /api/notices/{noticeId}
+PATCH /api/notices/{noticeId}
 Authorization: Bearer {JWT_TOKEN}
 Content-Type: multipart/form-data
 ```
@@ -212,13 +212,26 @@ Content-Type: multipart/form-data
 
 ### 요청 예시
 ```bash
-curl -X PUT "http://localhost:8080/api/notices/1" \
+# 제목과 내용만 수정
+curl -X PATCH "http://localhost:8080/api/notices/1" \
   -H "Authorization: Bearer {JWT_TOKEN}" \
   -F "title=수정된 점검 안내" \
-  -F "content=수정된 내용입니다." \
-  -F "startDatetime=2024-12-10T00:00:00" \
-  -F "endDatetime=2024-12-10T23:59:59" \
+  -F "content=수정된 내용입니다."
+
+# 이미지만 변경
+curl -X PATCH "http://localhost:8080/api/notices/1" \
+  -H "Authorization: Bearer {JWT_TOKEN}" \
   -F "image=@/path/to/new-image.jpg"
+
+# 시작/종료 시각만 변경
+curl -X PATCH "http://localhost:8080/api/notices/1" \
+  -H "Authorization: Bearer {JWT_TOKEN}" \
+  -F "endDatetime=2024-12-11T23:59:59"
+
+# 이미지 삭제
+curl -X PATCH "http://localhost:8080/api/notices/1" \
+  -H "Authorization: Bearer {JWT_TOKEN}" \
+  -F "deleteImage=true"
 ```
 
 ### 성공 응답 (200)
@@ -243,24 +256,34 @@ curl -X PUT "http://localhost:8080/api/notices/1" \
 }
 ```
 
-### 요청 필드
-- `title` (string, 필수): 공지사항 제목 (최대 255자)
-- `content` (string, 필수): 공지사항 내용
-- `startDatetime` (datetime, 필수): 팝업 노출 시작 시각
-- `endDatetime` (datetime, 필수): 팝업 노출 종료 시각
-- `image` (file, 선택): 첨부 이미지 파일
+### 요청 필드 (모두 선택적)
+- `title` (string, 선택): 공지사항 제목 (최대 255자)
+- `content` (string, 선택): 공지사항 내용
+- `startDatetime` (datetime, 선택): 팝업 노출 시작 시각
+- `endDatetime` (datetime, 선택): 팝업 노출 종료 시각
+- `image` (file, 선택): 새로운 첨부 이미지 파일
+- `deleteImage` (boolean, 선택): 이미지 삭제 여부 (true로 설정 시 기존 이미지 삭제)
+
+### 부분 수정 특징
+- **모든 필드가 선택적입니다** - 변경하고 싶은 필드만 포함하여 요청
+- 포함되지 않은 필드는 기존 값이 유지됩니다
+- 빈 문자열이나 null 값으로 필드를 비울 수 없습니다 (제목의 경우 빈 문자열 전송 시 에러)
 
 ### 실패 응답
-- **400**: 필수 필드 누락 또는 종료 시각이 시작 시각보다 이른 경우
+- **400**:
+  - 빈 제목 (공백만 있는 경우)
+  - 종료 시각이 시작 시각보다 이른 경우
+  - 이미지 파일 크기가 10MB 초과
+  - 이미지가 아닌 파일 업로드
 - **403**: 관리자 권한 없음
 - **404**: 존재하지 않는 공지사항
 
-### 이미지 수정 참고사항
-- **일시정지 상태(`isPaused`)는 수정되지 않습니다**
-- 일시정지 상태를 변경하려면 별도의 토글 API(`PATCH /api/notices/{noticeId}/toggle-pause`)를 사용하세요
-- 새 이미지를 업로드하면 기존 이미지는 S3에서 자동으로 삭제됩니다
-- `image` 필드를 생략하면 기존 이미지가 유지됩니다
-- 이미지를 완전히 제거할 수는 없으며, 새 이미지로만 교체 가능합니다
+### 이미지 처리 참고사항
+- **이미지 삭제**: `deleteImage=true`로 설정하여 기존 이미지 제거 가능
+- **이미지 교체**: 새 이미지 파일을 전송하면 기존 이미지는 자동 삭제
+- **동시 요청 시**: `deleteImage=true`와 새 이미지를 동시에 보내면 새 이미지 업로드가 우선
+- **일시정지 상태(`isPaused`)는 수정되지 않습니다** - 별도의 토글 API 사용
+- 이미지 크기는 10MB로 제한되며, 이미지 파일만 업로드 가능
 
 ---
 
@@ -436,7 +459,7 @@ curl -X PATCH "http://localhost:8080/api/notices/1/toggle-pause" \
 **사용 API:**
 - `GET /api/notices/{noticeId}` (공지사항 상세 조회)
 - `POST /api/notices` (공지사항 생성)
-- `PUT /api/notices/{noticeId}` (공지사항 수정)
+- `PATCH /api/notices/{noticeId}` (공지사항 수정)
 
 ---
 
