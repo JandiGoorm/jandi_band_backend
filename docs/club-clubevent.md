@@ -8,8 +8,9 @@ JWT 인증 필요 (Spring Security + @AuthenticationPrincipal CustomUserDetails)
 
 ## 권한 관리
 - **조회**: 로그인한 모든 사용자
-- **생성**: 동아리 멤버만 가능 
+- **생성**: 동아리 멤버만 가능
 - **삭제**: 일정을 생성한 사용자, 동아리 운영자, 또는 ADMIN 권한 사용자
+- **캘린더 조회**: 로그인한 모든 사용자 (공개 API)
 
 ---
 
@@ -85,8 +86,10 @@ curl -X GET "http://localhost:8080/api/clubs/1/events/15" \
 ### GET `/api/clubs/{clubId}/calendar`
 
 #### 설명
-동아리의 모든 일정(동아리 일정 + 모든 하위 팀의 연습 일정)을 통합하여 조회합니다. 
+동아리의 모든 일정(동아리 일정 + 모든 하위 팀의 연습 일정)을 통합하여 조회합니다.
 이 API 하나로 모든 일정을 확인할 수 있으며, 프론트엔드에서 `eventType` 필드로 필터링이 가능합니다.
+
+**참고**: 이 API는 인증된 사용자라면 동아리 멤버가 아니어도 접근 가능합니다.
 
 #### 경로 파라미터
 - `clubId` (integer, 필수): 동아리 ID
@@ -214,7 +217,7 @@ curl -X DELETE "http://localhost:8080/api/clubs/1/events/15" \
   "errorCode": "FORBIDDEN"
 }
 ```
-**발생 케이스**: 
+**발생 케이스**:
 - 동아리 멤버가 아닌 사용자의 일정 생성 시도
 - 일정 삭제 시 생성자, 동아리 운영자, ADMIN이 아닌 경우
 

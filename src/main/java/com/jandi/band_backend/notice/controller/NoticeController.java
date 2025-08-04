@@ -3,6 +3,7 @@ package com.jandi.band_backend.notice.controller;
 import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.dto.PagedRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeReqDTO;
+import com.jandi.band_backend.notice.dto.NoticeUpdateReqDTO;
 import com.jandi.band_backend.notice.dto.NoticeDetailRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeRespDTO;
 import com.jandi.band_backend.notice.service.NoticeService;
@@ -69,10 +70,10 @@ public class NoticeController {
     }
 
     @Operation(summary = "공지사항 수정 (관리자 전용)")
-    @PutMapping("/{noticeId}")
+    @PatchMapping("/{noticeId}")
     public ResponseEntity<CommonRespDTO<NoticeDetailRespDTO>> updateNotice(
             @PathVariable Integer noticeId,
-            @Valid @ModelAttribute NoticeReqDTO request,
+            @Valid @ModelAttribute NoticeUpdateReqDTO request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
         NoticeDetailRespDTO response = noticeService.updateNotice(noticeId, request, userId);

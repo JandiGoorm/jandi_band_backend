@@ -47,7 +47,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/health",
-                                "/api/clubs/**",
+                                "/api/clubs",            // 동아리 목록 조회만 공개
+                                "/api/clubs/*/photo",    // 갤러리 사진 목록 (공개 사진 포함)
+                                "/api/clubs/*/photo/*",  // 갤러리 사진 상세 (공개 사진 포함)
+                                "/api/clubs/*/calendar", // 캘린더 통합 일정
                                 "/api/images/**",
                                 "/api/promos",           // 공연 홍보 목록 조회
                                 "/api/promos/{promoId}", // 공연 홍보 상세 조회
