@@ -4,6 +4,8 @@ import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.PollNotFoundException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
+import com.jandi.band_backend.global.util.UserValidationUtil;
+import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.poll.dto.PollDetailRespDTO;
 import com.jandi.band_backend.poll.dto.PollRespDTO;
 import com.jandi.band_backend.poll.entity.Poll;
@@ -51,6 +53,12 @@ class PollQueryServiceTest {
 
     @Mock
     private EntityValidationUtil entityValidationUtil;
+
+    @Mock
+    private UserValidationUtil userValidationUtil;
+
+    @Mock
+    private PermissionValidationUtil permissionValidationUtil;
 
     private Club testClub;
     private Users testUser;
@@ -106,7 +114,7 @@ class PollQueryServiceTest {
                 .thenReturn(pollPage);
 
         // When
-        Page<PollRespDTO> result = pollService.getPollsByClub(1, pageable);
+        Page<PollRespDTO> result = pollService.getPollsByClub(1, 1, pageable);
 
         // Then
         assertNotNull(result);
@@ -134,7 +142,7 @@ class PollQueryServiceTest {
 
         // When & Then
         assertThrows(ClubNotFoundException.class,
-                () -> pollService.getPollsByClub(999, pageable));
+                () -> pollService.getPollsByClub(999, 1, pageable));
 
         verify(entityValidationUtil).validateClubExists(999);
         verify(pollRepository, never()).findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(any(), any());
@@ -151,7 +159,7 @@ class PollQueryServiceTest {
                 .thenReturn(emptyPage);
 
         // When
-        Page<PollRespDTO> result = pollService.getPollsByClub(1, pageable);
+        Page<PollRespDTO> result = pollService.getPollsByClub(1, 1, pageable);
 
         // Then
         assertNotNull(result);
@@ -324,7 +332,7 @@ class PollQueryServiceTest {
 
         // When & Then
         assertThrows(RuntimeException.class,
-                () -> pollService.getPollsByClub(1, pageable));
+                () -> pollService.getPollsByClub(1, 1, pageable));
 
         verify(entityValidationUtil).validateClubExists(1);
         verify(pollRepository).findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(testClub, pageable);
