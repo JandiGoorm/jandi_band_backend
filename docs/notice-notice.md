@@ -161,7 +161,7 @@ curl -X POST "http://localhost:8080/api/notices" \
 
 ### 요청 필드
 - `title` (string, 필수): 공지사항 제목 (최대 255자)
-- `content` (string, 필수): 공지사항 내용
+- `content` (string, 선택): 공지사항 내용 (빈 값 허용)
 - `startDatetime` (datetime, 필수): 팝업 노출 시작 시각
 - `endDatetime` (datetime, 필수): 팝업 노출 종료 시각
 - `isPaused` (boolean, 선택): 일시정지 여부 (생략 시 자동으로 false 설정)
@@ -190,12 +190,15 @@ curl -X POST "http://localhost:8080/api/notices" \
 ```
 
 ### 실패 응답
-- **400**: 필수 필드 누락 또는 종료 시각이 시작 시각보다 이른 경우
+- **400**:
+  - 필수 필드 누락
+  - 종료 시각이 시작 시각보다 이른 경우
 - **403**: 관리자 권한 없음
 
 ### 이미지 업로드 참고사항
 - 이미지는 S3에 `notice-photo` 폴더에 저장됩니다
-- 지원하는 이미지 형식: JPG, PNG, GIF 등 일반적인 이미지 포맷
+- 지원하는 이미지 형식: jpg, jpeg, png, gif, webp
+- 이미지 크기는 10MB로 제한됩니다
 - 이미지 업로드 실패 시 전체 공지사항 생성이 롤백됩니다
 - `image` 필드를 생략하면 `imageUrl`은 `null`로 설정됩니다
 
@@ -262,12 +265,13 @@ curl -X PATCH "http://localhost:8080/api/notices/1" \
 - `startDatetime` (datetime, 선택): 팝업 노출 시작 시각
 - `endDatetime` (datetime, 선택): 팝업 노출 종료 시각
 - `image` (file, 선택): 새로운 첨부 이미지 파일
-- `deleteImage` (boolean, 선택): 이미지 삭제 여부 (true로 설정 시 기존 이미지 삭제)
+- `deleteImage` (boolean, 선택): 이미지 삭제 여부 (true로 설정 시 기존 이미지 삭제, 미전송 시 null)
 
 ### 부분 수정 특징
 - **모든 필드가 선택적입니다** - 변경하고 싶은 필드만 포함하여 요청
 - 포함되지 않은 필드는 기존 값이 유지됩니다
-- 빈 문자열이나 null 값으로 필드를 비울 수 없습니다 (제목의 경우 빈 문자열 전송 시 에러)
+- 제목은 빈 문자열로 설정할 수 없습니다 (공백만 있는 경우 에러)
+- 내용은 빈 값으로 설정 가능합니다
 
 ### 실패 응답
 - **400**:
@@ -275,15 +279,16 @@ curl -X PATCH "http://localhost:8080/api/notices/1" \
   - 종료 시각이 시작 시각보다 이른 경우
   - 이미지 파일 크기가 10MB 초과
   - 이미지가 아닌 파일 업로드
+  - 지원하지 않는 이미지 형식
 - **403**: 관리자 권한 없음
 - **404**: 존재하지 않는 공지사항
 
 ### 이미지 처리 참고사항
 - **이미지 삭제**: `deleteImage=true`로 설정하여 기존 이미지 제거 가능
 - **이미지 교체**: 새 이미지 파일을 전송하면 기존 이미지는 자동 삭제
-- **동시 요청 시**: `deleteImage=true`와 새 이미지를 동시에 보내면 새 이미지 업로드가 우선
 - **일시정지 상태(`isPaused`)는 수정되지 않습니다** - 별도의 토글 API 사용
 - 이미지 크기는 10MB로 제한되며, 이미지 파일만 업로드 가능
+- 지원 형식: jpg, jpeg, png, gif, webp
 
 ---
 
@@ -471,7 +476,7 @@ CREATE TABLE notice (
     notice_id INT PRIMARY KEY AUTO_INCREMENT,
     creator_user_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
+    content TEXT NULL,
     start_datetime DATETIME NOT NULL,
     end_datetime DATETIME NOT NULL,
     is_paused BOOLEAN NOT NULL DEFAULT FALSE,
