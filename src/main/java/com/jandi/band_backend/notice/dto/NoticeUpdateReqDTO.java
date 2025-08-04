@@ -31,6 +31,6 @@ public class NoticeUpdateReqDTO {
     @Schema(description = "첨부 이미지 파일 (선택적)", required = false)
     private MultipartFile image;
 
-    @Schema(description = "이미지 삭제 여부 (true로 설정 시 기존 이미지 삭제)", example = "false")
-    private Boolean deleteImage = false;
+    @Schema(description = "이미지 삭제 여부 (true로 설정 시 기존 이미지 삭제)", example = "false", defaultValue = "null")
+    private Boolean deleteImage;
 }

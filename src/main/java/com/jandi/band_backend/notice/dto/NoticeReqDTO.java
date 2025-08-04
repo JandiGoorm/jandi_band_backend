@@ -22,8 +22,7 @@ public class NoticeReqDTO {
     @Size(max = 255, message = "제목은 255자를 초과할 수 없습니다")
     private String title;
 
-    @Schema(description = "공지사항 내용", example = "오늘 밤 12시부터 새벽 2시까지 사이트 점검이 있습니다.", required = true)
-    @NotBlank(message = "내용은 필수입니다")
+    @Schema(description = "공지사항 내용", example = "오늘 밤 12시부터 새벽 2시까지 사이트 점검이 있습니다.", required = false)
     private String content;
 
     @Schema(description = "팝업 노출 시작 시각", example = "2024-12-10T00:00:00", required = true)
