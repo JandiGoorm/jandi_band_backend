@@ -149,11 +149,16 @@ curl "http://localhost:8080/api/clubs/1"
 ## 4. 동아리 부원 명단 조회
 ```
 GET /api/clubs/{clubId}/members
+Authorization: Bearer {JWT_TOKEN}
 ```
+
+### 권한
+- **동아리 멤버만 조회 가능**
 
 ### 요청 예시
 ```bash
-curl "http://localhost:8080/api/clubs/1/members"
+curl "http://localhost:8080/api/clubs/1/members" \
+  -H "Authorization: Bearer {JWT_TOKEN}"
 ```
 
 ### 성공 응답 (200)
@@ -184,6 +189,9 @@ curl "http://localhost:8080/api/clubs/1/members"
   }
 }
 ```
+
+### 실패 응답
+- **403**: 동아리 멤버가 아님
 
 ---
 
