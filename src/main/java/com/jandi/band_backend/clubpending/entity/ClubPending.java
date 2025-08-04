@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "club_pending", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"club_id", "user_id", "status"})
 })
+@EntityListeners(ClubPendingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -56,9 +57,4 @@ public class ClubPending {
         CANCELED
     }
 
-    @PrePersist
-    protected void onCreate() {
-        appliedAt = LocalDateTime.now();
-        expiresAt = LocalDateTime.now().plusDays(7);
-    }
 }

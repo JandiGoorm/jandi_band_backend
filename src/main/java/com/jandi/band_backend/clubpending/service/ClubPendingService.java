@@ -151,7 +151,7 @@ public class ClubPendingService {
         clubPendingRepository.save(pending);
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정 실행
+    @Scheduled(cron = "${clubpending.expire.cron}")
     @Transactional
     public void expirePendingApplications() {
         try {
