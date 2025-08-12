@@ -26,7 +26,7 @@ curl -X POST "http://localhost:8080/api/polls" \
 
 ### 요청 필드
 - `title`: 투표 제목
-- `clubId`: 동아리 ID
+- `clubId`: 동아리 ID  
 - `endDatetime`: 투표 마감 시간 (미래 시간)
 
 ### 성공 응답 (201)
@@ -59,9 +59,6 @@ curl -X POST "http://localhost:8080/api/polls" \
 GET /api/polls/clubs/{clubId}?page=0&size=5
 Authorization: Bearer {JWT_TOKEN}
 ```
-
-### 권한
-- **동아리 멤버만 조회 가능**
 
 ### 요청 예시
 ```bash
@@ -104,9 +101,6 @@ curl "http://localhost:8080/api/polls/clubs/1?page=0&size=5" \
 }
 ```
 
-### 실패 응답
-- **403**: 동아리 멤버가 아님
-
 ---
 
 ## 3. 투표 상세 조회
@@ -114,9 +108,6 @@ curl "http://localhost:8080/api/polls/clubs/1?page=0&size=5" \
 GET /api/polls/{pollId}
 Authorization: Bearer {JWT_TOKEN}
 ```
-
-### 권한
-- **해당 투표가 속한 동아리의 멤버만 조회 가능**
 
 ### 요청 예시
 ```bash
@@ -161,9 +152,6 @@ curl "http://localhost:8080/api/polls/1" \
   }
 }
 ```
-
-### 실패 응답
-- **403**: 동아리 멤버가 아님
 
 ---
 
@@ -226,9 +214,6 @@ GET /api/polls/{pollId}/songs?sortBy=LIKE&order=desc
 Authorization: Bearer {JWT_TOKEN}
 ```
 
-### 권한
-- **해당 투표가 속한 동아리의 멤버만 조회 가능**
-
 ### 요청 예시
 ```bash
 # 좋아요 많은 순 (기본값)
@@ -284,9 +269,6 @@ curl "http://localhost:8080/api/polls/1/songs?sortBy=DISLIKE&order=asc" \
   ]
 }
 ```
-
-### 실패 응답
-- **403**: 동아리 멤버가 아님
 
 ### 종합 점수 계산 방식
 ```

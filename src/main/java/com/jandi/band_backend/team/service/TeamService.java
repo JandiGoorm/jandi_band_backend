@@ -73,12 +73,6 @@ public class TeamService {
     public Page<TeamRespDTO> getTeamsByClub(Integer clubId, Pageable pageable, Integer currentUserId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
-        permissionValidationUtil.validateClubMemberAccess(
-                clubId,
-                currentUserId,
-                "동아리 멤버만 팀 목록을 조회할 수 있습니다."
-        );
-
         Page<Team> teams = teamRepository.findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(club, pageable);
 
         return teams.map(team -> {
