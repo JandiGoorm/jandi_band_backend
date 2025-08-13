@@ -33,5 +33,3 @@
 <img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/RhythMeet/RhythMeet%20(31).png" />
 <img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/RhythMeet/RhythMeet%20(32).png" />
 <img width="2000" height="1125" alt="Image" src="https://github.com/kyj0503/image/blob/main/JandiGoorm/RhythMeet/RhythMeet%20(33).png" />
-
-test

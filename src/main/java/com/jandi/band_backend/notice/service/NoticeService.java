@@ -4,6 +4,7 @@ import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.notice.dto.NoticeReqDTO;
+import com.jandi.band_backend.notice.dto.NoticeUpdateReqDTO;
 import com.jandi.band_backend.notice.dto.NoticeDetailRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeRespDTO;
 import com.jandi.band_backend.notice.entity.Notice;
@@ -53,6 +54,41 @@ public class NoticeService {
         }
     }
 
+    private void validateUpdateRequest(NoticeUpdateReqDTO request, Notice notice) {
+        if (request.getTitle() != null && request.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("제목은 비어있을 수 없습니다.");
+        }
+
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            // 파일 크기 검증 (예: 10MB 제한)
+            long maxSize = 10 * 1024 * 1024; // 10MB
+            if (request.getImage().getSize() > maxSize) {
+                throw new BadRequestException("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
+            }
+
+            // 파일 확장자 검증
+            String filename = request.getImage().getOriginalFilename();
+            if (filename != null) {
+                String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+                if (!isValidImageExtension(extension)) {
+                    throw new BadRequestException("지원하지 않는 이미지 형식입니다. (jpg, jpeg, png, gif, webp만 가능)");
+                }
+            }
+
+            // 파일 타입 검증
+            String contentType = request.getImage().getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new BadRequestException("이미지 파일만 업로드 가능합니다.");
+            }
+        }
+    }
+
+    private boolean isValidImageExtension(String extension) {
+        return extension.equals("jpg") || extension.equals("jpeg") ||
+               extension.equals("png") || extension.equals("gif") ||
+               extension.equals("webp");
+    }
+
     private String sanitizeTitle(String title) {
         // 로깅용 제목 간소화 (길이 제한 및 민감정보 보호)
         if (title == null) return "[null]";
@@ -83,23 +119,23 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDetailRespDTO createNotice(NoticeReqDTO reqDTO, Integer creatorId) {
+    public NoticeDetailRespDTO createNotice(NoticeReqDTO request, Integer creatorId) {
         Users creator = validateAdminPermissionAndGetUser(creatorId);
 
-        validateDateTimeRange(reqDTO.getStartDatetime(), reqDTO.getEndDatetime());
+        validateDateTimeRange(request.getStartDatetime(), request.getEndDatetime());
 
         Notice notice = new Notice();
         notice.setCreator(creator);
-        notice.setTitle(reqDTO.getTitle());
-        notice.setContent(reqDTO.getContent());
-        notice.setStartDatetime(reqDTO.getStartDatetime());
-        notice.setEndDatetime(reqDTO.getEndDatetime());
-        notice.setIsPaused(reqDTO.getIsPaused());
+        notice.setTitle(request.getTitle());
+        notice.setContent(request.getContent());
+        notice.setStartDatetime(request.getStartDatetime());
+        notice.setEndDatetime(request.getEndDatetime());
+        notice.setIsPaused(request.getIsPaused());
 
         // 이미지 업로드 처리
         String imageUrl = null;
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
-            imageUrl = uploadImage(reqDTO.getImage());
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            imageUrl = uploadImage(request.getImage());
         }
         notice.setImageUrl(imageUrl);
 
@@ -108,46 +144,78 @@ public class NoticeService {
             log.info("공지사항 생성 완료 - ID: {}, 제목: {}", savedNotice.getId(), sanitizeTitle(savedNotice.getTitle()));
             return new NoticeDetailRespDTO(savedNotice);
         } catch (Exception e) {
-            // DB 저장 실패 시 업로드된 이미지 삭제 (롤백 처리)
-            if (imageUrl != null) {
-                deleteImage(imageUrl);
-            }
-            throw new RuntimeException("DB 저장 실패: " + e.getMessage(), e);
+            tryDeleteImage(imageUrl, "DB 저장 실패로 인한 이미지 롤백 완료: {}", "이미지 롤백 실패. 수동 정리 필요");
+            throw e;
         }
     }
 
     @Transactional
-    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeReqDTO reqDTO, Integer userId) {
+    public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeUpdateReqDTO request, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
         Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
-        validateDateTimeRange(reqDTO.getStartDatetime(), reqDTO.getEndDatetime());
+        validateUpdateRequest(request, notice);
 
-        notice.setTitle(reqDTO.getTitle());
-        notice.setContent(reqDTO.getContent());
-        notice.setStartDatetime(reqDTO.getStartDatetime());
-        notice.setEndDatetime(reqDTO.getEndDatetime());
-
-        // 이미지 교체 처리
-        String oldImageUrl = notice.getImageUrl();
-        if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty()) {
-            String newImageUrl = uploadImage(reqDTO.getImage());
-            notice.setImageUrl(newImageUrl);
+        // 시작/종료 시각 유효성 검사
+        if (request.getStartDatetime() != null || request.getEndDatetime() != null) {
+            LocalDateTime startTime = request.getStartDatetime() != null ? request.getStartDatetime() : notice.getStartDatetime();
+            LocalDateTime endTime = request.getEndDatetime() != null ? request.getEndDatetime() : notice.getEndDatetime();
+            validateDateTimeRange(startTime, endTime);
         }
-        // isPaused는 별도의 토글 API에서 변경 가능
+
+        // 부분 업데이트 - null이 아닌 값만 업데이트
+        if (request.getTitle() != null) {
+            notice.setTitle(request.getTitle());
+        }
+        if (request.getContent() != null) {
+            notice.setContent(request.getContent());
+        }
+        if (request.getStartDatetime() != null) {
+            notice.setStartDatetime(request.getStartDatetime());
+        }
+        if (request.getEndDatetime() != null) {
+            notice.setEndDatetime(request.getEndDatetime());
+        }
+
+        String oldImageUrl = notice.getImageUrl();
+        String newImageUrl = null;
+        boolean shouldDeleteOldImage = false;
+
+        // 이미지 업로드 처리
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            // 새 이미지 업로드
+            try {
+                newImageUrl = uploadImage(request.getImage());
+                // 기존 이미지가 있으면 DB 저장 성공 후 삭제하도록 플래그 설정
+                shouldDeleteOldImage = (oldImageUrl != null);
+            } catch (RuntimeException e) {
+                log.error("이미지 업로드 실패 - noticeId: {}", noticeId, e);
+                throw new BadRequestException("이미지 업로드에 실패했습니다. 파일 크기나 형식을 확인해주세요.");
+            }
+        } else if (request.getDeleteImage() != null && request.getDeleteImage()) {
+            // 이미지 삭제만 요청된 경우
+            shouldDeleteOldImage = (oldImageUrl != null);
+        }
+
+        // 이미지 URL 업데이트
+        if (newImageUrl != null) {
+            notice.setImageUrl(newImageUrl);
+        } else if (request.getDeleteImage() != null && request.getDeleteImage()) {
+            notice.setImageUrl(null);
+        }
 
         try {
             Notice updatedNotice = noticeRepository.save(notice);
-            // 새 이미지로 교체된 경우에만 기존 이미지 삭제
-            if (reqDTO.getImage() != null && !reqDTO.getImage().isEmpty() && oldImageUrl != null) {
-                deleteImage(oldImageUrl);
+            if (shouldDeleteOldImage) {
+                tryDeleteImage(oldImageUrl, "기존 이미지 삭제 완료: {}", "기존 이미지 삭제 실패. 수동 정리 필요");
             }
             log.info("공지사항 수정 완료 - ID: {}, 제목: {}", updatedNotice.getId(), sanitizeTitle(updatedNotice.getTitle()));
             return new NoticeDetailRespDTO(updatedNotice);
         } catch (Exception e) {
-            throw new RuntimeException("DB 저장 실패: " + e.getMessage(), e);
+            tryDeleteImage(newImageUrl, "DB 저장 실패로 인한 새 이미지 롤백 완료: {}", "새 이미지 롤백 실패. 수동 정리 필요");
+            throw e;
         }
     }
 
@@ -161,12 +229,8 @@ public class NoticeService {
         String imageUrl = notice.getImageUrl();
 
         // soft delete 처리
-        try {
-            notice.setDeletedAt(LocalDateTime.now());
-            noticeRepository.save(notice);
-        } catch (Exception e) {
-            throw new RuntimeException("DB 삭제 실패", e);
-        }
+        notice.setDeletedAt(LocalDateTime.now());
+        noticeRepository.save(notice);
 
         // DB 반영 후 S3 이미지 삭제
         if (imageUrl != null) {
@@ -206,7 +270,18 @@ public class NoticeService {
                 s3Service.deleteImage(imageUrl);
             }
         } catch (Exception e) {
-            log.warn("기존 이미지 삭제 실패: {}", imageUrl, e);
+            log.warn("이미지 삭제 실패: {}", imageUrl, e);
+        }
+    }
+
+    private void tryDeleteImage(String imageUrl, String successMessage, String errorMessage) {
+        if (imageUrl != null) {
+            try {
+                s3Service.deleteImage(imageUrl);
+                log.info(successMessage, imageUrl);
+            } catch (Exception e) {
+                log.error(errorMessage + " - URL: {}", imageUrl, e);
+            }
         }
     }
 }
