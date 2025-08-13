@@ -98,9 +98,6 @@ curl -X POST "http://localhost:8080/api/clubs/1/teams" \
 ## 2. 동아리 팀 목록 조회
 ### GET `/api/clubs/{clubId}/teams`
 
-#### 권한
-- **동아리 멤버만 조회 가능**
-
 #### 요청
 ```bash
 curl -X GET "http://localhost:8080/api/clubs/1/teams?page=0&size=5" \
@@ -141,9 +138,6 @@ curl -X GET "http://localhost:8080/api/clubs/1/teams?page=0&size=5" \
   }
 }
 ```
-
-### 실패 응답
-- **403**: 동아리 멤버가 아님
 
 ---
 

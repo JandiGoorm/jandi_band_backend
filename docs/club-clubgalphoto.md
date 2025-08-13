@@ -7,9 +7,7 @@
 JWT 인증 필요 (Spring Security + @AuthenticationPrincipal CustomUserDetails)
 
 ## 권한 관리
-- **조회**:
-  - 목록 조회: 동아리 멤버가 아니어도 가능 (isPublic=true인 사진 포함)
-  - 상세 조회: 동아리 멤버가 아니어도 가능 (isPublic=true인 사진만)
+- **조회**: 동아리 멤버만 가능
 - **생성/수정/삭제**: 동아리 멤버만 가능
 - **핀 등록/해제**: 동아리 멤버만 가능
 
@@ -17,9 +15,6 @@ JWT 인증 필요 (Spring Security + @AuthenticationPrincipal CustomUserDetails)
 
 ## 1. 동아리 사진 목록 조회
 ### GET `/api/clubs/{clubId}/photo`
-
-#### 설명
-동아리의 갤러리 사진 목록을 조회합니다. 동아리 멤버가 아닌 경우에도 공개(isPublic=true) 사진은 조회할 수 있습니다.
 
 #### 경로 파라미터
 - `clubId` (integer, 필수): 동아리 ID
@@ -65,9 +60,6 @@ curl -X GET "http://localhost:8080/api/clubs/1/photo?page=0&size=5" \
 
 ## 2. 동아리 사진 상세 조회
 ### GET `/api/clubs/{clubId}/photo/{photoId}`
-
-#### 설명
-특정 갤러리 사진의 상세 정보를 조회합니다. 동아리 멤버가 아닌 경우에는 공개(isPublic=true) 사진만 조회할 수 있습니다.
 
 #### 경로 파라미터
 - `clubId` (integer, 필수): 동아리 ID
@@ -319,11 +311,11 @@ interface ClubGalPhotoRespDetailDTO {
 ---
 
 ## 참고 사항
-- **동아리 멤버십**: 조회는 공개 사진에 한해 모든 인증 사용자 가능, 생성/수정/삭제는 동아리 멤버만 가능
+- **동아리 멤버십**: 모든 API는 동아리 멤버만 접근 가능
 - **이미지 형식**: JPG, PNG 등 일반적인 이미지 형식 지원
 - **이미지 교체**: 수정 시 새 이미지 업로드하면 기존 이미지 자동 교체
 - **부분 수정**: PATCH 방식으로 필요한 필드만 전송하면 나머지는 기존 값 유지
 - **핀 기능**: 중요한 사진을 상단에 고정하는 기능 (토글 방식)
 - **공개 설정**: isPublic 필드로 사진의 공개/비공개 설정 가능
 - **소프트 삭제**: 삭제된 사진은 실제로는 숨김 처리되어 복구 가능
-- **권한 확인**: 사진 수정/삭제는 업로더 본인 또는 동아리 대표만 가능, 핀 등록/해제는 동아리 대표만 가능
+- **권한 확인**: 사진 수정/삭제는 업로더 본인 또는 동아리 대표만 가능, 핀 등록/해제는 동아리 대표만 가능 

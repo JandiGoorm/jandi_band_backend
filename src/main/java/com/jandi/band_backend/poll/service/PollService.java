@@ -4,7 +4,6 @@ import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.*;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
-import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.poll.entity.PollSong;
@@ -35,7 +34,6 @@ public class PollService {
     private final VoteRepository voteRepository;
     private final EntityValidationUtil entityValidationUtil;
     private final UserValidationUtil userValidationUtil;
-    private final PermissionValidationUtil permissionValidationUtil;
 
     @Transactional
     public PollRespDTO createPoll(PollReqDTO requestDto, Integer currentUserId) {
@@ -56,14 +54,8 @@ public class PollService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PollRespDTO> getPollsByClub(Integer clubId, Integer currentUserId, Pageable pageable) {
+    public Page<PollRespDTO> getPollsByClub(Integer clubId, Pageable pageable) {
         Club club = entityValidationUtil.validateClubExists(clubId);
-
-        permissionValidationUtil.validateClubMemberAccess(
-                clubId,
-                currentUserId,
-                "동아리 멤버만 투표 목록을 조회할 수 있습니다."
-        );
 
         Page<Poll> polls = pollRepository.findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(club, pageable);
 
@@ -73,14 +65,6 @@ public class PollService {
     @Transactional(readOnly = true)
     public PollDetailRespDTO getPollDetail(Integer pollId, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
-
-        if (poll.getClub() != null) {
-            permissionValidationUtil.validateClubMemberAccess(
-                    poll.getClub().getId(),
-                    currentUserId,
-                    "동아리 멤버만 투표 상세 정보를 조회할 수 있습니다."
-            );
-        }
 
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
@@ -94,14 +78,6 @@ public class PollService {
     @Transactional(readOnly = true)
     public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
-
-        if (poll.getClub() != null) {
-            permissionValidationUtil.validateClubMemberAccess(
-                    poll.getClub().getId(),
-                    currentUserId,
-                    "동아리 멤버만 투표 결과를 조회할 수 있습니다."
-            );
-        }
 
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
