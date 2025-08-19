@@ -41,4 +41,15 @@ public class InviteController {
         InviteLinkRespDTO inviteLinkRespDTO = inviteService.generateInviteTeamLink(teamId, userId);
         return CommonRespDTO.success("팀 초대 링크 생성 성공", inviteLinkRespDTO);
     }
+
+    @Operation(summary = "투표 초대 링크 생성")
+    @PostMapping("/polls/{pollId}")
+    public CommonRespDTO<InviteLinkRespDTO> invitePoll(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable("pollId") Integer pollId
+    ) {
+        Integer userId = userDetails.getUserId();
+        InviteLinkRespDTO inviteLinkRespDTO = inviteService.generateInvitePollLink(pollId, userId);
+        return CommonRespDTO.success("투표 초대 링크 생성 성공", inviteLinkRespDTO);
+    }
 }
