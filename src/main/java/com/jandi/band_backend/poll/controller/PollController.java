@@ -95,14 +95,14 @@ public class PollController {
             @PathVariable String emoji,
             @RequestParam(required = false) String code,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (code != null) { // 외부인: 코드 검증 필요
+        if (code != null) {
             joinService.verifyPollCode(code, pollId);
         }
         else {
             Integer userId = userDetails.getUserId();
             Integer pollsClubId = inviteUtilService.getPollsClubId(pollId);
             if(!inviteUtilService.isMemberOfClub(pollsClubId, userId))
-                throw new InvalidAccessException("팀원만 투표할 수 있습니다");
+                throw new InvalidAccessException("투표 권한이 없습니다: 동아리원이 아닙니다");
         }
         PollSongRespDTO responseDto = pollService.setVoteForSong(pollId, songId, emoji, userDetails.getUserId());
         return ResponseEntity.ok(CommonRespDTO.success("투표가 설정되었습니다.", responseDto));
