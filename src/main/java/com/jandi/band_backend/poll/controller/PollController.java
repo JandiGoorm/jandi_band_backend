@@ -4,6 +4,7 @@ import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.dto.PagedRespDTO;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.invite.dto.JoinRespDTO;
+import com.jandi.band_backend.invite.redis.InviteCodeService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;
@@ -32,6 +33,7 @@ public class PollController {
     private final PollService pollService;
     private final JoinService joinService;
     private final InviteUtilService inviteUtilService;
+    private final InviteCodeService inviteCodeService;
 
     @Operation(summary = "투표 생성")
     @PostMapping
@@ -97,6 +99,7 @@ public class PollController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (code != null) {
             joinService.verifyPollCode(code, pollId);
+            inviteCodeService.deleteRecord(code);
         }
         else {
             Integer userId = userDetails.getUserId();
