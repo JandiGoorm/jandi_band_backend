@@ -33,8 +33,8 @@ public class SecurityConfig {
                             "http://localhost:5173",
                             "https://rhythmeet.netlify.app",
                             "https://rhythmeetdevelop.netlify.app",
-                            "https://rhythmeet.site/",
-                            "https://rhythmeet-be.yeonjae.kr"  // Swagger UI 접근을 위한 백엔드 도메인
+                            "https://rhythmeet.site",
+                            "https://rhythmeet-be.yeonjae.kr"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
