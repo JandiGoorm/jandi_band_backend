@@ -8,6 +8,7 @@ import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
 import com.jandi.band_backend.invite.dto.JoinRespDTO;
 import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;
 import com.jandi.band_backend.team.repository.TeamMemberRepository;
@@ -62,6 +63,15 @@ public class JoinService {
         }
         createNewTeamMember(user, team);
         return new JoinRespDTO(club.getId(), team.getId());
+    }
+
+    public void verifyPollCode(String code, Integer pollId) {
+        String keyId = inviteCodeService.getKeyId(code);
+        Poll poll = inviteUtilService.getPoll(keyId);
+
+        if(!poll.getId().equals(pollId)) {
+            throw new InvalidAccessException("투표 권한이 없습니다: 발급된 코드와 투표 id가 다릅니다");
+        }
     }
 
     private void createNewClubMember(Users user, Club club) {

@@ -2,6 +2,11 @@ package com.jandi.band_backend.poll.controller;
 
 import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.dto.PagedRespDTO;
+import com.jandi.band_backend.global.exception.InvalidAccessException;
+import com.jandi.band_backend.invite.dto.JoinRespDTO;
+import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.invite.service.InviteUtilService;
+import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.service.PollService;
 import com.jandi.band_backend.security.CustomUserDetails;
@@ -26,6 +31,9 @@ import java.util.List;
 public class PollController {
 
     private final PollService pollService;
+    private final JoinService joinService;
+    private final InviteUtilService inviteUtilService;
+    private final InviteCodeService inviteCodeService;
 
     @Operation(summary = "투표 생성")
     @PostMapping
@@ -85,7 +93,18 @@ public class PollController {
             @PathVariable Integer pollId,
             @PathVariable Integer songId,
             @PathVariable String emoji,
+            @RequestParam(required = false) String code,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (code != null) { // 외부인: 코드 검증 필요
+            joinService.verifyPollCode(code, pollId);
+            inviteCodeService.deleteRecord(code);
+        }
+        else {
+            Integer userId = userDetails.getUserId();
+            Integer pollsClubId = inviteUtilService.getPollsClubId(pollId);
+            if(!inviteUtilService.isMemberOfClub(pollsClubId, userId))
+                throw new InvalidAccessException("팀원만 투표할 수 있습니다");
+        }
         PollSongRespDTO responseDto = pollService.setVoteForSong(pollId, songId, emoji, userDetails.getUserId());
         return ResponseEntity.ok(CommonRespDTO.success("투표가 설정되었습니다.", responseDto));
     }
