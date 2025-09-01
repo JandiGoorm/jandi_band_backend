@@ -5,6 +5,7 @@ import com.jandi.band_backend.auth.dto.RefreshReqDTO;
 import com.jandi.band_backend.auth.dto.SignUpReqDTO;
 import com.jandi.band_backend.auth.dto.kakao.KakaoTokenRespDTO;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
+import com.jandi.band_backend.auth.redis.TokenBlacklistService;
 import com.jandi.band_backend.auth.service.kakao.KaKaoTokenService;
 import com.jandi.band_backend.auth.service.kakao.KakaoUserService;
 import com.jandi.band_backend.global.dto.CommonRespDTO;
@@ -45,10 +46,11 @@ public class AuthController {
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public CommonRespDTO<String> logout(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody RefreshReqDTO refreshReqDTO
     ){
         Integer userId = userDetails.getUserId();
-        authService.logout(userId);
+        authService.logout(userId, refreshReqDTO.getRefreshToken());
         return CommonRespDTO.success("로그아웃 완료");
     }
 
@@ -75,11 +77,14 @@ public class AuthController {
 
     @Operation(summary = "토큰 재발급")
     @PostMapping("/refresh")
-    public CommonRespDTO<TokenRespDTO> refresh(
+    public ResponseEntity<CommonRespDTO<TokenRespDTO>> refresh(
             @RequestBody RefreshReqDTO refreshReqDTO
     ){
         String refreshToken = refreshReqDTO.getRefreshToken();
         TokenRespDTO tokens = authService.refresh(refreshToken);
-        return CommonRespDTO.success("토큰 재발급 성공", tokens);
+        return ResponseEntity.ok()
+                .header("accessToken", tokens.getAccessToken())
+                .header("refreshToken", tokens.getRefreshToken())
+                .body(CommonRespDTO.success("토큰 재발급 성공"));
     }
 }
