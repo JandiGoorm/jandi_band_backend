@@ -113,7 +113,7 @@ public class JwtTokenProvider {
         try {
             parseClaims(token);
             if(tokenBlacklistService.isTokenBlacklist(token)) {
-                throw new InvalidTokenException();
+                throw new RuntimeException("블랙리스트화된 토큰입니다.");
             }
             return true;
         } catch (Exception e) {
