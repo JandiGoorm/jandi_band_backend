@@ -15,6 +15,7 @@ import com.jandi.band_backend.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,8 @@ public class AuthController {
 
         TokenRespDTO tokens = authService.login(kakaoUserInfo);
         return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .header("Pragma", "no-cache")
                 .header("accessToken", tokens.getAccessToken())
                 .header("refreshToken", tokens.getRefreshToken())
                 .body(CommonRespDTO.success("로그인 성공"));
@@ -83,6 +86,8 @@ public class AuthController {
         String refreshToken = refreshReqDTO.getRefreshToken();
         TokenRespDTO tokens = authService.refresh(refreshToken);
         return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .header("Pragma", "no-cache")
                 .header("accessToken", tokens.getAccessToken())
                 .header("refreshToken", tokens.getRefreshToken())
                 .body(CommonRespDTO.success("토큰 재발급 성공"));
