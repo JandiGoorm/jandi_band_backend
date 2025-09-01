@@ -109,19 +109,6 @@ public class JwtTokenProvider {
         }
     }
 
-    public long getRemainMillSecond(String token) {
-        try{
-            Claims claims = parseClaims(token);
-            Date expiration = claims.getExpiration();
-            long remainMillTime = expiration.getTime() - System.currentTimeMillis();
-            log.debug("토큰에서 추출된 만료까지 남은 시간(ms): " + remainMillTime);
-            return expiration.toInstant().getEpochSecond() - Instant.now().getEpochSecond();
-        }catch (JwtException e){
-            log.error("토큰에서 만료까지 남은 시간 추출 실패: " +e.getMessage());
-            throw new InvalidTokenException();
-        }
-    }
-
     public boolean validateToken(String token) {
         try {
             parseClaims(token);

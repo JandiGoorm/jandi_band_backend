@@ -1,31 +1,64 @@
 package com.jandi.band_backend.auth.redis;
 
-import com.jandi.band_backend.security.jwt.JwtTokenProvider;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
+@Slf4j
 @Service
-@RequiredArgsConstructor
 public class TokenBlacklistService {
     private final StringRedisTemplate redisTemplate;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final Key secretKey;
+
+    public TokenBlacklistService(
+            StringRedisTemplate redisTemplate,
+            @Value("${jwt.secret}") String jwtSecret
+    ) {
+        this.redisTemplate = redisTemplate;
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public void saveToken(String refreshToken) {
         // key: blacklist:refreshToken:{hash} 형태 -> 원문 노출을 막고 조회 규칙을 명확히 하기 위함
         String key = "bl:rt:" + sha256Hex(refreshToken);
+        log.info("key:{}", key);
 
-        // 만료 임박/시계차로 음수가 나오는 것을 방지하기 위해 최소 1초로 설정
-        long remainSecond = Math.max(1, jwtTokenProvider.getRemainMillSecond(refreshToken));
+        long remainSecond = getRemainSeconds(refreshToken);
         redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(remainSecond));
     }
 
     public boolean isTokenBlacklist(String refreshToken) {
         String key = "bl:rt:" + sha256Hex(refreshToken);
         return redisTemplate.hasKey(key);
+    }
+
+    private long getRemainSeconds(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            Date expiration = claims.getExpiration();
+            // 음수가 나오는 것을 방지하기 위해 최소 1초로 설정
+            return Math.max(1, expiration.toInstant().getEpochSecond() - Instant.now().getEpochSecond());
+        } catch (Exception e) {
+            log.info("파싱 실패"+e.getMessage());
+            return 1; // 파싱 실패 시 1초로 설정
+        }
     }
 }
