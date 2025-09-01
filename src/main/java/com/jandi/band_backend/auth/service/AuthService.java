@@ -72,7 +72,7 @@ public class AuthService {
 
     /// 로그인
     @Transactional
-    public TokenRespDTO login(KakaoUserInfoDTO kakaoUserInfo) {
+    public LoginRespDTO login(KakaoUserInfoDTO kakaoUserInfo) {
         // DB에서 유저를 찾되, 없다면 임시 회원 가입 진행
         Users user = getOrCreateUser(kakaoUserInfo);
 

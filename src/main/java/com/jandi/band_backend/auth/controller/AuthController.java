@@ -1,5 +1,6 @@
 package com.jandi.band_backend.auth.controller;
 
+import com.jandi.band_backend.auth.dto.LoginRespDTO;
 import com.jandi.band_backend.auth.dto.TokenRespDTO;
 import com.jandi.band_backend.auth.dto.RefreshReqDTO;
 import com.jandi.band_backend.auth.dto.SignUpReqDTO;
@@ -36,13 +37,13 @@ public class AuthController {
         KakaoTokenRespDTO kakaoToken = kaKaoTokenService.getKakaoToken(code);
         KakaoUserInfoDTO kakaoUserInfo = kakaoUserService.getKakaoUserInfo(kakaoToken.getAccessToken());
 
-        TokenRespDTO tokens = authService.login(kakaoUserInfo);
+        LoginRespDTO loginRespDTO = authService.login(kakaoUserInfo);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .header("Pragma", "no-cache")
-                .header("accessToken", tokens.getAccessToken())
-                .header("refreshToken", tokens.getRefreshToken())
-                .body(CommonRespDTO.success("로그인 성공"));
+                .header("accessToken", loginRespDTO.getAccessToken())
+                .header("refreshToken", loginRespDTO.getRefreshToken())
+                .body(CommonRespDTO.success("로그인 성공", loginRespDTO));
     }
 
     @Operation(summary = "로그아웃")
