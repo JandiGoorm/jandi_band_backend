@@ -97,7 +97,6 @@ public class AuthService {
 
         // 토큰 블랙리스트
         tokenBlacklistService.saveToken(refreshToken);
-        log.info("KakaoOauthId: {}의 토큰 블랙리스트화 완료, refreshToken={}", user.getKakaoOauthId(), refreshToken);
     }
 
     /// 정식 회원가입

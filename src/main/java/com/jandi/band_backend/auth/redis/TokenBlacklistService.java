@@ -32,17 +32,26 @@ public class TokenBlacklistService {
     }
 
     public void saveToken(String refreshToken) {
+        log.info("=== Token Blacklist Debug Info ===");
+
         // key: blacklist:refreshToken:{hash} 형태 -> 원문 노출을 막고 조회 규칙을 명확히 하기 위함
-        String key = "bl:rt:" + sha256Hex(refreshToken);
-        log.info("key:{}", key);
+        String key = tokenToKey(refreshToken);
+        log.info("key: {}", key);
 
         long remainSecond = getRemainSeconds(refreshToken);
+        log.info("remainSecond: {}", remainSecond);
+
         redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(remainSecond));
+        log.info("=== Token Blacklist Success ===");
     }
 
     public boolean isTokenBlacklist(String refreshToken) {
-        String key = "bl:rt:" + sha256Hex(refreshToken);
+        String key = tokenToKey(refreshToken);
         return redisTemplate.hasKey(key);
+    }
+
+    private String tokenToKey(String refreshToken) {
+        return "bl:rt:" + sha256Hex(refreshToken);
     }
 
     private long getRemainSeconds(String token) {
@@ -54,10 +63,10 @@ public class TokenBlacklistService {
                     .getBody();
 
             Date expiration = claims.getExpiration();
-            // 음수가 나오는 것을 방지하기 위해 최소 1초로 설정
-            return Math.max(1, expiration.toInstant().getEpochSecond() - Instant.now().getEpochSecond());
+            long remainSeconds = expiration.toInstant().getEpochSecond() - Instant.now().getEpochSecond();
+            return Math.max(1, remainSeconds); // 음수가 나오는 것을 방지하기 위해 최소 1초로 설정
         } catch (Exception e) {
-            log.info("파싱 실패"+e.getMessage());
+            log.error("Fail to parsing: " + e.getMessage());
             return 1; // 파싱 실패 시 1초로 설정
         }
     }
