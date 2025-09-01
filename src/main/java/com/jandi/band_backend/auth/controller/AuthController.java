@@ -5,7 +5,6 @@ import com.jandi.band_backend.auth.dto.RefreshReqDTO;
 import com.jandi.band_backend.auth.dto.SignUpReqDTO;
 import com.jandi.band_backend.auth.dto.kakao.KakaoTokenRespDTO;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
-import com.jandi.band_backend.auth.redis.TokenBlacklistService;
 import com.jandi.band_backend.auth.service.kakao.KaKaoTokenService;
 import com.jandi.band_backend.auth.service.kakao.KakaoUserService;
 import com.jandi.band_backend.global.dto.CommonRespDTO;
