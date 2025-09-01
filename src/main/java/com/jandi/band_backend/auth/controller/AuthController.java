@@ -14,6 +14,7 @@ import com.jandi.band_backend.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,14 +29,17 @@ public class AuthController {
 
     @Operation(summary = "카카오 로그인")
     @GetMapping("/login")
-    public CommonRespDTO<TokenRespDTO> kakaoLogin(
+    public ResponseEntity<CommonRespDTO<Object>> kakaoLogin(
             @RequestParam String code
     ){
         KakaoTokenRespDTO kakaoToken = kaKaoTokenService.getKakaoToken(code);
         KakaoUserInfoDTO kakaoUserInfo = kakaoUserService.getKakaoUserInfo(kakaoToken.getAccessToken());
 
         TokenRespDTO tokens = authService.login(kakaoUserInfo);
-        return CommonRespDTO.success("로그인 성공", tokens);
+        return ResponseEntity.ok()
+                .header("accessToken", tokens.getAccessToken())
+                .header("refreshToken", tokens.getRefreshToken())
+                .body(CommonRespDTO.success("로그인 성공"));
     }
 
     @Operation(summary = "로그아웃")
