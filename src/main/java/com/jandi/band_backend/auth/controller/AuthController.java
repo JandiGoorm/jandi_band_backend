@@ -14,6 +14,7 @@ import com.jandi.band_backend.user.dto.UserInfoDTO;
 import com.jandi.band_backend.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ public class AuthController {
     private final KaKaoTokenService kaKaoTokenService;
     private final KakaoUserService kakaoUserService;
 
+    @Transactional
     @Operation(summary = "카카오 로그인")
     @GetMapping("/login")
     public ResponseEntity<CommonRespDTO<Object>> kakaoLogin(
@@ -46,6 +48,7 @@ public class AuthController {
                 .body(CommonRespDTO.success("로그인 성공", loginRespDTO));
     }
 
+    @Transactional
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public CommonRespDTO<String> logout(
@@ -57,6 +60,7 @@ public class AuthController {
         return CommonRespDTO.success("로그아웃 완료");
     }
 
+    @Transactional
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
     public CommonRespDTO<UserInfoDTO> signUp(
@@ -68,6 +72,7 @@ public class AuthController {
         return CommonRespDTO.success("회원가입 성공", userInfo);
     }
 
+    @Transactional
     @Operation(summary = "회원탈퇴")
     @PostMapping("/cancel")
     public CommonRespDTO<UserInfoDTO> cancel(
@@ -78,6 +83,7 @@ public class AuthController {
         return CommonRespDTO.success("회원탈퇴 성공");
     }
 
+    @Transactional
     @Operation(summary = "토큰 재발급")
     @PostMapping("/refresh")
     public ResponseEntity<CommonRespDTO<TokenRespDTO>> refresh(
