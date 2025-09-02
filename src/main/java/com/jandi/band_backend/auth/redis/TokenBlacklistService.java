@@ -33,15 +33,20 @@ public class TokenBlacklistService {
     public void saveToken(String refreshToken) {
         log.info("=== Token Blacklist Debug Info ===");
 
-        // key: blacklist:refreshToken:{hash} 형태 -> 원문 노출을 막고 조회 규칙을 명확히 하기 위함
+        // key: blacklist:refreshToken:{hash} 형태 -> 원문 노출을 막고 공간을 절약하기 위함
         String key = tokenToKey(refreshToken);
         log.info("key: {}", key);
 
         long remainSecond = getRemainSeconds(refreshToken);
         log.info("remainSecond: {}", remainSecond);
 
-        redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(remainSecond));
-        log.info("=== Token Blacklist Success ===");
+        // 토큰 만료/파싱 과정에서 에러 발생 시 블랙리스트 과정 생략
+        if (remainSecond <= 0) {
+            log.error("=== Token Blacklist Failed ===");
+        }else{
+            redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(remainSecond));
+            log.info("=== Token Blacklist Success ===");
+        }
     }
 
     public boolean isTokenBlacklist(String refreshToken) {
@@ -53,6 +58,7 @@ public class TokenBlacklistService {
         return "bl:rt:" + sha256Hex(refreshToken);
     }
 
+    // return +n: 정상, 0: error(파싱 실패), -n: error(토큰 만료)
     private long getRemainSeconds(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -60,13 +66,16 @@ public class TokenBlacklistService {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-
             Date expiration = claims.getExpiration();
+
             long remainSeconds = expiration.toInstant().getEpochSecond() - Instant.now().getEpochSecond();
-            return Math.max(1, remainSeconds); // 음수가 나오는 것을 방지하기 위해 최소 1초로 설정
+            if(remainSeconds <= 0){
+                log.debug("-- Token is expired!");
+            }
+            return remainSeconds;
         } catch (Exception e) {
-            log.error("Fail to parsing: " + e.getMessage());
-            return 1; // 파싱 실패 시 1초로 설정
+            log.debug("-- Fail to parsing: {}", e.getMessage());
+            return 0; // 저장하지 않음
         }
     }
 }
