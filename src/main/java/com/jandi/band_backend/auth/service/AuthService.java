@@ -95,8 +95,10 @@ public class AuthService {
                 .orElseThrow(UserNotFoundException::new);
         log.info("KakaoOauthId: {}가 로그아웃 요청", user.getKakaoOauthId());
 
-        // 토큰 블랙리스트
-        tokenBlacklistService.saveToken(refreshToken);
+        // 정상적인 리프레시 토큰이 맞는지 확인 후 토큰 블랙리스트
+        if(jwtTokenProvider.validateToken(refreshToken) && !jwtTokenProvider.isAccessToken(refreshToken)) {
+            tokenBlacklistService.saveToken(refreshToken);
+        }
     }
 
     /// 정식 회원가입
