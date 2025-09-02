@@ -110,11 +110,17 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
+            // 이미 블랙리스트인 경우
             if(tokenBlacklistService.isTokenBlacklist(token)) {
-                throw new RuntimeException("블랙리스트화된 토큰입니다.");
+                log.debug("잘못된 토큰: 이미 블랙리스트된 토큰입니다");
+                return false;
             }
+
+            parseClaims(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            log.debug("잘못된 토큰: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.error("JWT 토큰 유효성 검사 실패: {}", e.getMessage());
             return false;
