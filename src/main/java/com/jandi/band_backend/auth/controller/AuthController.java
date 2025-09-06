@@ -43,8 +43,8 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .header("Pragma", "no-cache")
-                .header("accessToken", loginRespDTO.getAccessToken())
-                .header("refreshToken", loginRespDTO.getRefreshToken())
+                .header("AccessToken", loginRespDTO.getAccessToken())
+                .header("RefreshToken", loginRespDTO.getRefreshToken())
                 .body(CommonRespDTO.success("로그인 성공", loginRespDTO));
     }
 
@@ -94,8 +94,8 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .header("Pragma", "no-cache")
-                .header("accessToken", tokens.getAccessToken())
-                .header("refreshToken", tokens.getRefreshToken())
+                .header("AccessToken", tokens.getAccessToken())
+                .header("RefreshToken", tokens.getRefreshToken())
                 .body(CommonRespDTO.success("토큰 재발급 성공"));
     }
 }
