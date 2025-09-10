@@ -1,5 +1,6 @@
 package com.jandi.band_backend.security.jwt;
 
+import com.jandi.band_backend.auth.redis.TokenBlacklistService;
 import com.jandi.band_backend.global.exception.InvalidTokenException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
 import com.jandi.band_backend.security.CustomUserDetailsService;
@@ -27,6 +28,7 @@ public class JwtTokenProvider {
     private final long refreshTokenReissueThreshold;
     private final UserRepository userRepository;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String jwtSecret,
@@ -34,7 +36,7 @@ public class JwtTokenProvider {
             @Value("${jwt.refresh-token-validity}") long refreshValidityInMilliseconds,
             @Value("${jwt.refresh-token-reissue-threshold}") long refreshTokenReissueThreshold,
             UserRepository userRepository,
-            CustomUserDetailsService userDetailsService
+            CustomUserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService
     ) {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.validityInMilliseconds = validityInMilliseconds;
@@ -42,6 +44,7 @@ public class JwtTokenProvider {
         this.refreshValidityInMilliseconds = refreshValidityInMilliseconds;
         this.userRepository = userRepository;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     public String generateAccessToken(String kakaoOauthId) {
@@ -82,10 +85,16 @@ public class JwtTokenProvider {
     public String ReissueRefreshToken(String originalRefreshToken) {
         Claims claims = parseClaims(originalRefreshToken);
         Date expiration = claims.getExpiration();
-        long remainTime = expiration.getTime() - System.currentTimeMillis();
+        String kakaoOauthId = claims.getSubject();
 
-        return (remainTime < refreshTokenReissueThreshold) ?
-                generateRefreshToken(originalRefreshToken) : originalRefreshToken;
+        long remainTime = expiration.getTime() - System.currentTimeMillis();
+        if(remainTime > refreshTokenReissueThreshold){
+            return originalRefreshToken;
+        }
+
+        // 만료일이 임계점 미만이면 옛 토큰 블랙리스트화 후 새 토큰 발급
+        tokenBlacklistService.saveToken(originalRefreshToken);
+        return generateRefreshToken(kakaoOauthId);
     }
 
     public String getKakaoOauthId(String token) {
@@ -101,8 +110,17 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
+            // 이미 블랙리스트인 경우
+            if(tokenBlacklistService.isTokenBlacklist(token)) {
+                log.debug("잘못된 토큰: 이미 블랙리스트된 토큰입니다");
+                return false;
+            }
+
             parseClaims(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            log.debug("잘못된 토큰: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.error("JWT 토큰 유효성 검사 실패: {}", e.getMessage());
             return false;
