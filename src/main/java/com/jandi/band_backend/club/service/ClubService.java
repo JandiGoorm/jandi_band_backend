@@ -131,14 +131,8 @@ public class ClubService {
     }
 
     @Transactional(readOnly = true)
-    public ClubMembersRespDTO getClubMembers(Integer clubId, Integer currentUserId) {
+    public ClubMembersRespDTO getClubMembers(Integer clubId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
-
-        permissionValidationUtil.validateClubMemberAccess(
-                clubId,
-                currentUserId,
-                "동아리 멤버만 부원 명단을 조회할 수 있습니다."
-        );
 
         List<ClubMember> clubMembers = clubMemberRepository.findByClubIdAndDeletedAtIsNull(clubId);
 

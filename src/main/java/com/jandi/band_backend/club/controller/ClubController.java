@@ -62,11 +62,8 @@ public class ClubController {
 
     @Operation(summary = "동아리 부원 명단 조회")
     @GetMapping("/{clubId}/members")
-    public ResponseEntity<CommonRespDTO<ClubMembersRespDTO>> getClubMembers(
-            @PathVariable Integer clubId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Integer currentUserId = userDetails.getUserId();
-        ClubMembersRespDTO response = clubService.getClubMembers(clubId, currentUserId);
+    public ResponseEntity<CommonRespDTO<ClubMembersRespDTO>> getClubMembers(@PathVariable Integer clubId) {
+        ClubMembersRespDTO response = clubService.getClubMembers(clubId);
         return ResponseEntity.ok(CommonRespDTO.success("동아리 부원 명단 조회 성공", response));
     }
 

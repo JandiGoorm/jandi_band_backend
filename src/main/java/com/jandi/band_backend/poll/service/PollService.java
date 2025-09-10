@@ -4,7 +4,6 @@ import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.*;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
-import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.poll.entity.PollSong;
@@ -35,7 +34,6 @@ public class PollService {
     private final VoteRepository voteRepository;
     private final EntityValidationUtil entityValidationUtil;
     private final UserValidationUtil userValidationUtil;
-    private final PermissionValidationUtil permissionValidationUtil;
 
     @Transactional
     public PollRespDTO createPoll(PollReqDTO requestDto, Integer currentUserId) {

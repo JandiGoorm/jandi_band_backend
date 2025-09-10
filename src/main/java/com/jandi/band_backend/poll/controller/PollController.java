@@ -4,6 +4,7 @@ import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.dto.PagedRespDTO;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.invite.dto.JoinRespDTO;
+import com.jandi.band_backend.invite.redis.InviteCodeService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;
@@ -32,6 +33,7 @@ public class PollController {
     private final PollService pollService;
     private final JoinService joinService;
     private final InviteUtilService inviteUtilService;
+    private final InviteCodeService inviteCodeService;
 
     @Operation(summary = "투표 생성")
     @PostMapping
@@ -47,8 +49,7 @@ public class PollController {
     @GetMapping("/clubs/{clubId}")
     public ResponseEntity<CommonRespDTO<PagedRespDTO<PollRespDTO>>> getPollList(
             @PathVariable Integer clubId,
-            @PageableDefault(size = 5) Pageable pageable,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @PageableDefault(size = 5) Pageable pageable) {
         Page<PollRespDTO> polls = pollService.getPollsByClub(clubId, pageable);
         return ResponseEntity.ok(CommonRespDTO.success("투표 목록을 조회했습니다.", PagedRespDTO.from(polls)));
     }
@@ -58,7 +59,7 @@ public class PollController {
     public ResponseEntity<CommonRespDTO<PollDetailRespDTO>> getPollDetail(
             @PathVariable Integer pollId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Integer currentUserId = userDetails.getUserId();
+        Integer currentUserId = userDetails != null ? userDetails.getUserId() : null;
         PollDetailRespDTO responseDto = pollService.getPollDetail(pollId, currentUserId);
         return ResponseEntity.ok(CommonRespDTO.success("투표 상세 정보를 조회했습니다.", responseDto));
     }
@@ -79,9 +80,10 @@ public class PollController {
     public ResponseEntity<CommonRespDTO<List<PollSongResultRespDTO>>> getPollSongs(
             @PathVariable Integer pollId,
             @RequestParam(defaultValue = "LIKE") String sortBy, // LIKE, DISLIKE, SCORE
-            @RequestParam(defaultValue = "desc") String order // asc, desc
-            ) {
-        List<PollSongResultRespDTO> songs = pollService.getPollSongs(pollId, sortBy, order);
+            @RequestParam(defaultValue = "desc") String order, // asc, desc
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer currentUserId = userDetails != null ? userDetails.getUserId() : null;
+        List<PollSongResultRespDTO> songs = pollService.getPollSongs(pollId, sortBy, order, currentUserId);
         return ResponseEntity.ok(CommonRespDTO.success("투표 곡 목록을 조회했습니다.", songs));
     }
 
@@ -93,14 +95,15 @@ public class PollController {
             @PathVariable String emoji,
             @RequestParam(required = false) String code,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (code != null) {
+        if (code != null) { // 외부인: 코드 검증 필요
             joinService.verifyPollCode(code, pollId);
+            inviteCodeService.deleteRecord(code);
         }
         else {
             Integer userId = userDetails.getUserId();
             Integer pollsClubId = inviteUtilService.getPollsClubId(pollId);
             if(!inviteUtilService.isMemberOfClub(pollsClubId, userId))
-                throw new InvalidAccessException("투표 권한이 없습니다: 동아리원이 아닙니다");
+                throw new InvalidAccessException("팀원만 투표할 수 있습니다");
         }
         PollSongRespDTO responseDto = pollService.setVoteForSong(pollId, songId, emoji, userDetails.getUserId());
         return ResponseEntity.ok(CommonRespDTO.success("투표가 설정되었습니다.", responseDto));

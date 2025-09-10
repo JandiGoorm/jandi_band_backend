@@ -4,8 +4,6 @@ import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.PollNotFoundException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
-import com.jandi.band_backend.global.util.UserValidationUtil;
-import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.poll.dto.PollDetailRespDTO;
 import com.jandi.band_backend.poll.dto.PollRespDTO;
 import com.jandi.band_backend.poll.entity.Poll;
@@ -53,12 +51,6 @@ class PollQueryServiceTest {
 
     @Mock
     private EntityValidationUtil entityValidationUtil;
-
-    @Mock
-    private UserValidationUtil userValidationUtil;
-
-    @Mock
-    private PermissionValidationUtil permissionValidationUtil;
 
     private Club testClub;
     private Users testUser;
