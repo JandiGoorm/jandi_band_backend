@@ -56,15 +56,8 @@ public class PollService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PollRespDTO> getPollsByClub(Integer clubId, Integer currentUserId, Pageable pageable) {
+    public Page<PollRespDTO> getPollsByClub(Integer clubId, Pageable pageable) {
         Club club = entityValidationUtil.validateClubExists(clubId);
-
-        permissionValidationUtil.validateClubMemberAccess(
-                clubId,
-                currentUserId,
-                "동아리 멤버만 투표 목록을 조회할 수 있습니다."
-        );
-
         Page<Poll> polls = pollRepository.findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(club, pageable);
 
         return polls.map(this::convertToPollRespDTO);
@@ -73,15 +66,6 @@ public class PollService {
     @Transactional(readOnly = true)
     public PollDetailRespDTO getPollDetail(Integer pollId, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
-
-        if (poll.getClub() != null) {
-            permissionValidationUtil.validateClubMemberAccess(
-                    poll.getClub().getId(),
-                    currentUserId,
-                    "동아리 멤버만 투표 상세 정보를 조회할 수 있습니다."
-            );
-        }
-
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
         List<PollSongRespDTO> songResponseDtos = pollSongs.stream()
@@ -92,17 +76,8 @@ public class PollService {
     }
 
     @Transactional(readOnly = true)
-    public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order, Integer currentUserId) {
+    public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
-
-        if (poll.getClub() != null) {
-            permissionValidationUtil.validateClubMemberAccess(
-                    poll.getClub().getId(),
-                    currentUserId,
-                    "동아리 멤버만 투표 결과를 조회할 수 있습니다."
-            );
-        }
-
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
         List<PollSongResultRespDTO> songResultDtos = pollSongs.stream()

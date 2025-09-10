@@ -114,7 +114,7 @@ class PollQueryServiceTest {
                 .thenReturn(pollPage);
 
         // When
-        Page<PollRespDTO> result = pollService.getPollsByClub(1, 1, pageable);
+        Page<PollRespDTO> result = pollService.getPollsByClub(1, pageable);
 
         // Then
         assertNotNull(result);
@@ -142,7 +142,7 @@ class PollQueryServiceTest {
 
         // When & Then
         assertThrows(ClubNotFoundException.class,
-                () -> pollService.getPollsByClub(999, 1, pageable));
+                () -> pollService.getPollsByClub(999, pageable));
 
         verify(entityValidationUtil).validateClubExists(999);
         verify(pollRepository, never()).findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(any(), any());
@@ -159,7 +159,7 @@ class PollQueryServiceTest {
                 .thenReturn(emptyPage);
 
         // When
-        Page<PollRespDTO> result = pollService.getPollsByClub(1, 1, pageable);
+        Page<PollRespDTO> result = pollService.getPollsByClub(1, pageable);
 
         // Then
         assertNotNull(result);
@@ -332,7 +332,7 @@ class PollQueryServiceTest {
 
         // When & Then
         assertThrows(RuntimeException.class,
-                () -> pollService.getPollsByClub(1, 1, pageable));
+                () -> pollService.getPollsByClub(1, pageable));
 
         verify(entityValidationUtil).validateClubExists(1);
         verify(pollRepository).findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(testClub, pageable);

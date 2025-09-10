@@ -49,8 +49,7 @@ public class PollController {
             @PathVariable Integer clubId,
             @PageableDefault(size = 5) Pageable pageable,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Integer currentUserId = userDetails.getUserId();
-        Page<PollRespDTO> polls = pollService.getPollsByClub(clubId, currentUserId, pageable);
+        Page<PollRespDTO> polls = pollService.getPollsByClub(clubId, pageable);
         return ResponseEntity.ok(CommonRespDTO.success("투표 목록을 조회했습니다.", PagedRespDTO.from(polls)));
     }
 
@@ -80,10 +79,9 @@ public class PollController {
     public ResponseEntity<CommonRespDTO<List<PollSongResultRespDTO>>> getPollSongs(
             @PathVariable Integer pollId,
             @RequestParam(defaultValue = "LIKE") String sortBy, // LIKE, DISLIKE, SCORE
-            @RequestParam(defaultValue = "desc") String order, // asc, desc
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Integer currentUserId = userDetails.getUserId();
-        List<PollSongResultRespDTO> songs = pollService.getPollSongs(pollId, sortBy, order, currentUserId);
+            @RequestParam(defaultValue = "desc") String order // asc, desc
+            ) {
+        List<PollSongResultRespDTO> songs = pollService.getPollSongs(pollId, sortBy, order);
         return ResponseEntity.ok(CommonRespDTO.success("투표 곡 목록을 조회했습니다.", songs));
     }
 
