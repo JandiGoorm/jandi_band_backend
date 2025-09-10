@@ -16,7 +16,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,8 @@ public class AuthController {
     private final AuthService authService;
     private final KaKaoTokenService kaKaoTokenService;
     private final KakaoUserService kakaoUserService;
+    @Value("${jwt.refresh-token-validity}")
+    private long refreshValidityInMilliseconds;
 
     @Transactional
     @Operation(summary = "카카오 로그인")
@@ -40,11 +44,14 @@ public class AuthController {
         KakaoUserInfoDTO kakaoUserInfo = kakaoUserService.getKakaoUserInfo(kakaoToken.getAccessToken());
 
         LoginRespDTO loginRespDTO = authService.login(kakaoUserInfo);
+
+        // 리프레시 토큰은 쿠키에 저장
+        ResponseCookie refreshTokenCookie = setRefreshTokenInCookie(loginRespDTO.getRefreshToken());
+
+        // 헤더에 엑세스 토큰과 쿠키(리프레시 토큰)를 담아 응답
         return ResponseEntity.ok()
-                .header(HttpHeaders.CACHE_CONTROL, "no-store")
-                .header("Pragma", "no-cache")
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .header("AccessToken", loginRespDTO.getAccessToken())
-                .header("RefreshToken", loginRespDTO.getRefreshToken())
                 .body(CommonRespDTO.success("로그인 성공", loginRespDTO));
     }
 
@@ -90,12 +97,24 @@ public class AuthController {
             @RequestBody RefreshReqDTO refreshReqDTO
     ){
         String refreshToken = refreshReqDTO.getRefreshToken();
-        TokenRespDTO tokens = authService.refresh(refreshToken);
+        TokenRespDTO reissueTokensDTO = authService.refresh(refreshToken);
+
+        // 리프레시 토큰은 쿠키에 저장
+        ResponseCookie refreshTokenCookie = setRefreshTokenInCookie(reissueTokensDTO.getRefreshToken());
+
+        // 헤더에 엑세스 토큰과 쿠키(리프레시 토큰)를 담아 응답
         return ResponseEntity.ok()
-                .header(HttpHeaders.CACHE_CONTROL, "no-store")
-                .header("Pragma", "no-cache")
-                .header("AccessToken", tokens.getAccessToken())
-                .header("RefreshToken", tokens.getRefreshToken())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .header("AccessToken", reissueTokensDTO.getAccessToken())
                 .body(CommonRespDTO.success("토큰 재발급 성공"));
+    }
+
+    ResponseCookie setRefreshTokenInCookie(String refreshToken){
+        return ResponseCookie.from("RefreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshValidityInMilliseconds)
+                .build();
     }
 }
