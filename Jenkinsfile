@@ -16,6 +16,44 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                script {
+                    echo "Running tests..."
+                    sh './gradlew clean test jacocoTestReport --parallel'
+                }
+            }
+            post {
+                always {
+                    // 테스트 결과 발행
+                    publishTestResults testResultsPattern: 'build/test-results/test/*.xml'
+                    
+                    // JaCoCo 커버리지 리포트 발행
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'build/reports/jacoco/test/html',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report'
+                    ])
+                    
+                    // 테스트 결과 발행
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'build/reports/tests/test',
+                        reportFiles: 'index.html',
+                        reportName: 'Test Report'
+                    ])
+                }
+                failure {
+                    echo "Tests failed. Stopping pipeline."
+                }
+            }
+        }
+
         // --- Master 브랜치 전용 스테이지 ---
         stage('Build and Push PROD Image') {
             when { branch 'master' }
