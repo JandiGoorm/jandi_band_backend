@@ -34,7 +34,8 @@ public class SecurityConfig {
                             "https://rhythmeet.netlify.app",
                             "https://rhythmeetdevelop.netlify.app",
                             "https://rhythmeet.site",
-                            "https://rhythmeet-be.yeonjae.kr"
+                            "https://rhythmeet-be.yeonjae.kr",
+                            "https://rhythmeet-dev.yeonjae.kr"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
