@@ -35,6 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+copilot-instructions.md
 
 ### Application Properties ###
 application.properties
