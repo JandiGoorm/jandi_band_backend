@@ -30,26 +30,6 @@ pipeline {
             post {
                 always {
                     junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
-
-                    // JaCoCo 커버리지 리포트 발행
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'build/reports/jacoco/test/html',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo Coverage Report'
-                    ])
-                    
-                    // 테스트 결과 발행
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'build/reports/tests/test',
-                        reportFiles: 'index.html',
-                        reportName: 'Test Report'
-                    ])
                 }
                 failure {
                     echo "Tests failed. Stopping pipeline."
