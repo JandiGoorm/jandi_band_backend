@@ -1,8 +1,14 @@
 package com.jandi.band_backend.poll.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.invite.service.InviteUtilService;
+import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.service.PollService;
+import com.jandi.band_backend.security.CustomUserDetails;
+import com.jandi.band_backend.user.entity.Users;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import jakarta.servlet.ServletException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -33,18 +43,54 @@ class PollControllerUnitTest {
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
+    private CustomUserDetails customUserDetails;
 
     @Mock
     private PollService pollService;
+
+    @Mock
+    private JoinService joinService;
+
+    @Mock
+    private InviteUtilService inviteUtilService;
+
+    @Mock
+    private InviteCodeService inviteCodeService;
 
     @InjectMocks
     private PollController pollController;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(pollController).build();
+        Users user = new Users();
+        user.setId(1);
+        user.setKakaoOauthId("unit-test-kakao");
+        user.setNickname("테스트사용자");
+        user.setAdminRole(Users.AdminRole.USER);
+        user.setIsRegistered(true);
+
+        customUserDetails = new CustomUserDetails(user);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(pollController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+    }
+
+    private void authenticate() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        customUserDetails,
+                        "",
+                        customUserDetails.getAuthorities()
+                )
+        );
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -72,12 +118,13 @@ class PollControllerUnitTest {
         when(pollService.createPoll(any(PollReqDTO.class), eq(1)))
                 .thenReturn(pollRespDTO);
 
+        authenticate();
+
         // When & Then
         mockMvc.perform(post("/api/polls")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pollReqDTO))
-                        .requestAttr("currentUserId", 1))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(pollReqDTO)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.title").value("5월 정기공연 곡 투표"))
@@ -106,9 +153,11 @@ class PollControllerUnitTest {
         when(pollService.getPollDetail(eq(1), eq(1)))
                 .thenReturn(pollDetailRespDTO);
 
+        authenticate();
+
         // When & Then
         mockMvc.perform(get("/api/polls/1")
-                        .requestAttr("currentUserId", 1))
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -148,12 +197,13 @@ class PollControllerUnitTest {
         when(pollService.addSongToPoll(eq(1), any(PollSongReqDTO.class), eq(1)))
                 .thenReturn(pollSongRespDTO);
 
+        authenticate();
+
         // When & Then
         mockMvc.perform(post("/api/polls/1/songs")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pollSongReqDTO))
-                        .requestAttr("currentUserId", 1))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(pollSongReqDTO)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.songName").value("Bohemian Rhapsody"))
@@ -196,8 +246,8 @@ class PollControllerUnitTest {
 
         // When & Then
         mockMvc.perform(get("/api/polls/1/songs")
-                        .param("sort", "all")
-                        .param("search", ""))
+                        .param("sortBy", "LIKE")
+                        .param("order", "desc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").isArray())
@@ -205,7 +255,7 @@ class PollControllerUnitTest {
                 .andExpect(jsonPath("$.data[0].songName").value("Bohemian Rhapsody"))
                 .andExpect(jsonPath("$.data[1].songName").value("Hotel California"));
 
-        verify(pollService).getPollSongs(eq(1), eq("all"), eq(""));
+        verify(pollService).getPollSongs(eq(1), eq("LIKE"), eq("desc"));
     }
 
     @Test
@@ -231,9 +281,14 @@ class PollControllerUnitTest {
         when(pollService.setVoteForSong(eq(1), eq(1), eq("LIKE"), eq(1)))
                 .thenReturn(pollSongRespDTO);
 
+        when(inviteUtilService.getPollsClubId(eq(1))).thenReturn(1);
+        when(inviteUtilService.isMemberOfClub(eq(1), eq(1))).thenReturn(true);
+
+        authenticate();
+
         // When & Then
         mockMvc.perform(put("/api/polls/1/songs/1/votes/LIKE")
-                        .requestAttr("currentUserId", 1))
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.likeCount").value(11))
@@ -265,9 +320,17 @@ class PollControllerUnitTest {
         when(pollService.removeVoteFromSong(eq(1), eq(1), eq("LIKE"), eq(1)))
                 .thenReturn(pollSongRespDTO);
 
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        customUserDetails,
+                        "",
+                        customUserDetails.getAuthorities()
+                )
+        );
+
         // When & Then
         mockMvc.perform(delete("/api/polls/1/songs/1/votes/LIKE")
-                        .requestAttr("currentUserId", 1))
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.likeCount").value(9))
@@ -286,10 +349,11 @@ class PollControllerUnitTest {
                 .build();
 
         // When & Then
+        authenticate();
+
         mockMvc.perform(post("/api/polls")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidPollReqDTO))
-                        .requestAttr("currentUserId", 1))
+                        .content(objectMapper.writeValueAsString(invalidPollReqDTO)))
                 .andExpect(status().isBadRequest());
 
         verify(pollService, never()).createPoll(any(), any());
@@ -305,10 +369,11 @@ class PollControllerUnitTest {
                 .build();
 
         // When & Then
+        authenticate();
+
         mockMvc.perform(post("/api/polls/1/songs")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidSongReqDTO))
-                        .requestAttr("currentUserId", 1))
+                        .content(objectMapper.writeValueAsString(invalidSongReqDTO)))
                 .andExpect(status().isBadRequest());
 
         verify(pollService, never()).addSongToPoll(any(), any(), any());
@@ -322,10 +387,13 @@ class PollControllerUnitTest {
                 .thenThrow(new RuntimeException("투표를 찾을 수 없습니다"));
 
         // When & Then
-        mockMvc.perform(get("/api/polls/999")
-                        .requestAttr("currentUserId", 1))
-                .andExpect(status().isInternalServerError());
+        authenticate();
 
+        ServletException exception =
+                Assertions.assertThrows(ServletException.class,
+                        () -> mockMvc.perform(get("/api/polls/999")));
+
+        Assertions.assertTrue(exception.getCause() instanceof RuntimeException);
         verify(pollService).getPollDetail(eq(999), eq(1));
     }
 }

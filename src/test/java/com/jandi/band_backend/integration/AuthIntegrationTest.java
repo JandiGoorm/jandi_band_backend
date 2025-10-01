@@ -3,6 +3,7 @@ package com.jandi.band_backend.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.auth.dto.RefreshReqDTO;
 import com.jandi.band_backend.auth.dto.SignUpReqDTO;
+import com.jandi.band_backend.auth.service.kakao.KakaoUserService;
 import com.jandi.band_backend.config.IntegrationTest;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
 import com.jandi.band_backend.testutil.TestDataFactory;
@@ -16,11 +17,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @IntegrationTest
 @DisplayName("Authentication API 통합 테스트")
@@ -41,7 +45,11 @@ class AuthIntegrationTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private KakaoUserService kakaoUserService;
     private University university;
     private Users testUser;
     private String accessToken;
@@ -61,6 +69,8 @@ class AuthIntegrationTest {
 
         // JWT 토큰 생성
         accessToken = jwtTokenProvider.generateAccessToken(testUser.getKakaoOauthId());
+
+        doNothing().when(kakaoUserService).unlink(anyString());
     }
 
     @Test
@@ -75,8 +85,7 @@ class AuthIntegrationTest {
 
         SignUpReqDTO signUpRequest = new SignUpReqDTO();
         signUpRequest.setPosition("DRUM");
-        signUpRequest.setUniversity("서울대학교");
-        signUpRequest.setUniversity("서울대학교");
+        signUpRequest.setUniversity(university.getName());
 
         // When & Then
         mockMvc.perform(post("/api/auth/signup")
@@ -96,7 +105,7 @@ class AuthIntegrationTest {
         // Given
         SignUpReqDTO signUpRequest = new SignUpReqDTO();
         signUpRequest.setPosition("드러머");
-        signUpRequest.setUniversity("서울대학교");
+        signUpRequest.setUniversity(university.getName());
 
         // When & Then
         mockMvc.perform(post("/api/auth/signup")

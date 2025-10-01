@@ -7,22 +7,22 @@ import com.jandi.band_backend.poll.service.PollService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
 import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.security.CustomUserDetails;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
+import com.jandi.band_backend.user.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -31,7 +31,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -65,6 +64,7 @@ class PollControllerTest {
     private PollReqDTO validPollReqDTO;
     private PollRespDTO pollRespDTO;
     private PollDetailRespDTO pollDetailRespDTO;
+    private CustomUserDetails authenticatedUser;
 
     @BeforeEach
     void setUp() {
@@ -99,6 +99,24 @@ class PollControllerTest {
                 .endDatetime(LocalDateTime.now().plusDays(30))
                 .songs(Arrays.asList())
                 .build();
+
+        Users userEntity = new Users();
+        userEntity.setId(1);
+        userEntity.setKakaoOauthId("mock-kakao-id");
+        userEntity.setNickname("테스트사용자");
+        userEntity.setAdminRole(Users.AdminRole.USER);
+        userEntity.setIsRegistered(true);
+
+        authenticatedUser = new CustomUserDetails(userEntity);
+
+        when(jwtTokenProvider.validateToken(anyString())).thenReturn(true);
+        when(jwtTokenProvider.isAccessToken(anyString())).thenReturn(true);
+        when(jwtTokenProvider.getAuthentication(anyString())).thenAnswer(invocation ->
+                new UsernamePasswordAuthenticationToken(
+                        authenticatedUser,
+                        "",
+                        authenticatedUser.getAuthorities()
+                ));
     }
 
     @Test
@@ -168,6 +186,6 @@ class PollControllerTest {
         // When & Then
         mockMvc.perform(get("/api/polls/999")
                         .header("Authorization", "Bearer mock-token"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 }

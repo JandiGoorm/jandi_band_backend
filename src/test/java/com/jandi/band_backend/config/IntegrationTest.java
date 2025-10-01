@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestExecutionListeners.MergeMode;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.TestInstance;
@@ -31,6 +32,7 @@ import java.lang.annotation.*;
 })
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestExecutionListeners(WithSecurityContextTestExecutionListener.class)
+@TestExecutionListeners(value = WithSecurityContextTestExecutionListener.class,
+        mergeMode = MergeMode.MERGE_WITH_DEFAULTS)
 public @interface IntegrationTest {
 }

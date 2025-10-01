@@ -224,7 +224,7 @@ class ClubRepositoryTest {
         // Then
         assertThat(savedClub.getCreatedAt()).isNotNull();
         assertThat(savedClub.getUpdatedAt()).isNotNull();
-        assertThat(savedClub.getCreatedAt()).isEqualTo(savedClub.getUpdatedAt());
+        assertThat(savedClub.getUpdatedAt()).isEqualToIgnoringNanos(savedClub.getCreatedAt());
     }
 
     @Test

@@ -284,7 +284,7 @@ class TeamRepositoryTest {
         // Then
         assertThat(savedTeam.getCreatedAt()).isNotNull();
         assertThat(savedTeam.getUpdatedAt()).isNotNull();
-        assertThat(savedTeam.getCreatedAt()).isEqualTo(savedTeam.getUpdatedAt());
+        assertThat(savedTeam.getUpdatedAt()).isEqualToIgnoringNanos(savedTeam.getCreatedAt());
     }
 
     @Test

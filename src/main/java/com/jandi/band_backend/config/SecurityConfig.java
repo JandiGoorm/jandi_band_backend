@@ -4,6 +4,7 @@ import com.jandi.band_backend.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(List.of(
                             "http://localhost:5173",
+                            "http://localhost:3000",
                             "https://rhythmeet.netlify.app",
                             "https://rhythmeetdevelop.netlify.app",
                             "https://rhythmeet.site",
@@ -46,34 +49,39 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login",
+                                "/api/auth/refresh"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/health",
                                 "/api/clubs/**",
                                 "/api/images/**",
-                                "/api/promos",           // 공연 홍보 목록 조회
-                                "/api/promos/{promoId}", // 공연 홍보 상세 조회
-                                "/api/promos/search",    // 공연 홍보 검색 (JPA)
-                                "/api/promos/filter",    // 공연 홍보 필터링 (JPA)
-                                "/api/promos/map",       // 공연 홍보 지도 검색 (JPA)
-                                "/api/promos/status",    // 공연 홍보 상태별 필터링 (JPA)
-                                "/api/promos/*/comments", // 공연 홍보 댓글 목록 조회
-                                "/api/promos/reports", // 공연 홍보 신고
-                                "/api/promos/comments/reports", // 공연 홍보 댓글 신고
-                                // 검색 API (인증 없이  접근 가능)
+                                "/api/promos",
+                                "/api/promos/{promoId}",
+                                "/api/promos/search",
+                                "/api/promos/filter",
+                                "/api/promos/map",
+                                "/api/promos/status",
+                                "/api/promos/*/comments",
+                                "/api/promos/reports",
+                                "/api/promos/comments/reports",
                                 "/api/search/**",
-                                // 관리자 API (개발/테스트용)
                                 "/api/admin/**",
-                                // Swagger UI 관련 경로
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                // Actuator 모니터링 엔드포인트 (Prometheus & Grafana)
                                 "/actuator/**"
                         ).permitAll()
-                        // CORS preflight 요청 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN))
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // JWT 필터 등록
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
@@ -87,6 +95,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-
-
 

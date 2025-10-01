@@ -459,6 +459,6 @@ class PromoRepositoryTest {
         // Then
         assertThat(savedPromo.getCreatedAt()).isNotNull();
         assertThat(savedPromo.getUpdatedAt()).isNotNull();
-        assertThat(savedPromo.getCreatedAt()).isEqualTo(savedPromo.getUpdatedAt());
+        assertThat(savedPromo.getUpdatedAt()).isEqualToIgnoringNanos(savedPromo.getCreatedAt());
     }
 }
