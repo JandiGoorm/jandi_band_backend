@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'jdk21'
+    }
+
     environment {
         GHCR_OWNER = 'kyj0503'
         PROD_IMAGE_NAME = 'rhythmeet-be'
@@ -25,9 +29,8 @@ pipeline {
             }
             post {
                 always {
-                    // 테스트 결과 발행
-                    publishTestResults testResultsPattern: 'build/test-results/test/*.xml'
-                    
+                    junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
+
                     // JaCoCo 커버리지 리포트 발행
                     publishHTML([
                         allowMissing: false,
