@@ -248,11 +248,9 @@ class TeamServiceTest {
         Club mockClub = createMockClub();
         Users mockUser = createMockUser();
         Team mockTeam = createMockTeam(mockClub, mockUser);
-        TeamMember mockTeamMember = createMockTeamMember(mockTeam, mockUser);
 
         when(entityValidationUtil.validateTeamExists(teamId)).thenReturn(mockTeam);
-        when(permissionValidationUtil.validateTeamMemberAccess(anyInt(), anyInt(), any()))
-                .thenReturn(mockTeamMember);
+        doNothing().when(permissionValidationUtil).validateContentOwnership(anyInt(), anyInt(), any());
         when(teamRepository.save(any(Team.class))).thenReturn(mockTeam);
         when(teamMemberRepository.countByTeamIdAndDeletedAtIsNull(teamId)).thenReturn(3);
 
@@ -265,7 +263,7 @@ class TeamServiceTest {
         assertThat(result.getMemberCount()).isEqualTo(3);
 
         verify(entityValidationUtil).validateTeamExists(teamId);
-        verify(permissionValidationUtil).validateTeamMemberAccess(anyInt(), anyInt(), any());
+        verify(permissionValidationUtil).validateContentOwnership(eq(1), eq(1), eq("팀 리더만 팀 정보를 수정할 수 있습니다."));
         verify(teamRepository).save(mockTeam);
     }
 
@@ -274,22 +272,22 @@ class TeamServiceTest {
     void updateTeam_PermissionDenied() {
         // Given
         Integer teamId = 1;
-        Integer currentUserId = 1;
+        Integer currentUserId = 2; // 다른 사용자
         TeamReqDTO teamReqDTO = new TeamReqDTO();
         teamReqDTO.setName("수정된 팀명");
 
         Club mockClub = createMockClub();
-        Users mockUser = createMockUser();
+        Users mockUser = createMockUser(); // creator ID = 1
         Team mockTeam = createMockTeam(mockClub, mockUser);
 
         when(entityValidationUtil.validateTeamExists(teamId)).thenReturn(mockTeam);
-        doThrow(new InvalidAccessException("팀 멤버만 팀 이름을 수정할 수 있습니다"))
-                .when(permissionValidationUtil).validateTeamMemberAccess(anyInt(), anyInt(), any());
+        doThrow(new InvalidAccessException("팀 리더만 팀 정보를 수정할 수 있습니다."))
+                .when(permissionValidationUtil).validateContentOwnership(anyInt(), anyInt(), any());
 
         // When & Then
         assertThatThrownBy(() -> teamService.updateTeam(teamId, teamReqDTO, currentUserId))
                 .isInstanceOf(InvalidAccessException.class)
-                .hasMessage("팀 멤버만 팀 이름을 수정할 수 있습니다");
+                .hasMessage("팀 리더만 팀 정보를 수정할 수 있습니다.");
 
         verify(teamRepository, never()).save(any());
     }

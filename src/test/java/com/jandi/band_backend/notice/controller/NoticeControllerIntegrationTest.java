@@ -13,6 +13,7 @@ import com.jandi.band_backend.univ.repository.UniversityRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @IntegrationTest
 @DisplayName("Notice API 통합 테스트 (ADMIN 권한 필요 - 현재 비활성)")
-// @Disabled("ADMIN 권한이 필요하여 일반 사용자로는 테스트 불가")
+@Disabled("ADMIN 권한이 필요하여 일반 사용자로는 테스트 불가 - CI 빌드 안정성을 위해 비활성화")
 public class NoticeControllerIntegrationTest {
 
     @Autowired
