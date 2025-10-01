@@ -5,7 +5,9 @@ import com.jandi.band_backend.club.dto.ClubReqDTO;
 import com.jandi.band_backend.club.dto.ClubUpdateReqDTO;
 import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.club.entity.ClubMember;
+import com.jandi.band_backend.club.entity.ClubPhoto;
 import com.jandi.band_backend.club.repository.ClubMemberRepository;
+import com.jandi.band_backend.club.repository.ClubPhotoRepository;
 import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.config.IntegrationTest;
 import com.jandi.band_backend.image.S3Service;
@@ -73,6 +75,9 @@ public class ClubControllerIntegrationTest {
 
     @Autowired
     private ClubMemberRepository clubMemberRepository;
+
+    @Autowired
+    private ClubPhotoRepository clubPhotoRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -269,7 +274,7 @@ public class ClubControllerIntegrationTest {
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     // === 대표자 위임 테스트 ===
@@ -321,6 +326,13 @@ public class ClubControllerIntegrationTest {
         representative.setRole(ClubMember.MemberRole.REPRESENTATIVE);
         clubMemberRepository.save(representative);
 
+        // ClubPhoto를 추가 (deleteClub에서 필요)
+        ClubPhoto clubPhoto = new ClubPhoto();
+        clubPhoto.setClub(club);
+        clubPhoto.setImageUrl("https://s3.example.com/default.jpg");
+        clubPhoto.setIsCurrent(true);
+        clubPhotoRepository.save(clubPhoto);
+
         // When & Then
         mockMvc.perform(delete("/api/clubs/{clubId}", club.getId())
                         .header("Authorization", "Bearer " + testUserToken))
@@ -371,6 +383,13 @@ public class ClubControllerIntegrationTest {
         representative.setUser(testUser);
         representative.setRole(ClubMember.MemberRole.REPRESENTATIVE);
         clubMemberRepository.save(representative);
+
+        // ClubPhoto를 추가 (uploadClubPhoto에서 필요)
+        ClubPhoto clubPhoto = new ClubPhoto();
+        clubPhoto.setClub(club);
+        clubPhoto.setImageUrl("https://s3.example.com/default.jpg");
+        clubPhoto.setIsCurrent(true);
+        clubPhotoRepository.save(clubPhoto);
 
         MockMultipartFile file = new MockMultipartFile(
                 "image",
