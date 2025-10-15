@@ -16,6 +16,7 @@ public class PermissionValidationUtil {
     private final ClubMemberRepository clubMemberRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final UserValidationUtil userValidationUtil;
+    private final EntityValidationUtil entityValidationUtil;
 
     /**
      * ADMIN 권한 확인
@@ -56,11 +57,16 @@ public class PermissionValidationUtil {
      * 팀 멤버 권한 확인 (ADMIN은 항상 통과)
      */
     public TeamMember validateTeamMemberAccess(Integer teamId, Integer userId, String errorMessage) {
-        // ADMIN 권한이 있으면 임시 TeamMember 객체 반환 (실제 데이터는 없어도 됨)
+        // ADMIN 권한이 있으면 임시 TeamMember 객체 반환 (Team 정보 포함)
         if (isAdmin(userId)) {
             TeamMember adminTeamMember = new TeamMember();
             Users adminUser = userValidationUtil.getUserById(userId);
             adminTeamMember.setUser(adminUser);
+            
+            // Team 엔티티 조회 및 설정 (team_id null 방지)
+            Team team = entityValidationUtil.validateTeamExists(teamId);
+            adminTeamMember.setTeam(team);
+            
             return adminTeamMember;
         }
 
