@@ -92,8 +92,8 @@ class PollSongServiceTest {
     }
 
     @Test
-    @DisplayName("11. 정상 케이스 - 투표에 곡 추가 성공")
-    void addSongToPoll_Success() {
+    @DisplayName("11. 정상 케이스 - 투표에 곡 추가 성공 (기본 정보)")
+    void addSongToPoll_Success_BasicInfo() {
         // Given
         when(entityValidationUtil.validatePollExists(1)).thenReturn(testPoll);
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
@@ -109,17 +109,45 @@ class PollSongServiceTest {
         assertEquals("Queen", result.getArtistName());
         assertEquals("https://www.youtube.com/watch?v=fJ9rUzIMcZQ", result.getYoutubeUrl());
         assertEquals("클래식한 록 명곡입니다", result.getDescription());
-        assertEquals(1, result.getSuggesterId());
-        assertEquals("테스트사용자", result.getSuggesterName());
-        assertEquals("https://example.com/profile.jpg", result.getSuggesterProfilePhoto());
-        assertEquals(0, result.getLikeCount());
-        assertEquals(0, result.getDislikeCount());
-        assertEquals(0, result.getCantCount());
-        assertEquals(0, result.getHajjCount());
 
         verify(entityValidationUtil).validatePollExists(1);
         verify(userValidationUtil).getUserById(1);
         verify(pollSongRepository).save(any(PollSong.class));
+    }
+
+    @Test
+    @DisplayName("11-2. 정상 케이스 - 곡 추가 시 제안자 정보 연결")
+    void addSongToPoll_Success_SuggesterInfo() {
+        // Given
+        when(entityValidationUtil.validatePollExists(1)).thenReturn(testPoll);
+        when(userValidationUtil.getUserById(1)).thenReturn(testUser);
+        when(pollSongRepository.save(any(PollSong.class))).thenReturn(testPollSong);
+
+        // When
+        PollSongRespDTO result = pollService.addSongToPoll(1, pollSongReqDTO, 1);
+
+        // Then
+        assertEquals(1, result.getSuggesterId());
+        assertEquals("테스트사용자", result.getSuggesterName());
+        assertEquals("https://example.com/profile.jpg", result.getSuggesterProfilePhoto());
+    }
+
+    @Test
+    @DisplayName("11-3. 정상 케이스 - 곡 추가 시 투표 카운트 초기화")
+    void addSongToPoll_Success_InitializeVoteCounts() {
+        // Given
+        when(entityValidationUtil.validatePollExists(1)).thenReturn(testPoll);
+        when(userValidationUtil.getUserById(1)).thenReturn(testUser);
+        when(pollSongRepository.save(any(PollSong.class))).thenReturn(testPollSong);
+
+        // When
+        PollSongRespDTO result = pollService.addSongToPoll(1, pollSongReqDTO, 1);
+
+        // Then
+        assertEquals(0, result.getLikeCount());
+        assertEquals(0, result.getDislikeCount());
+        assertEquals(0, result.getCantCount());
+        assertEquals(0, result.getHajjCount());
     }
 
     @Test
@@ -251,8 +279,10 @@ class PollSongServiceTest {
                 .thenThrow(new RuntimeException("사용자를 찾을 수 없습니다."));
 
         // When & Then
-        assertThrows(RuntimeException.class,
+        RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> pollService.addSongToPoll(1, pollSongReqDTO, 999));
+
+        assertEquals("사용자를 찾을 수 없습니다.", exception.getMessage());
 
         verify(entityValidationUtil).validatePollExists(1);
         verify(userValidationUtil).getUserById(999);
