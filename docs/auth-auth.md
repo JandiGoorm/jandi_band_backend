@@ -21,10 +21,9 @@ curl "http://localhost:8080/api/auth/login?code=abc123def456"
 ### 성공 응답 (200)
 **Response Headers:**
 ```
-Cache-Control: no-store
-Pragma: no-cache
-accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Set-Cookie: RefreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+AccessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
 ```
 
 **Response Body:**
@@ -79,7 +78,6 @@ curl -X POST "http://localhost:8080/api/auth/logout" \
 {
   "success": true,
   "message": "로그아웃 완료",
-  "data": null
 }
 ```
 
@@ -230,10 +228,9 @@ curl -X POST "http://localhost:8080/api/auth/refresh" \
 ### 성공 응답 (200)
 **Response Headers:**
 ```
-Cache-Control: no-store
-Pragma: no-cache
-accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Set-Cookie: RefreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+AccessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
 ```
 
 **Response Body:**
