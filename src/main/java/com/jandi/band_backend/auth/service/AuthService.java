@@ -2,6 +2,7 @@ package com.jandi.band_backend.auth.service;
 
 import com.jandi.band_backend.auth.dto.*;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
+import com.jandi.band_backend.auth.redis.TokenBlacklistService;
 import com.jandi.band_backend.auth.service.kakao.KakaoUserService;
 import com.jandi.band_backend.club.entity.ClubMember;
 import com.jandi.band_backend.club.repository.ClubMemberRepository;
@@ -47,6 +48,7 @@ public class AuthService {
     private final ClubMemberRepository clubMemberRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
     private final KakaoUserService kakaoUserService;
     // 그룹 2
     private final ClubGalPhotoRepository clubGalPhotoRepository;
@@ -70,7 +72,7 @@ public class AuthService {
 
     /// 로그인
     @Transactional
-    public TokenRespDTO login(KakaoUserInfoDTO kakaoUserInfo) {
+    public LoginRespDTO login(KakaoUserInfoDTO kakaoUserInfo) {
         // DB에서 유저를 찾되, 없다면 임시 회원 가입 진행
         Users user = getOrCreateUser(kakaoUserInfo);
 
@@ -88,12 +90,15 @@ public class AuthService {
     }
 
     /// 로그아웃
-    public void logout(Integer userId) {
-        // 멘토링 결과 별도의 블랙리스트 처리는 필요하지 않아 로깅만 하는 것으로 작업
-        // 카카오 토큰은 카카오 리소스 접근용이라 알림톡/메시지 공유에선 쓰이지 않아 굳이 카카오에게 로그아웃을 요청해 강제 만료처리할 필요가 없음
+    public void logout(Integer userId, String refreshToken) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         log.info("KakaoOauthId: {}가 로그아웃 요청", user.getKakaoOauthId());
+
+        // 정상적인 리프레시 토큰이 맞는지 확인 후 토큰 블랙리스트
+        if(jwtTokenProvider.validateToken(refreshToken) && !jwtTokenProvider.isAccessToken(refreshToken)) {
+            tokenBlacklistService.saveToken(refreshToken);
+        }
     }
 
     /// 정식 회원가입
