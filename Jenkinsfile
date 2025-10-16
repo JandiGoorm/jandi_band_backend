@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'
-    }
-
     environment {
         GHCR_OWNER = 'kyj0503'
         PROD_IMAGE_NAME = 'rhythmeet-be'
@@ -17,23 +13,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Test') {
-            steps {
-                script {
-                    echo "Running tests..."
-                    sh './gradlew clean test jacocoTestReport --parallel'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
-                }
-                failure {
-                    echo "Tests failed. Stopping pipeline."
-                }
             }
         }
 

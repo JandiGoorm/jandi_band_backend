@@ -56,6 +56,7 @@ public class PollService {
     @Transactional(readOnly = true)
     public Page<PollRespDTO> getPollsByClub(Integer clubId, Pageable pageable) {
         Club club = entityValidationUtil.validateClubExists(clubId);
+
         Page<Poll> polls = pollRepository.findAllByClubAndDeletedAtIsNullOrderByCreatedAtDesc(club, pageable);
 
         return polls.map(this::convertToPollRespDTO);
@@ -64,6 +65,7 @@ public class PollService {
     @Transactional(readOnly = true)
     public PollDetailRespDTO getPollDetail(Integer pollId, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
+
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
         List<PollSongRespDTO> songResponseDtos = pollSongs.stream()
@@ -74,8 +76,9 @@ public class PollService {
     }
 
     @Transactional(readOnly = true)
-    public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order) {
+    public List<PollSongResultRespDTO> getPollSongs(Integer pollId, String sortBy, String order, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
+
         List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
 
         List<PollSongResultRespDTO> songResultDtos = pollSongs.stream()

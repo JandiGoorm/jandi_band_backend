@@ -7,8 +7,6 @@ import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.TeamNotFoundException;
 import com.jandi.band_backend.invite.redis.InviteType;
-import com.jandi.band_backend.poll.entity.Poll;
-import com.jandi.band_backend.poll.repository.PollRepository;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;
 import com.jandi.band_backend.team.repository.TeamMemberRepository;
@@ -25,23 +23,22 @@ public class InviteUtilService {
     private final ClubMemberRepository clubMemberRepository;
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final PollRepository pollRepository;
 
     /// 동아리 관련
     // 동아리 존재 확인
-    public void isExistClub(Integer clubId) {
+    protected void isExistClub(Integer clubId) {
         clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("동아리가 존재하지 않습니다"));
     }
 
     // 동아리 부원인지 확인
-    public boolean isMemberOfClub(Integer clubId, Integer userId) {
+    protected boolean isMemberOfClub(Integer clubId, Integer userId) {
         Optional<ClubMember> Optional = clubMemberRepository.findByClubIdAndUserIdAndDeletedAtIsNull(clubId, userId);
         return Optional.isPresent();
     }
 
     // key에서 동아리 객체 반환
-    public Club getClub(String keyId) {
+    protected Club getClub(String keyId) {
         Integer clubId = getOriginalId(keyId, InviteType.CLUB);
         return clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("동아리가 존재하지 않습니다"));
@@ -65,21 +62,6 @@ public class InviteUtilService {
         Integer teamId = getOriginalId(keyId, InviteType.TEAM);
         return teamRepository.findByIdAndDeletedAtIsNull(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다"));
-    }
-
-    /// 투표 관련
-    // 투표의 동아리 소재지 찾기
-    public Integer getPollsClubId(Integer pollId) {
-        Poll poll = pollRepository.findByIdAndDeletedAtIsNull(pollId)
-                .orElseThrow(() -> new TeamNotFoundException("투표가 존재하지 않습니다"));
-        return poll.getClub().getId();
-    }
-
-    // key에서 동아리 객체 반환
-    public Poll getPoll(String keyId) {
-        Integer pollId = getOriginalId(keyId, InviteType.POLL);
-        return pollRepository.findByIdAndDeletedAtIsNull(pollId)
-                .orElseThrow(() -> new TeamNotFoundException("투표가 존재하지 않습니다"));
     }
 
     /// 기타

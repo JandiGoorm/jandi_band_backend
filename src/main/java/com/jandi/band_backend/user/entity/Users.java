@@ -121,7 +121,7 @@ public class Users {
     @PrePersist
     protected void onCreate() {
         position = null;
-        // university는 null로 설정하지 않음 - 테스트에서 설정한 값 유지
+        university = null;
 
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();

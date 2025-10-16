@@ -172,7 +172,7 @@ public class ClubService {
     public ClubDetailRespDTO updateClub(Integer clubId, ClubUpdateReqDTO request, Integer userId) {
         Club club = entityValidationUtil.validateClubExists(clubId);
 
-        permissionValidationUtil.validateClubRepresentativeAccess(clubId, userId, "동아리 대표자만 수정할 수 있습니다.");
+        permissionValidationUtil.validateClubMemberAccess(clubId, userId, "동아리 정보 수정 권한이 없습니다.");
 
         if (request.getName() != null) {
             club.setName(request.getName());

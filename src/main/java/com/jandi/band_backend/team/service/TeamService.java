@@ -99,11 +99,10 @@ public class TeamService {
     public TeamRespDTO updateTeam(Integer teamId, TeamReqDTO teamReqDTO, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
-        // 팀 리더(creator)만 팀 정보를 수정할 수 있습니다
-        permissionValidationUtil.validateContentOwnership(
-                team.getCreator().getId(),
+        permissionValidationUtil.validateTeamMemberAccess(
+                teamId,
                 currentUserId,
-                "팀 리더만 팀 정보를 수정할 수 있습니다."
+                "팀 멤버만 팀 이름을 수정할 수 있습니다."
         );
 
         team.setName(teamReqDTO.getName());
@@ -119,11 +118,10 @@ public class TeamService {
     public void deleteTeam(Integer teamId, Integer currentUserId) {
         Team team = entityValidationUtil.validateTeamExists(teamId);
 
-        // 팀 리더(creator)만 팀을 삭제할 수 있습니다
-        permissionValidationUtil.validateContentOwnership(
-                team.getCreator().getId(),
+        permissionValidationUtil.validateTeamMemberAccess(
+                teamId,
                 currentUserId,
-                "팀 리더만 팀을 삭제할 수 있습니다."
+                "팀 멤버만 팀을 삭제할 수 있습니다."
         );
 
         performTeamSoftDelete(teamId);

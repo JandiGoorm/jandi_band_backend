@@ -19,32 +19,21 @@ curl "http://localhost:8080/api/auth/login?code=abc123def456"
 - `code`: 카카오 OAuth 인증 코드
 
 ### 성공 응답 (200)
-**Response Headers:**
-```
-Set-Cookie: RefreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-AccessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-```
-
-**Response Body:**
 ```json
 {
   "success": true,
   "message": "로그인 성공",
   "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "isRegistered": true
   }
 }
 ```
 
 ### 응답 필드
-응답 필드
-
-헤더:
 - `accessToken`: JWT 액세스 토큰
 - `refreshToken`: JWT 리프레시 토큰
-
-바디:
 - `isRegistered`: 회원가입 완료 여부 (false면 회원가입 필요)
 
 ### 실패 응답
@@ -57,27 +46,20 @@ Content-Type: application/json
 ```
 POST /api/auth/logout
 Authorization: Bearer {JWT_TOKEN}
-Content-Type: application/json
 ```
 
 ### 요청 예시
 ```bash
 curl -X POST "http://localhost:8080/api/auth/logout" \
-  -H "Authorization: Bearer {JWT_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MjY0MTg4NDc0IiwiaWF0IjoxNzU2NzMyMDM4LCJleHAiOjE3NTczMzY4Mzh9.A1W_qhaWeVbfhVh1ENMQC-rJ89gux43TmZzICIJSfhA"
-  }'
+  -H "Authorization: Bearer {JWT_TOKEN}"
 ```
-
-### 요청 필드
-- `refreshToken`: 로그아웃할 리프레시 토큰
 
 ### 성공 응답 (200)
 ```json
 {
   "success": true,
   "message": "로그아웃 완료",
+  "data": null
 }
 ```
 
@@ -226,18 +208,14 @@ curl -X POST "http://localhost:8080/api/auth/refresh" \
 - `refreshToken`: 리프레시 토큰
 
 ### 성공 응답 (200)
-**Response Headers:**
-```
-Set-Cookie: RefreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-AccessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-```
-
-**Response Body:**
 ```json
 {
-    "success": true,
-    "message": "토큰 재발급 성공"
+  "success": true,
+  "message": "토큰 재발급 성공",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
 

@@ -43,18 +43,6 @@ public class InviteService {
         return new InviteLinkRespDTO(code);
     }
 
-    @Transactional
-    public InviteLinkRespDTO generateInvitePollLink(Integer pollId, Integer userId) {
-        Integer pollsClubId = inviteUtilService.getPollsClubId(pollId);
-        if(!inviteUtilService.isMemberOfClub(pollsClubId, userId)) {
-            throw new InvalidAccessException("초대 권한이 없습니다");
-        }
-
-        String code = generateRandomCode();
-        inviteCodeService.saveCode(InviteType.POLL, pollId, code);
-        return new InviteLinkRespDTO(code);
-    }
-
     private String generateRandomCode() {
         return RANDOM.ints('0', 'z' + 1)
                 .filter(i -> Character.isAlphabetic(i) || Character.isDigit(i))

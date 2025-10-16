@@ -4,8 +4,6 @@ import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 
 @ControllerAdvice
@@ -171,19 +169,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(CommonRespDTO.error(ex.getMessage(), "FAIL_KAKAO_USER"));
-    }
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<CommonRespDTO<?>> handleMissingServletRequestParameter(MissingServletRequestParameterException ex) {
-        String message = String.format("요청 파라미터가 누락되었습니다: %s", ex.getParameterName());
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(CommonRespDTO.error(message, "MISSING_PARAMETER"));
-    }
-
-    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<CommonRespDTO<?>> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        return ResponseEntity
-                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .body(CommonRespDTO.error("지원되지 않는 미디어 타입입니다", "UNSUPPORTED_MEDIA_TYPE"));
     }
 }
