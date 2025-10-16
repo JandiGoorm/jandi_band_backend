@@ -116,7 +116,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc");
 
         // Then
         assertNotNull(result);
@@ -145,7 +145,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "asc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "asc");
 
         // Then
         assertNotNull(result);
@@ -171,7 +171,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "DISLIKE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "DISLIKE", "desc");
 
         // Then
         assertNotNull(result);
@@ -197,7 +197,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "desc");
 
         // Then
         assertNotNull(result);
@@ -226,7 +226,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "asc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "asc");
 
         // Then
         assertNotNull(result);
@@ -248,7 +248,7 @@ class PollSortingServiceTest {
 
         // When & Then
         assertThrows(BadRequestException.class,
-                () -> pollService.getPollSongs(1, "INVALID", "desc", 1));
+                () -> pollService.getPollSongs(1, "INVALID", "desc"));
 
         verify(entityValidationUtil).validatePollExists(1);
         verify(pollSongRepository).findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(testPoll);
@@ -264,7 +264,7 @@ class PollSortingServiceTest {
 
         // When & Then
         assertThrows(BadRequestException.class,
-                () -> pollService.getPollSongs(1, null, "desc", 1));
+                () -> pollService.getPollSongs(1, null, "desc"));
 
         verify(entityValidationUtil).validatePollExists(1);
         verify(pollSongRepository).findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(testPoll);
@@ -279,7 +279,7 @@ class PollSortingServiceTest {
                 .thenReturn(Collections.emptyList());
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc");
 
         // Then
         assertNotNull(result);
@@ -301,7 +301,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(zeroVoteSong1, zeroVoteSong2));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc");
 
         // Then
         assertNotNull(result);
@@ -327,7 +327,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(tiedSong1, tiedSong2));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "desc");
 
         // Then
         assertNotNull(result);
@@ -353,7 +353,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(negativeSong1, negativeSong2));
 
         // When
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "SCORE", "desc");
 
         // Then
         assertNotNull(result);
@@ -373,7 +373,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When - 소문자로 정렬 기준 전송
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "like", "desc", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "like", "desc");
 
         // Then
         assertNotNull(result);
@@ -393,7 +393,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When - 대문자로 정렬 순서 전송
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "ASC", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "ASC");
 
         // Then
         assertNotNull(result);
@@ -413,7 +413,7 @@ class PollSortingServiceTest {
                 .thenReturn(Arrays.asList(song1, song2, song3));
 
         // When - 정렬 순서를 지정하지 않거나 잘못된 값 전송 (기본값은 desc)
-        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "invalid_order", 1);
+        List<PollSongResultRespDTO> result = pollService.getPollSongs(1, "LIKE", "invalid_order");
 
         // Then
         assertNotNull(result);

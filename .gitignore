@@ -35,11 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+copilot-instructions.md
 
 ### Application Properties ###
 application.properties
 application-*.properties
 *.env
+!src/test/resources/application-test.properties
 
 ### Logs ###
 logs/
