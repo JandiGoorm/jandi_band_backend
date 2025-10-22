@@ -118,4 +118,13 @@ public class PollController {
         PollSongRespDTO responseDto = pollService.removeVoteFromSong(pollId, songId, emoji, userDetails.getUserId());
         return ResponseEntity.ok(CommonRespDTO.success("투표가 취소되었습니다.", responseDto));
     }
+
+    @Operation(summary = "투표 삭제")
+    @DeleteMapping("/{pollId}")
+    public ResponseEntity<CommonRespDTO<Void>> deletePoll(
+            @PathVariable Integer pollId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        pollService.deletePoll(pollId, userDetails.getUserId());
+        return ResponseEntity.ok(CommonRespDTO.success("투표가 성공적으로 삭제되었습니다.", null));
+    }
 }

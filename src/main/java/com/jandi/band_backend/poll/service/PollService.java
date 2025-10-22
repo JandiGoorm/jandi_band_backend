@@ -3,6 +3,7 @@ package com.jandi.band_backend.poll.service;
 import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.*;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
+import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.entity.Poll;
@@ -34,6 +35,7 @@ public class PollService {
     private final VoteRepository voteRepository;
     private final EntityValidationUtil entityValidationUtil;
     private final UserValidationUtil userValidationUtil;
+    private final PermissionValidationUtil permissionValidationUtil;
 
     @Transactional
     public PollRespDTO createPoll(PollReqDTO requestDto, Integer currentUserId) {
@@ -112,7 +114,7 @@ public class PollService {
 
         VotedMark votedMark = convertToVotedMark(voteType);
 
-        Optional<Vote> existingVote = voteRepository.findByPollSongIdAndUserId(songId, currentUserId)
+        Optional<Vote> existingVote = voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(songId, currentUserId)
                 .stream().findFirst();    // 1인 1투표 (유니크 제약조건)
 
         if (existingVote.isPresent()) {
@@ -143,7 +145,7 @@ public class PollService {
 
         VotedMark votedMark = convertToVotedMark(voteType);
 
-        Vote vote = voteRepository.findByPollSongIdAndUserIdAndVotedMark(
+        Vote vote = voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(
                 songId,
                 currentUserId,
                 votedMark
@@ -181,6 +183,32 @@ public class PollService {
                 .hajjCount(hajjCount)
                 .userVoteType(null)
                 .build();
+    }
+
+    @Transactional
+    public void deletePoll(Integer pollId, Integer currentUserId) {
+        Poll poll = entityValidationUtil.validatePollExists(pollId);
+
+        boolean isCreator = poll.getCreator() != null
+                && poll.getCreator().getId().equals(currentUserId);
+
+        if (!isCreator) {
+            permissionValidationUtil.validateClubRepresentativeAccess(
+                    poll.getClub().getId(),
+                    currentUserId,
+                    "투표를 삭제할 권한이 없습니다."
+            );
+        }
+
+        LocalDateTime deletedAt = LocalDateTime.now();
+        poll.setDeletedAt(deletedAt);
+
+        List<PollSong> pollSongs = pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll);
+        pollSongs.forEach(song -> {
+            song.setDeletedAt(deletedAt);
+            List<Vote> votes = voteRepository.findAllByPollSongIdAndDeletedAtIsNull(song.getId());
+            votes.forEach(vote -> vote.setDeletedAt(deletedAt));
+        });
     }
 
     private PollRespDTO convertToPollRespDTO(Poll poll) {
@@ -252,6 +280,7 @@ public class PollService {
         String userVoteType = null;
         if (currentUserId != null) {
             Optional<Vote> userVote = pollSong.getVotes().stream()
+                    .filter(vote -> vote.getDeletedAt() == null)
                     .filter(vote -> vote.getUser().getId().equals(currentUserId))
                     .findFirst();
 
@@ -305,6 +334,7 @@ public class PollService {
 
     private int calculateVoteCount(PollSong pollSong, String voteMark) {
         return (int) pollSong.getVotes().stream()
+                .filter(vote -> vote.getDeletedAt() == null)
                 .filter(vote -> vote.getVotedMark().name().equals(voteMark))
                 .count();
     }

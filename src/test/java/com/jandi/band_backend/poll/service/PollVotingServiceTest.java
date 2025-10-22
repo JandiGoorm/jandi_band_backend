@@ -97,7 +97,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(Collections.emptyList());
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(Collections.emptyList());
 
         // voteRepository.save()가 호출될 때 pollSong의 votes 리스트에도 추가되도록 Mock 설정
         when(voteRepository.save(any(Vote.class))).thenAnswer(invocation -> {
@@ -118,7 +118,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserId(1, 1);
+        verify(voteRepository).findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1);
         verify(voteRepository).save(any(Vote.class));
     }
 
@@ -128,7 +128,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(List.of(testVote));
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(List.of(testVote));
 
         // When & Then
         assertThrows(VoteAlreadyExistsException.class,
@@ -136,7 +136,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserId(1, 1);
+        verify(voteRepository).findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1);
         verify(voteRepository, never()).save(any());
     }
 
@@ -146,7 +146,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(List.of(testVote));
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(List.of(testVote));
 
         // When - LIKE에서 DISLIKE로 변경
         PollSongRespDTO result = pollService.setVoteForSong(1, 1, "DISLIKE", 1);
@@ -157,7 +157,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserId(1, 1);
+        verify(voteRepository).findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1);
         verify(voteRepository, never()).save(any()); // Managed Entity이므로 save 호출되지 않음
     }
 
@@ -180,7 +180,7 @@ class PollVotingServiceTest {
 
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(expiredPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(Collections.emptyList());
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(Collections.emptyList());
 
         // voteRepository.save()가 호출될 때 pollSong의 votes 리스트에도 추가되도록 Mock 설정
         when(voteRepository.save(any(Vote.class))).thenAnswer(invocation -> {
@@ -215,7 +215,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 999);
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -233,7 +233,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(999, 1);
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -250,7 +250,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -267,7 +267,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -284,7 +284,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(999);
         verify(entityValidationUtil, never()).validatePollSongBelongsToPoll(any(), any());
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -302,7 +302,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 2);
-        verify(voteRepository, never()).findByPollSongIdAndUserId(any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndDeletedAtIsNull(any(), any());
         verify(voteRepository, never()).save(any());
     }
 
@@ -312,7 +312,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(Collections.emptyList());
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(Collections.emptyList());
 
         // voteRepository.save()가 호출될 때 pollSong의 votes 리스트에도 추가되도록 Mock 설정
         when(voteRepository.save(any(Vote.class))).thenAnswer(invocation -> {
@@ -339,7 +339,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(Collections.emptyList());
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(Collections.emptyList());
         when(voteRepository.save(any(Vote.class)))
                 .thenThrow(new RuntimeException("데이터베이스 저장 오류"));
 
@@ -349,7 +349,7 @@ class PollVotingServiceTest {
 
         verify(userValidationUtil).getUserById(1);
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserId(1, 1);
+        verify(voteRepository).findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1);
         verify(voteRepository).save(any(Vote.class));
     }
 
@@ -359,7 +359,7 @@ class PollVotingServiceTest {
         // Given
         when(userValidationUtil.getUserById(1)).thenReturn(testUser);
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserId(1, 1)).thenReturn(Collections.emptyList());
+        when(voteRepository.findByPollSongIdAndUserIdAndDeletedAtIsNull(1, 1)).thenReturn(Collections.emptyList());
 
         // voteRepository.save()가 호출될 때 pollSong의 votes 리스트에도 추가되도록 Mock 설정
         when(voteRepository.save(any(Vote.class))).thenAnswer(invocation -> {

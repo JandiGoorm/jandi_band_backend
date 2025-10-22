@@ -13,8 +13,9 @@ import java.util.Optional;
 
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Integer> {
-    Optional<Vote> findByPollSongIdAndUserIdAndVotedMark(Integer pollSongId, Integer userId, VotedMark votedMark);
-    List<Vote> findByPollSongIdAndUserId(Integer pollSongId, Integer userId);
+    Optional<Vote> findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(Integer pollSongId, Integer userId, VotedMark votedMark);
+    List<Vote> findByPollSongIdAndUserIdAndDeletedAtIsNull(Integer pollSongId, Integer userId);
+    List<Vote> findAllByPollSongIdAndDeletedAtIsNull(Integer pollSongId);
 
     @Modifying
     @Query("DELETE FROM Vote v WHERE v.user.id = :userId")
