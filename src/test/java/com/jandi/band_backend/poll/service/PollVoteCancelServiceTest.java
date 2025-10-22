@@ -91,7 +91,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_Success() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
 
         // When
@@ -109,7 +109,7 @@ class PollVoteCancelServiceTest {
         assertEquals(0, result.getHajjCount());
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 
@@ -118,7 +118,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_ThrowsException_VoteNotFound() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.empty());
 
         // When & Then
@@ -126,7 +126,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, "LIKE", 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository, never()).delete(any());
     }
 
@@ -142,7 +142,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 999, "LIKE", 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 999);
-        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMark(any(), any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(any(), any(), any());
         verify(voteRepository, never()).delete(any());
     }
 
@@ -151,7 +151,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_ThrowsException_DifferentVoteType() {
         // Given - LIKE로 투표했지만 DISLIKE 취소 시도
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.DISLIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.DISLIKE))
                 .thenReturn(Optional.empty());
 
         // When & Then
@@ -159,7 +159,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, "DISLIKE", 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.DISLIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.DISLIKE);
         verify(voteRepository, never()).delete(any());
     }
 
@@ -168,7 +168,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_ThrowsException_UserNotFound() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 999, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 999, VotedMark.LIKE))
                 .thenReturn(Optional.empty());
 
         // When & Then
@@ -176,7 +176,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, "LIKE", 999));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 999, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 999, VotedMark.LIKE);
         verify(voteRepository, never()).delete(any());
     }
 
@@ -191,7 +191,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, "INVALID_TYPE", 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMark(any(), any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(any(), any(), any());
         verify(voteRepository, never()).delete(any());
     }
 
@@ -206,7 +206,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, null, 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMark(any(), any(), any());
+        verify(voteRepository, never()).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(any(), any(), any());
         verify(voteRepository, never()).delete(any());
     }
 
@@ -215,7 +215,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_WithKoreanVoteType() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
 
         // When - 한국어 투표 타입으로 취소
@@ -227,7 +227,7 @@ class PollVoteCancelServiceTest {
         assertNull(result.getUserVoteType());
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 
@@ -236,7 +236,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_WithCaseInsensitiveVoteType() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
 
         // When - 소문자로 투표 타입 전송
@@ -248,7 +248,7 @@ class PollVoteCancelServiceTest {
         assertNull(result.getUserVoteType());
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 
@@ -257,7 +257,7 @@ class PollVoteCancelServiceTest {
     void removeVoteFromSong_ThrowsException_RepositoryDeleteFailure() {
         // Given
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(testPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
         doThrow(new RuntimeException("데이터베이스 삭제 오류")).when(voteRepository).delete(testVote);
 
@@ -266,7 +266,7 @@ class PollVoteCancelServiceTest {
                 () -> pollService.removeVoteFromSong(1, 1, "LIKE", 1));
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 
@@ -288,7 +288,7 @@ class PollVoteCancelServiceTest {
         pollSongWithoutPhoto.setVotes(Collections.emptyList());
 
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(pollSongWithoutPhoto);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
 
         // When
@@ -301,7 +301,7 @@ class PollVoteCancelServiceTest {
         assertNull(result.getUserVoteType());
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 
@@ -323,7 +323,7 @@ class PollVoteCancelServiceTest {
         expiredPollSong.setVotes(Collections.emptyList());
 
         when(entityValidationUtil.validatePollSongBelongsToPoll(1, 1)).thenReturn(expiredPollSong);
-        when(voteRepository.findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE))
+        when(voteRepository.findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE))
                 .thenReturn(Optional.of(testVote));
 
         // When - 마감된 투표에도 투표 취소는 가능 (비즈니스 로직에 따라)
@@ -335,7 +335,7 @@ class PollVoteCancelServiceTest {
         assertNull(result.getUserVoteType());
 
         verify(entityValidationUtil).validatePollSongBelongsToPoll(1, 1);
-        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMark(1, 1, VotedMark.LIKE);
+        verify(voteRepository).findByPollSongIdAndUserIdAndVotedMarkAndDeletedAtIsNull(1, 1, VotedMark.LIKE);
         verify(voteRepository).delete(testVote);
     }
 }
