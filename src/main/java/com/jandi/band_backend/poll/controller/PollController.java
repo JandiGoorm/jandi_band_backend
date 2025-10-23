@@ -75,16 +75,6 @@ public class PollController {
                 .body(CommonRespDTO.success("곡이 성공적으로 투표에 추가되었습니다.", responseDto));
     }
 
-    @Operation(summary = "투표 곡 삭제")
-    @DeleteMapping("/{pollId}/songs/{songId}")
-    public ResponseEntity<CommonRespDTO<Void>> deleteSongFromPoll(
-            @PathVariable Integer pollId,
-            @PathVariable Integer songId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        pollService.deletePollSong(pollId, songId, userDetails.getUserId());
-        return ResponseEntity.ok(CommonRespDTO.success("투표 곡이 성공적으로 삭제되었습니다.", null));
-    }
-
     @Operation(summary = "투표 곡 목록 조회 (정렬)")
     @GetMapping("/{pollId}/songs")
     public ResponseEntity<CommonRespDTO<List<PollSongResultRespDTO>>> getPollSongs(
@@ -94,6 +84,16 @@ public class PollController {
         ) {
         List<PollSongResultRespDTO> songs = pollService.getPollSongs(pollId, sortBy, order);
         return ResponseEntity.ok(CommonRespDTO.success("투표 곡 목록을 조회했습니다.", songs));
+    }
+
+    @Operation(summary = "투표 곡 삭제")
+    @DeleteMapping("/{pollId}/songs/{songId}")
+    public ResponseEntity<CommonRespDTO<Void>> deleteSongFromPoll(
+            @PathVariable Integer pollId,
+            @PathVariable Integer songId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        pollService.deletePollSong(pollId, songId, userDetails.getUserId());
+        return ResponseEntity.ok(CommonRespDTO.success("투표 곡이 성공적으로 삭제되었습니다.", null));
     }
 
     @Operation(summary = "곡에 투표하기")
