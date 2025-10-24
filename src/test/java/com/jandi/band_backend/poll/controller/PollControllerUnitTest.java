@@ -213,6 +213,21 @@ class PollControllerUnitTest {
     }
 
     @Test
+    @DisplayName("투표 곡 삭제 - 정상 처리")
+    void deleteSongFromPoll_Success() throws Exception {
+        // Given
+        authenticate();
+
+        // When & Then
+        mockMvc.perform(delete("/api/polls/1/songs/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("투표 곡이 성공적으로 삭제되었습니다."));
+
+        verify(pollService).deletePollSong(1, 2, 1);
+    }
+
+    @Test
     @DisplayName("투표 곡 목록 조회 - 정상 처리")
     void getPollSongs_Success() throws Exception {
         // Given
