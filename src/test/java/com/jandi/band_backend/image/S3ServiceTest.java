@@ -1,8 +1,5 @@
 package com.jandi.band_backend.image;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +9,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 class S3ServiceTest {
 
     @Mock
-    private AmazonS3Client amazonS3Client;
+    private S3Client s3Client;
 
     @InjectMocks
     private S3Service s3Service;
@@ -48,7 +48,11 @@ class S3ServiceTest {
                 "image/jpeg",
                 "test image content".getBytes()
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         String url = s3Service.uploadImage(file, "profile");
@@ -58,7 +62,7 @@ class S3ServiceTest {
         assertThat(url).endsWith(".jpg");
         assertThat(url).matches(".*profile/[a-f0-9\\-]{36}\\.jpg"); // UUID 형식 검증
         
-        verify(amazonS3Client).putObject(any(PutObjectRequest.class));
+        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
     @Test
@@ -71,17 +75,21 @@ class S3ServiceTest {
                 "image/png",
                 "test content".getBytes()
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         s3Service.uploadImage(file, "images");
 
         // Then
-        verify(amazonS3Client).putObject(argThat(request -> {
-            assertThat(request.getMetadata().getContentType()).isEqualTo("image/png");
-            assertThat(request.getMetadata().getContentLength()).isEqualTo(file.getSize());
+        verify(s3Client).putObject(argThat((PutObjectRequest request) -> {
+            assertThat(request.contentType()).isEqualTo("image/png");
+            assertThat(request.contentLength()).isEqualTo(file.getSize());
             return true;
-        }));
+        }), any(RequestBody.class));
     }
 
     @Test
@@ -94,17 +102,21 @@ class S3ServiceTest {
                 "image/jpeg",
                 "content".getBytes()
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         s3Service.uploadImage(file, "club");
 
         // Then
-        verify(amazonS3Client).putObject(argThat(request -> {
-            assertThat(request.getBucketName()).isEqualTo("test-bucket");
-            assertThat(request.getKey()).startsWith("club/");
+        verify(s3Client).putObject(argThat((PutObjectRequest request) -> {
+            assertThat(request.bucket()).isEqualTo("test-bucket");
+            assertThat(request.key()).startsWith("club/");
             return true;
-        }));
+        }), any(RequestBody.class));
     }
 
     @Test
@@ -123,7 +135,7 @@ class S3ServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 형식의 파일입니다");
 
-        verify(amazonS3Client, never()).putObject(any(PutObjectRequest.class));
+        verify(s3Client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
     @Test
@@ -131,7 +143,11 @@ class S3ServiceTest {
     void uploadImage_SupportsVariousExtensions() throws IOException {
         // Given
         String[] extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         for (String ext : extensions) {
             // When
@@ -147,7 +163,7 @@ class S3ServiceTest {
             assertThat(url).endsWith(ext);
         }
 
-        verify(amazonS3Client, times(extensions.length)).putObject(any(PutObjectRequest.class));
+        verify(s3Client, times(extensions.length)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
     @Test
@@ -160,9 +176,9 @@ class S3ServiceTest {
         s3Service.deleteImage(fileUrl);
 
         // Then
-        verify(amazonS3Client).deleteObject(argThat(request -> {
-            assertThat(request.getBucketName()).isEqualTo("test-bucket");
-            assertThat(request.getKey()).isEqualTo("profile/12345678-1234-1234-1234-123456789abc.jpg");
+        verify(s3Client).deleteObject(argThat((DeleteObjectRequest request) -> {
+            assertThat(request.bucket()).isEqualTo("test-bucket");
+            assertThat(request.key()).isEqualTo("profile/12345678-1234-1234-1234-123456789abc.jpg");
             return true;
         }));
     }
@@ -177,8 +193,8 @@ class S3ServiceTest {
         s3Service.deleteImage(fileUrl);
 
         // Then
-        verify(amazonS3Client).deleteObject(argThat(request ->
-                request.getKey().equals("club/image.jpg")
+        verify(s3Client).deleteObject(argThat((DeleteObjectRequest request) ->
+                request.key().equals("club/image.jpg")
         ));
     }
 
@@ -192,16 +208,20 @@ class S3ServiceTest {
                 "image/jpeg",
                 "content".getBytes()
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         String url = s3Service.uploadImage(file, "club/gallery/2024");
 
         // Then
         assertThat(url).contains("club/gallery/2024/");
-        verify(amazonS3Client).putObject(argThat(request ->
-                request.getKey().startsWith("club/gallery/2024/")
-        ));
+        verify(s3Client).putObject(argThat((PutObjectRequest request) ->
+                request.key().startsWith("club/gallery/2024/")
+        ), any(RequestBody.class));
     }
 
     @Test
@@ -214,9 +234,11 @@ class S3ServiceTest {
                 "image/jpeg",
                 "content".getBytes()
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
-        when(amazonS3Client.putObject(any(PutObjectRequest.class)))
-                .thenThrow(new RuntimeException("S3 upload failed"));
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(S3Exception.builder().message("S3 upload failed").build());
 
         // When & Then
         assertThatThrownBy(() -> s3Service.uploadImage(file, "test"))
@@ -234,16 +256,20 @@ class S3ServiceTest {
                 "image/jpeg",
                 new byte[0]
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         String url = s3Service.uploadImage(file, "test");
 
         // Then
         assertThat(url).isNotEmpty();
-        verify(amazonS3Client).putObject(argThat(request ->
-                request.getMetadata().getContentLength() == 0
-        ));
+        verify(s3Client).putObject(argThat((PutObjectRequest request) ->
+                request.contentLength() == 0
+        ), any(RequestBody.class));
     }
 
     @Test
@@ -257,14 +283,18 @@ class S3ServiceTest {
                 "image/jpeg",
                 largeContent
         );
-        when(amazonS3Client.doesBucketExistV2(anyString())).thenReturn(true);
+        
+        when(s3Client.headBucket(any(HeadBucketRequest.class)))
+                .thenReturn(HeadBucketResponse.builder().build());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(PutObjectResponse.builder().build());
 
         // When
         s3Service.uploadImage(file, "large");
 
         // Then
-        verify(amazonS3Client).putObject(argThat(request ->
-                request.getMetadata().getContentLength() == largeContent.length
-        ));
+        verify(s3Client).putObject(argThat((PutObjectRequest request) ->
+                request.contentLength() == largeContent.length
+        ), any(RequestBody.class));
     }
 }
