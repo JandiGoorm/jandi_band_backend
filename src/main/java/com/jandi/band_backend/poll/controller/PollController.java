@@ -86,6 +86,16 @@ public class PollController {
         return ResponseEntity.ok(CommonRespDTO.success("투표 곡 목록을 조회했습니다.", songs));
     }
 
+    @Operation(summary = "투표 곡 삭제")
+    @DeleteMapping("/{pollId}/songs/{songId}")
+    public ResponseEntity<CommonRespDTO<Void>> deleteSongFromPoll(
+            @PathVariable Integer pollId,
+            @PathVariable Integer songId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        pollService.deletePollSong(pollId, songId, userDetails.getUserId());
+        return ResponseEntity.ok(CommonRespDTO.success("투표 곡이 성공적으로 삭제되었습니다.", null));
+    }
+
     @Operation(summary = "곡에 투표하기")
     @PutMapping("/{pollId}/songs/{songId}/votes/{emoji}")
     public ResponseEntity<CommonRespDTO<PollSongRespDTO>> setVoteForSong(

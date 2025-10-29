@@ -186,6 +186,32 @@ public class PollService {
     }
 
     @Transactional
+    public void deletePollSong(Integer pollId, Integer songId, Integer currentUserId) {
+        PollSong pollSong = entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId);
+
+        if (pollSong.getDeletedAt() != null) {
+            throw new PollSongNotFoundException("이미 삭제된 곡입니다.");
+        }
+
+        boolean isSuggester = pollSong.getSuggester() != null
+                && pollSong.getSuggester().getId().equals(currentUserId);
+
+        if (!isSuggester) {
+            permissionValidationUtil.validateClubRepresentativeAccess(
+                    pollSong.getPoll().getClub().getId(),
+                    currentUserId,
+                    "투표 곡을 삭제할 권한이 없습니다."
+            );
+        }
+
+        LocalDateTime deletedAt = LocalDateTime.now();
+        pollSong.setDeletedAt(deletedAt);
+
+        List<Vote> votes = voteRepository.findAllByPollSongIdAndDeletedAtIsNull(songId);
+        votes.forEach(vote -> vote.setDeletedAt(deletedAt));
+    }
+
+    @Transactional
     public void deletePoll(Integer pollId, Integer currentUserId) {
         Poll poll = entityValidationUtil.validatePollExists(pollId);
 
