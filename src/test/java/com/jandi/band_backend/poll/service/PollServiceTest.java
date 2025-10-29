@@ -3,11 +3,15 @@ package com.jandi.band_backend.poll.service;
 import com.jandi.band_backend.club.entity.Club;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.global.exception.PollNotFoundException;
+import com.jandi.band_backend.global.exception.PollSongNotFoundException;
+import com.jandi.band_backend.global.exception.UnauthorizedClubAccessException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
+import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.poll.entity.PollSong;
+import com.jandi.band_backend.poll.entity.Vote;
 import com.jandi.band_backend.poll.repository.PollRepository;
 import com.jandi.band_backend.poll.repository.PollSongRepository;
 import com.jandi.band_backend.poll.repository.VoteRepository;
@@ -48,6 +52,9 @@ class PollServiceTest {
 
     @Mock
     private UserValidationUtil userValidationUtil;
+
+    @Mock
+    private PermissionValidationUtil permissionValidationUtil;
 
     @InjectMocks
     private PollService pollService;
@@ -303,5 +310,338 @@ class PollServiceTest {
         verify(entityValidationUtil).validatePollExists(pollId);
         verify(userValidationUtil).getUserById(userId);
         verify(pollSongRepository).save(any(PollSong.class));
+    }
+
+    @Test
+    @DisplayName("투표 곡 삭제 성공 - 제안자 권한")
+    void deletePollSong_SuccessBySuggester() {
+        // Given
+        Integer pollId = 1;
+        Integer songId = 10;
+        Integer suggesterId = 20;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users suggester = new Users();
+        suggester.setId(suggesterId);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+
+        PollSong pollSong = new PollSong();
+        pollSong.setId(songId);
+        pollSong.setPoll(poll);
+        pollSong.setSuggester(suggester);
+
+        Vote vote = new Vote();
+        vote.setPollSong(pollSong);
+
+        when(entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId)).thenReturn(pollSong);
+        when(voteRepository.findAllByPollSongIdAndDeletedAtIsNull(songId)).thenReturn(List.of(vote));
+
+        // When
+        pollService.deletePollSong(pollId, songId, suggesterId);
+
+        // Then
+        assertThat(pollSong.getDeletedAt()).isNotNull();
+        assertThat(vote.getDeletedAt()).isNotNull();
+        verify(permissionValidationUtil, never())
+                .validateClubRepresentativeAccess(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("투표 곡 삭제 성공 - 동아리 대표자 권한")
+    void deletePollSong_SuccessByRepresentative() {
+        // Given
+        Integer pollId = 1;
+        Integer songId = 10;
+        Integer representativeId = 40;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(30);
+
+        Users suggester = new Users();
+        suggester.setId(20);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        PollSong pollSong = new PollSong();
+        pollSong.setId(songId);
+        pollSong.setPoll(poll);
+        pollSong.setSuggester(suggester);
+
+        Vote vote = new Vote();
+        vote.setPollSong(pollSong);
+
+        when(entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId)).thenReturn(pollSong);
+        when(voteRepository.findAllByPollSongIdAndDeletedAtIsNull(songId)).thenReturn(List.of(vote));
+
+        // When
+        pollService.deletePollSong(pollId, songId, representativeId);
+
+        // Then
+        assertThat(pollSong.getDeletedAt()).isNotNull();
+        assertThat(vote.getDeletedAt()).isNotNull();
+        verify(permissionValidationUtil).validateClubRepresentativeAccess(
+                club.getId(),
+                representativeId,
+                "투표 곡을 삭제할 권한이 없습니다."
+        );
+    }
+
+    @Test
+    @DisplayName("투표 곡 삭제 실패 - 이미 삭제된 곡")
+    void deletePollSong_FailAlreadyDeleted() {
+        // Given
+        Integer pollId = 1;
+        Integer songId = 10;
+        Integer userId = 20;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users suggester = new Users();
+        suggester.setId(userId);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+
+        PollSong pollSong = new PollSong();
+        pollSong.setId(songId);
+        pollSong.setPoll(poll);
+        pollSong.setSuggester(suggester);
+        pollSong.setDeletedAt(LocalDateTime.now().minusHours(1));
+
+        when(entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId)).thenReturn(pollSong);
+
+        // When & Then
+        assertThatThrownBy(() -> pollService.deletePollSong(pollId, songId, userId))
+                .isInstanceOf(PollSongNotFoundException.class)
+                .hasMessageContaining("이미 삭제된 곡입니다.");
+
+        verify(voteRepository, never()).findAllByPollSongIdAndDeletedAtIsNull(anyInt());
+    }
+
+    @Test
+    @DisplayName("투표 곡 삭제 실패 - 권한 없음")
+    void deletePollSong_FailUnauthorized() {
+        // Given
+        Integer pollId = 1;
+        Integer songId = 10;
+        Integer unauthorizedUserId = 50;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(30);
+
+        Users suggester = new Users();
+        suggester.setId(20);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        PollSong pollSong = new PollSong();
+        pollSong.setId(songId);
+        pollSong.setPoll(poll);
+        pollSong.setSuggester(suggester);
+
+        when(entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId)).thenReturn(pollSong);
+        doThrow(new UnauthorizedClubAccessException("투표 곡을 삭제할 권한이 없습니다."))
+                .when(permissionValidationUtil)
+                .validateClubRepresentativeAccess(club.getId(), unauthorizedUserId, "투표 곡을 삭제할 권한이 없습니다.");
+
+        // When & Then
+        assertThatThrownBy(() -> pollService.deletePollSong(pollId, songId, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedClubAccessException.class)
+                .hasMessageContaining("투표 곡을 삭제할 권한이 없습니다.");
+
+        assertThat(pollSong.getDeletedAt()).isNull();
+        verify(voteRepository, never()).findAllByPollSongIdAndDeletedAtIsNull(anyInt());
+    }
+
+    @Test
+    @DisplayName("투표 곡 삭제 실패 - 투표 생성자이지만 대표자 아님")
+    void deletePollSong_FailPollCreatorWithoutRepRole() {
+        // Given
+        Integer pollId = 1;
+        Integer songId = 10;
+        Integer creatorId = 30;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(creatorId);
+
+        Users suggester = new Users();
+        suggester.setId(20);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        PollSong pollSong = new PollSong();
+        pollSong.setId(songId);
+        pollSong.setPoll(poll);
+        pollSong.setSuggester(suggester);
+
+        when(entityValidationUtil.validatePollSongBelongsToPoll(pollId, songId)).thenReturn(pollSong);
+        doThrow(new UnauthorizedClubAccessException("투표 곡을 삭제할 권한이 없습니다."))
+                .when(permissionValidationUtil)
+                .validateClubRepresentativeAccess(club.getId(), creatorId, "투표 곡을 삭제할 권한이 없습니다.");
+
+        // When & Then
+        assertThatThrownBy(() -> pollService.deletePollSong(pollId, songId, creatorId))
+                .isInstanceOf(UnauthorizedClubAccessException.class)
+                .hasMessageContaining("투표 곡을 삭제할 권한이 없습니다.");
+
+        assertThat(pollSong.getDeletedAt()).isNull();
+        verify(voteRepository, never()).findAllByPollSongIdAndDeletedAtIsNull(anyInt());
+    }
+
+    @Test
+    @DisplayName("투표 삭제 성공 - 생성자 권한")
+    void deletePoll_SuccessByCreator() {
+        // Given
+        Integer pollId = 1;
+        Integer creatorId = 10;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(creatorId);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        PollSong song1 = new PollSong();
+        song1.setId(101);
+        song1.setPoll(poll);
+        PollSong song2 = new PollSong();
+        song2.setId(102);
+        song2.setPoll(poll);
+
+        Vote vote1 = new Vote();
+        vote1.setPollSong(song1);
+        Vote vote2 = new Vote();
+        vote2.setPollSong(song1);
+        Vote vote3 = new Vote();
+        vote3.setPollSong(song2);
+
+        when(entityValidationUtil.validatePollExists(pollId)).thenReturn(poll);
+        when(pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll))
+                .thenReturn(List.of(song1, song2));
+        when(voteRepository.findAllByPollSongIdAndDeletedAtIsNull(song1.getId()))
+                .thenReturn(List.of(vote1, vote2));
+        when(voteRepository.findAllByPollSongIdAndDeletedAtIsNull(song2.getId()))
+                .thenReturn(List.of(vote3));
+
+        // When
+        pollService.deletePoll(pollId, creatorId);
+
+        // Then
+        assertThat(poll.getDeletedAt()).isNotNull();
+        assertThat(song1.getDeletedAt()).isNotNull();
+        assertThat(song2.getDeletedAt()).isNotNull();
+        assertThat(vote1.getDeletedAt()).isNotNull();
+        assertThat(vote2.getDeletedAt()).isNotNull();
+        assertThat(vote3.getDeletedAt()).isNotNull();
+        verify(voteRepository).findAllByPollSongIdAndDeletedAtIsNull(song1.getId());
+        verify(voteRepository).findAllByPollSongIdAndDeletedAtIsNull(song2.getId());
+        verify(permissionValidationUtil, never())
+                .validateClubRepresentativeAccess(anyInt(), anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("투표 삭제 성공 - 동아리 대표자 권한")
+    void deletePoll_SuccessByRepresentative() {
+        // Given
+        Integer pollId = 1;
+        Integer creatorId = 10;
+        Integer representativeId = 20;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(creatorId);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        PollSong song = new PollSong();
+        song.setId(201);
+        song.setPoll(poll);
+
+        when(entityValidationUtil.validatePollExists(pollId)).thenReturn(poll);
+        when(pollSongRepository.findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(poll))
+                .thenReturn(List.of(song));
+        when(voteRepository.findAllByPollSongIdAndDeletedAtIsNull(song.getId()))
+                .thenReturn(List.of());
+
+        // When
+        pollService.deletePoll(pollId, representativeId);
+
+        // Then
+        assertThat(poll.getDeletedAt()).isNotNull();
+        assertThat(song.getDeletedAt()).isNotNull();
+        verify(voteRepository).findAllByPollSongIdAndDeletedAtIsNull(song.getId());
+        verify(permissionValidationUtil).validateClubRepresentativeAccess(
+                club.getId(),
+                representativeId,
+                "투표를 삭제할 권한이 없습니다."
+        );
+    }
+
+    @Test
+    @DisplayName("투표 삭제 실패 - 권한 없음")
+    void deletePoll_FailUnauthorized() {
+        // Given
+        Integer pollId = 1;
+        Integer creatorId = 10;
+        Integer unauthorizedUserId = 30;
+
+        Club club = new Club();
+        club.setId(100);
+
+        Users creator = new Users();
+        creator.setId(creatorId);
+
+        Poll poll = new Poll();
+        poll.setId(pollId);
+        poll.setClub(club);
+        poll.setCreator(creator);
+
+        when(entityValidationUtil.validatePollExists(pollId)).thenReturn(poll);
+        doThrow(new UnauthorizedClubAccessException("투표를 삭제할 권한이 없습니다."))
+                .when(permissionValidationUtil)
+                .validateClubRepresentativeAccess(club.getId(), unauthorizedUserId, "투표를 삭제할 권한이 없습니다.");
+
+        // When & Then
+        assertThatThrownBy(() -> pollService.deletePoll(pollId, unauthorizedUserId))
+                .isInstanceOf(UnauthorizedClubAccessException.class)
+                .hasMessageContaining("투표를 삭제할 권한이 없습니다.");
+
+        assertThat(poll.getDeletedAt()).isNull();
+        verify(pollSongRepository, never()).findAllByPollAndDeletedAtIsNullOrderByCreatedAtDesc(any());
     }
 }
