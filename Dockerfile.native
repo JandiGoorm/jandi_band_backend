@@ -1,0 +1,46 @@
+# ========================================
+# GraalVM Native Image Dockerfile
+# ========================================
+
+# 1. 빌드 스테이지: Native Image 컴파일
+FROM ghcr.io/graalvm/native-image-community:21 AS builder
+WORKDIR /workspace/app
+
+# Gradle 래퍼 복사
+COPY gradlew .
+COPY gradle gradle
+
+# 빌드 스크립트 복사
+COPY build.gradle settings.gradle ./
+
+# 의존성 다운로드 (캐싱 최적화)
+RUN ./gradlew dependencies --no-daemon || true
+
+# 소스 코드 복사
+COPY src src
+
+# Native Image 빌드 (테스트 제외)
+# 주의: Native Image 빌드는 5-10분 소요될 수 있습니다
+RUN ./gradlew nativeCompile -x test --no-daemon
+
+# -----------------------------------------------------
+
+# 2. 실행 스테이지: Native 바이너리만 포함한 경량 이미지
+FROM ubuntu:22.04
+WORKDIR /app
+
+# 필요한 최소 라이브러리 설치
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Native 바이너리 복사
+COPY --from=builder /workspace/app/build/native/nativeCompile/band_backend app
+
+# 실행 권한 부여
+RUN chmod +x app
+
+EXPOSE 8080
+
+# Native Image 실행 (JVM 불필요!)
+ENTRYPOINT ["./app", "--spring.config.location=file:/app/config/application.properties"]

@@ -1,15 +1,15 @@
 package com.jandi.band_backend.image;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.UUID;
 
 @Slf4j
@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class S3Service {
 
-    private final AmazonS3Client amazonS3Client;
+    private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -37,28 +37,34 @@ public class S3Service {
         String fileName = createFileName(file.getOriginalFilename(), dirName);
         log.info("Generated file key: {}", fileName);
 
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(file.getContentType());
-        objectMetadata.setContentLength(file.getSize());
-
-        boolean bucketExists = amazonS3Client.doesBucketExistV2(bucket);
-        log.info("Bucket exists: {}", bucketExists);
-
         try {
-            AccessControlList acl = amazonS3Client.getBucketAcl(bucket);
-            log.info("Bucket ACL: {}", acl.getGrantsAsList());
-        } catch (Exception e) {
-            log.error("Failed to get bucket ACL: {}", e.getMessage());
+            // 버킷 존재 여부 확인
+            HeadBucketRequest headBucketRequest = HeadBucketRequest.builder()
+                    .bucket(bucket)
+                    .build();
+            s3Client.headBucket(headBucketRequest);
+            log.info("Bucket exists: {}", bucket);
+        } catch (NoSuchBucketException e) {
+            log.error("Bucket does not exist: {}", bucket);
+            throw new RuntimeException("S3 bucket does not exist: " + bucket);
         }
 
-        try (InputStream inputStream = file.getInputStream()) {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, fileName, inputStream, objectMetadata);
-            
+        try {
+            // PutObject 요청 생성
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileName)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
             log.info("Attempting to upload with PutObjectRequest: bucket={}, key={}", 
-                    putObjectRequest.getBucketName(), 
-                    putObjectRequest.getKey());
+                    bucket, fileName);
+
+            // 파일 업로드
+            s3Client.putObject(putObjectRequest, 
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
             
-            amazonS3Client.putObject(putObjectRequest);
             log.info("Upload successful");
             
             return s3Url + "/" + fileName;
@@ -76,7 +82,12 @@ public class S3Service {
         log.info("Extracted file key: {}", fileName);
         
         try {
-            amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, fileName));
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileName)
+                    .build();
+            
+            s3Client.deleteObject(deleteObjectRequest);
             log.info("Delete successful");
         } catch (Exception e) {
             log.error("Delete failed: {}", e.getMessage(), e);

@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
+    id 'org.graalvm.buildtools.native' version '0.10.4'
 }
 
 group = 'com.jandi'
@@ -84,11 +85,12 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // Redis
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // AWS SDK
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.261'
+    // AWS SDK v2 (Native Image 호환)
+    implementation platform('software.amazon.awssdk:bom:2.29.29')
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:apache-client'
 
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
@@ -150,4 +152,35 @@ test {
 
 springBoot {
     mainClass = 'com.jandi.band_backend.JandiBandBackendApplication'
+}
+
+// GraalVM Native Image 설정
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'band_backend'
+            mainClass = 'com.jandi.band_backend.JandiBandBackendApplication'
+            
+            // 빌드 시 상세 로그 출력
+            buildArgs.add('--verbose')
+            buildArgs.add('-H:+ReportExceptionStackTraces')
+            
+            // 메모리 설정 (Native Image 빌드는 많은 메모리 필요)
+            buildArgs.add('-J-Xmx8g')
+            
+            // 최적화 레벨
+            buildArgs.add('-O3')
+            
+            // 리소스 포함 (application.properties 등)
+            buildArgs.add('-H:IncludeResources=application.*\\.properties')
+            buildArgs.add('-H:IncludeResources=logback.*\\.xml')
+            buildArgs.add('-H:IncludeResources=static/.*')
+            buildArgs.add('-H:IncludeResources=templates/.*')
+        }
+    }
+}
+
+// Native Test 설정
+tasks.named('nativeTest') {
+    useJUnitPlatform()
 }
