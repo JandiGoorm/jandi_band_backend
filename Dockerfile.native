@@ -6,6 +6,9 @@
 FROM ghcr.io/graalvm/native-image-community:21 AS builder
 WORKDIR /workspace/app
 
+# 필수 빌드 도구 설치
+RUN microdnf install -y findutils
+
 # Gradle 래퍼 복사
 COPY gradlew .
 COPY gradle gradle
@@ -36,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Native 바이너리 복사
 COPY --from=builder /workspace/app/build/native/nativeCompile/band_backend app
-
+                    
 # 실행 권한 부여
 RUN chmod +x app
 

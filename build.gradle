@@ -89,8 +89,12 @@ dependencies {
 
     // AWS SDK v2 (Native Image 호환)
     implementation platform('software.amazon.awssdk:bom:2.29.29')
-    implementation 'software.amazon.awssdk:s3'
-    implementation 'software.amazon.awssdk:apache-client'
+    implementation('software.amazon.awssdk:s3') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
+    implementation('software.amazon.awssdk:apache-client') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
