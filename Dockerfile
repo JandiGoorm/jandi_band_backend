@@ -17,7 +17,8 @@ RUN ./gradlew bootJar --no-daemon
 # -----------------------------------------------------
 
 # 2. 실행(Final) 스테이지: 실제 운영 환경에서 사용될 이미지
-FROM eclipse-temurin:21-jre-jammy
+# GraalVM JDK를 사용하여 성능 최적화 및 향후 Native Image 전환 준비
+FROM ghcr.io/graalvm/jdk-community:21
 WORKDIR /app
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
