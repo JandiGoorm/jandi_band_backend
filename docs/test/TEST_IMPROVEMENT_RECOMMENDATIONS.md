@@ -538,7 +538,7 @@ void methodName_Condition_ExpectedResult() {
 ```
 
 ### 4. Mock 사용 최소화 (Toss 원칙)
-- 외부 시스템(S3, Kakao, Elasticsearch)만 Mock
+- 외부 시스템(S3, Kakao)만 Mock
 - 내부 Service/Repository는 실제 Bean 사용
 - Mock이 필요하면 인터페이스 도입 고려 (Humble Object)
 
