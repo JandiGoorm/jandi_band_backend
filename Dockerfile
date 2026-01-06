@@ -20,11 +20,22 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
+# Ubuntu 미러를 Kakao로 변경 (다운로드 속도 향상)
+RUN sed -i 's@archive.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list && \
+    sed -i 's@security.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list
+
+# HEALTHCHECK에 필요한 curl 설치
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
 # JAR 파일 이름이 다를 경우, `band_backend-0.0.1-SNAPSHOT.jar` 부분을 실제 파일 이름으로 수정하세요.
 COPY --from=builder /workspace/app/build/libs/band_backend-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
+
+# 컨테이너 상태 모니터링
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 컨테이너 실행 시, 외부(/app/config/application.properties)에 있는 설정 파일을 사용하도록 지정
 # 이 경로는 EC2 서버의 docker-compose.yml에 설정한 volumes 경로와 반드시 일치해야 합니다.
