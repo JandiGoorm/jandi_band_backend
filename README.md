@@ -166,7 +166,7 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u kyj0503 --password-stdin
 cp src/main/resources/application.properties.example src/main/resources/application.properties
 
 # 3. 이미지 빌드
-docker build -t ghcr.io/kyj0503/jandi-band:latest .
+docker build --platform linux/amd64 -t ghcr.io/kyj0503/jandi-band:latest .
 
 # 4. Push
 docker push ghcr.io/kyj0503/jandi-band:latest
