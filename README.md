@@ -78,7 +78,7 @@ cp src/main/resources/application.properties.example src/main/resources/applicat
 ./gradlew bootRun
 
 # 또는 JAR 직접 실행
-java -jar build/libs/jandi_band_backend-0.0.1-SNAPSHOT.jar
+java -jar build/libs/band_backend-0.0.1-SNAPSHOT.jar
 ```
 
 **접속 URL**

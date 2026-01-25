@@ -79,7 +79,7 @@ pipeline {
                     sh '''
                         cd /home/ubuntu/source/home-server/docker
                         docker compose -f docker-compose.apps.yml pull jandi-band
-                        docker compose -f docker-compose.apps.yml up -d jandi-band
+                        docker compose -f docker-compose.apps.yml up -d --force-recreate jandi-band
                         sleep 10
                         docker ps | grep jandi-band
                         echo "✅ jandi-band deployment completed!"
