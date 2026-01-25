@@ -73,8 +73,16 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        sleep 20
-                        curl -f https://rhythmeet-be.yeonjae.kr/actuator/health || echo "Health check pending..."
+                        echo "Waiting for service to be ready..."
+                        for i in {1..6}; do
+                            echo "Health check attempt $i/6"
+                            if curl -f https://rhythmeet-be.yeonjae.kr/actuator/health; then
+                                echo "✅ Service is healthy!"
+                                exit 0
+                            fi
+                            sleep 5
+                        done
+                        echo "⚠️ Health check timed out, but continuing..."
                     '''
                 }
             }
