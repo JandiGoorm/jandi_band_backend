@@ -10,18 +10,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout([$class: 'GitSCM',
-                    branches: [[name: '*/master']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/kyj0503/jandi_band_backend.git',
-                        credentialsId: 'github-token'
-                    ]]
-                ])
-            }
-        }
-
         stage('Test') {
             steps {
                 script {
