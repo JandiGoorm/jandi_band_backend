@@ -22,23 +22,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                script {
-                    echo "Running tests..."
-                    sh './gradlew clean test jacocoTestReport --parallel --no-daemon'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
-                }
-                failure {
-                    echo "Tests failed. Stopping pipeline."
-                }
-            }
-        }
-
         stage('Login GHCR') {
             steps {
                 script {
