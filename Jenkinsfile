@@ -1,11 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'
-    }
-
     environment {
+        JAVA_HOME = '/usr/lib/jvm/java-1.21.0-openjdk-arm64'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
         GHCR_OWNER = 'kyj0503'
         IMAGE_NAME = 'jandi-band'
         DOCKER_BUILDKIT = '1'
