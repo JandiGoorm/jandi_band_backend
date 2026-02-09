@@ -61,7 +61,7 @@ pipeline {
                         cd /opt/home-server/docker
                         docker compose -f docker-compose.apps.yml pull jandi-band
                         docker compose -f docker-compose.apps.yml up -d --no-deps --force-recreate jandi-band
-                        sleep 10
+                        sleep 30
                         docker ps | grep jandi-band
                         echo "✅ jandi-band deployment completed!"
                     '''
@@ -74,9 +74,9 @@ pipeline {
                 script {
                     sh '''
                         echo "Waiting for service to be ready..."
-                        for i in {1..6}; do
-                            echo "Health check attempt $i/6"
-                            if curl -f https://rhythmeet-be.yeonjae.kr/actuator/health; then
+                        for i in 1 2 3 4 5 6 7 8 9 10; do
+                            echo "Health check attempt $i/10"
+                            if curl -sf https://rhythmeet-be.yeonjae.kr/actuator/health; then
                                 echo "✅ Service is healthy!"
                                 exit 0
                             fi
