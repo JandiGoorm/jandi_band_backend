@@ -1,18 +1,21 @@
+# syntax=docker/dockerfile:1
 # 1. 빌드(Build) 스테이지: 소스 코드를 JAR 파일로 빌드
 FROM eclipse-temurin:21-jdk-jammy AS builder
 WORKDIR /workspace/app
 
-# Gradle 의존성을 먼저 받아 별도의 레이어로 캐싱합니다.
+# Gradle 관련 파일 복사 (캐시 레이어 활용)
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-RUN ./gradlew build -x test --no-daemon
+RUN --mount=type=cache,target=/root/.gradle \
+    chmod +x ./gradlew && ./gradlew build -x test --no-daemon || true
 
 # 소스 코드를 복사합니다.
 COPY src src
 
 # 다시 빌드하여 최종 JAR 파일을 생성합니다.
-RUN ./gradlew bootJar --no-daemon
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew bootJar --no-daemon
 
 # -----------------------------------------------------
 
