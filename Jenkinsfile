@@ -59,8 +59,8 @@ pipeline {
                 script {
                     sh '''
                         cd /opt/home-server/docker
-                        docker compose -f docker-compose.apps.yml pull jandi-band
-                        docker compose -f docker-compose.apps.yml up -d --no-deps --force-recreate jandi-band
+                        docker compose -f docker-compose.yml -f docker-compose.prod.yml pull jandi-band
+                        docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps --force-recreate jandi-band
                         sleep 30
                         docker ps | grep jandi-band
                         echo "✅ jandi-band deployment completed!"
