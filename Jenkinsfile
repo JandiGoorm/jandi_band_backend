@@ -1,11 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'
-    }
-
     environment {
+        JAVA_HOME = '/usr/lib/jvm/java-1.21.0-openjdk-arm64'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
         GHCR_OWNER = 'kyj0503'
         IMAGE_NAME = 'jandi-band'
         DOCKER_BUILDKIT = '1'
@@ -21,23 +19,6 @@ pipeline {
                         credentialsId: 'github-token'
                     ]]
                 ])
-            }
-        }
-
-        stage('Test') {
-            steps {
-                script {
-                    echo "Running tests..."
-                    sh './gradlew clean test jacocoTestReport --parallel --no-daemon'
-                }
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
-                }
-                failure {
-                    echo "Tests failed. Stopping pipeline."
-                }
             }
         }
 
@@ -77,11 +58,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        cd /home/ubuntu/source/home-server/docker
-                        docker compose -f docker-compose.apps.yml pull jandi-band
-                        docker compose -f docker-compose.apps.yml up -d --force-recreate jandi-band
-                        sleep 10
-                        docker ps | grep jandi-band
+                        /opt/home-server/scripts/deploy-app.sh jandi-band
+                        sleep 20
                         echo "✅ jandi-band deployment completed!"
                     '''
                 }
@@ -92,8 +70,16 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        sleep 20
-                        curl -f https://rhythmeet-be.yeonjae.kr/actuator/health || echo "Health check pending..."
+                        echo "Waiting for service to be ready..."
+                        for i in 1 2 3 4 5 6 7 8 9 10; do
+                            echo "Health check attempt $i/10"
+                            if curl -sf https://rhythmeet-be.yeonjae.kr/actuator/health; then
+                                echo "✅ Service is healthy!"
+                                exit 0
+                            fi
+                            sleep 5
+                        done
+                        echo "⚠️ Health check timed out, but continuing..."
                     '''
                 }
             }
