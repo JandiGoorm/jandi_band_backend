@@ -36,6 +36,9 @@ public class Vote {
     
     @Column(name = "voted_at", nullable = false)
     private LocalDateTime votedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
     
     @PrePersist
     protected void onCreate() {

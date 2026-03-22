@@ -213,6 +213,21 @@ class PollControllerUnitTest {
     }
 
     @Test
+    @DisplayName("투표 곡 삭제 - 정상 처리")
+    void deleteSongFromPoll_Success() throws Exception {
+        // Given
+        authenticate();
+
+        // When & Then
+        mockMvc.perform(delete("/api/polls/1/songs/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("투표 곡이 성공적으로 삭제되었습니다."));
+
+        verify(pollService).deletePollSong(1, 2, 1);
+    }
+
+    @Test
     @DisplayName("투표 곡 목록 조회 - 정상 처리")
     void getPollSongs_Success() throws Exception {
         // Given
@@ -340,8 +355,8 @@ class PollControllerUnitTest {
     }
 
     @Test
-    @DisplayName("투표 생성 - 잘못된 요청 데이터")
-    void createPoll_InvalidRequest() throws Exception {
+    @DisplayName("투표 생성 - 제목 누락 (DTO 검증)")
+    void createPoll_WithoutTitle_ValidationFails() throws Exception {
         // Given - title이 없는 잘못된 요청
         PollReqDTO invalidPollReqDTO = PollReqDTO.builder()
                 .clubId(1)
@@ -360,12 +375,94 @@ class PollControllerUnitTest {
     }
 
     @Test
-    @DisplayName("곡 추가 - 잘못된 곡 정보")
-    void addSongToPoll_InvalidSongData() throws Exception {
+    @DisplayName("투표 생성 - 빈 제목 (DTO 검증)")
+    void createPoll_WithBlankTitle_ValidationFails() throws Exception {
+        // Given - 빈 제목
+        PollReqDTO invalidPollReqDTO = PollReqDTO.builder()
+                .title("")
+                .clubId(1)
+                .endDatetime(LocalDateTime.now().plusDays(7))
+                .build();
+
+        // When & Then
+        authenticate();
+
+        mockMvc.perform(post("/api/polls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidPollReqDTO)))
+                .andExpect(status().isBadRequest());
+
+        verify(pollService, never()).createPoll(any(), any());
+    }
+
+    @Test
+    @DisplayName("투표 생성 - 과거 마감시간 (DTO 검증)")
+    void createPoll_WithPastEndDatetime_ValidationFails() throws Exception {
+        // Given - 과거 마감시간
+        PollReqDTO invalidPollReqDTO = PollReqDTO.builder()
+                .title("테스트 투표")
+                .clubId(1)
+                .endDatetime(LocalDateTime.now().minusDays(1))
+                .build();
+
+        // When & Then
+        authenticate();
+
+        mockMvc.perform(post("/api/polls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidPollReqDTO)))
+                .andExpect(status().isBadRequest());
+
+        verify(pollService, never()).createPoll(any(), any());
+    }
+
+    @Test
+    @DisplayName("곡 추가 - 곡명 누락 (DTO 검증)")
+    void addSongToPoll_WithoutSongName_ValidationFails() throws Exception {
         // Given - 곡명이 없는 잘못된 요청
         PollSongReqDTO invalidSongReqDTO = PollSongReqDTO.builder()
                 .artistName("Queen")
                 .youtubeUrl("https://www.youtube.com/watch?v=fJ9rUzIMcZQ")
+                .build();
+
+        // When & Then
+        authenticate();
+
+        mockMvc.perform(post("/api/polls/1/songs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidSongReqDTO)))
+                .andExpect(status().isBadRequest());
+
+        verify(pollService, never()).addSongToPoll(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("곡 추가 - 아티스트명 누락 (DTO 검증)")
+    void addSongToPoll_WithoutArtistName_ValidationFails() throws Exception {
+        // Given - 아티스트명이 없는 잘못된 요청
+        PollSongReqDTO invalidSongReqDTO = PollSongReqDTO.builder()
+                .songName("Bohemian Rhapsody")
+                .youtubeUrl("https://www.youtube.com/watch?v=fJ9rUzIMcZQ")
+                .build();
+
+        // When & Then
+        authenticate();
+
+        mockMvc.perform(post("/api/polls/1/songs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidSongReqDTO)))
+                .andExpect(status().isBadRequest());
+
+        verify(pollService, never()).addSongToPoll(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("곡 추가 - 유튜브 URL 누락 (DTO 검증)")
+    void addSongToPoll_WithoutYoutubeUrl_ValidationFails() throws Exception {
+        // Given - 유튜브 URL이 없는 잘못된 요청
+        PollSongReqDTO invalidSongReqDTO = PollSongReqDTO.builder()
+                .songName("Bohemian Rhapsody")
+                .artistName("Queen")
                 .build();
 
         // When & Then

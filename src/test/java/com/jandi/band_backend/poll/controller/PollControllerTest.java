@@ -178,6 +178,22 @@ class PollControllerTest {
     }
 
     @Test
+    @DisplayName("투표 곡 삭제 - 정상 케이스")
+    void deleteSongFromPoll_Success() throws Exception {
+        // Given
+        doNothing().when(pollService).deletePollSong(1, 2, 1);
+
+        // When & Then
+        mockMvc.perform(delete("/api/polls/1/songs/2")
+                        .header("Authorization", "Bearer mock-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("투표 곡이 성공적으로 삭제되었습니다."));
+
+        verify(pollService).deletePollSong(1, 2, 1);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 투표 조회")
     void getPollDetail_NotFound() throws Exception {
         // Given
