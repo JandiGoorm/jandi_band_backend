@@ -20,16 +20,11 @@ RUN --mount=type=cache,target=/root/.gradle \
 # -----------------------------------------------------
 
 # 2. 실행(Final) 스테이지: 실제 운영 환경에서 사용될 이미지
-# GraalVM JDK를 사용하여 성능 최적화 및 향후 Native Image 전환 준비
-FROM ghcr.io/graalvm/jdk-community:21
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Ubuntu 미러를 Kakao로 변경 (다운로드 속도 향상)
-RUN sed -i 's@archive.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list && \
-    sed -i 's@security.ubuntu.com@mirror.kakao.com@g' /etc/apt/sources.list
-
 # HEALTHCHECK에 필요한 curl 설치
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
 # JAR 파일 이름이 다를 경우, `band_backend-0.0.1-SNAPSHOT.jar` 부분을 실제 파일 이름으로 수정하세요.
