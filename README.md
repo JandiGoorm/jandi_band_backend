@@ -21,7 +21,7 @@
 | **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8.0, Redis |
 | **Storage** | AWS S3 |
-| **Infra** | Docker, Jenkins |
+| **Infra** | Docker, Jenkins (`home-server`에서 중앙 관리) |
 | **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
 
@@ -50,7 +50,6 @@ jandi_band_backend/
 ├── src/test/               # 테스트 코드
 ├── build.gradle            # Gradle 빌드 설정
 ├── Dockerfile              # Docker 이미지 빌드
-├── Jenkinsfile             # CI/CD 파이프라인
 └── README.md
 ```
 
@@ -172,13 +171,13 @@ docker build --platform linux/amd64 -t ghcr.io/kyj0503/jandi-band:latest .
 docker push ghcr.io/kyj0503/jandi-band:latest
 ```
 
-### 자동 Push (Jenkins)
+### 중앙 CI/CD (Jenkins)
 
-`master` 브랜치에 Push하면 Jenkins가 자동으로:
-1. 테스트 실행 (실패 시 중단)
-2. Docker 이미지 빌드
-3. GHCR에 Push (`latest` + 빌드 번호 태그)
-4. home-server 배포 트리거
+파이프라인 정의는 `home-server/cicd/jenkins/pipeline/jandi-band/`에서 관리합니다.
+Jenkins의 `jandi-band` Job을 수동 실행하고 `APP_ENV`를 선택합니다.
+
+- `dev`: `dev` 브랜치를 빌드해 `:dev` 이미지로 Push한 뒤 `jandi-band-dev`에 배포 및 헬스 체크
+- `prod`: `main` 브랜치를 빌드해 `:latest` 이미지로 Push한 뒤 `jandi-band`에 배포 및 헬스 체크
 
 ---
 
@@ -224,8 +223,7 @@ chore(infra): Dockerfile 최적화
 
 ## 운영 환경
 
-- Jenkins 파이프라인을 통해 Docker 이미지 빌드 후 GHCR에 Push
-- 운영 환경 배포는 **home-server** 리포지토리에서 중앙 관리
+- Jenkins 파이프라인 정의와 운영 환경 배포는 **home-server** 리포지토리에서 중앙 관리
 - 환경변수 및 시크릿: `home-server/config/jandi-band/`
 # Test webhook
 # Test webhook 2
