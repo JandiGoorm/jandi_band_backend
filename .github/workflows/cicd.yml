@@ -73,10 +73,22 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - name: Connect to OCI through Tailscale
+        uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4
+        with:
+          oauth-client-id: ${{ vars.TS_CLIENT_ID }}
+          audience: ${{ vars.TS_AUDIENCE }}
+          tags: tag:jandi-ci
+          version: '1.104.1'
+          sha256sum: 108d1d96ecf410d305571e173516f27038f870919a9b89c914a167c6d33a4528
+          args: --accept-dns=false --accept-routes=false
+          retry: '1'
+          ping: ${{ vars.OCI_HOST }}
       - name: Deploy exact image digest
         env:
           APP_IMAGE: ${{ needs.publish.outputs.image }}
