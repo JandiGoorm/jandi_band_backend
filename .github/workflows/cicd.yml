@@ -86,9 +86,11 @@ jobs:
           tags: tag:jandi-ci
           version: '1.104.1'
           sha256sum: 108d1d96ecf410d305571e173516f27038f870919a9b89c914a167c6d33a4528
-          args: --accept-dns=false --accept-routes=false
+          args: --accept-dns=false
           retry: '1'
           ping: ${{ vars.OCI_HOST }}
+      - name: Disable runner subnet route acceptance
+        run: sudo tailscale set --accept-routes=false
       - name: Deploy exact image digest
         env:
           APP_IMAGE: ${{ needs.publish.outputs.image }}
