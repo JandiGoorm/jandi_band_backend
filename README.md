@@ -21,7 +21,7 @@
 | **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8.0, Redis |
 | **Storage** | AWS S3 |
-| **Infra** | Docker, Jenkins (`home-server`에서 중앙 관리) |
+| **Infra** | Docker, GitHub Actions |
 | **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
 
@@ -111,73 +111,20 @@ java -jar build/libs/band_backend-0.0.1-SNAPSHOT.jar
 
 ---
 
-## Docker 환경에서 실행
+## Docker 빌드와 테스트
 
 ```bash
-# 1. 환경변수 설정
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 수정
-
-# 2. 이미지 빌드
-docker build -t jandi-band:local .
-
-# 3. 컨테이너 실행
-docker run -d \
-  --name jandi-band \
-  -p 8080:8080 \
-  jandi-band:local
-
-# 4. 로그 확인
-docker logs -f jandi-band
-
-# 5. 컨테이너 중지 및 삭제
-docker stop jandi-band && docker rm jandi-band
-```
-
-> **참고**: Docker 빌드 시 `application.properties` 파일이 이미지에 포함됩니다.
-
----
-
-## Docker 환경에서 테스트
-
-```bash
-# 1. 테스트용 이미지 빌드 (멀티스테이지의 test 스테이지 활용)
 docker build --target test -t jandi-band:test .
-
-# 2. 테스트 실행
-docker run --rm jandi-band:test ./gradlew test
-
-# 또는 실행 중인 컨테이너에서 테스트
-docker exec jandi-band ./gradlew test
+docker build --target runtime -t jandi-band:local .
 ```
 
----
+테스트는 이미지의 `test` 단계에서 실행한다. 실제 비밀값은 빌드에 전달하지 않는다.
 
-## GHCR에 이미지 Push
+## CI/CD와 운영 설정
 
-### 수동 Push
-
-```bash
-# 1. GHCR 로그인
-echo $GITHUB_TOKEN | docker login ghcr.io -u kyj0503 --password-stdin
-
-# 2. application.properties 준비 (example 복사)
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-
-# 3. 이미지 빌드
-docker build --platform linux/amd64 -t ghcr.io/kyj0503/jandi-band:latest .
-
-# 4. Push
-docker push ghcr.io/kyj0503/jandi-band:latest
-```
-
-### 중앙 CI/CD (Jenkins)
-
-파이프라인 정의는 `home-server/cicd/jenkins/pipeline/jandi-band/`에서 관리합니다.
-Jenkins의 `jandi-band` Job을 수동 실행하고 `APP_ENV`를 선택합니다.
-
-- `dev`: `dev` 브랜치를 빌드해 `:dev` 이미지로 Push한 뒤 `jandi-band-dev`에 배포 및 헬스 체크
-- `prod`: `main` 브랜치를 빌드해 `:latest` 이미지로 Push한 뒤 `jandi-band`에 배포 및 헬스 체크
+이 저장소의 GitHub Actions가 `main`과 `dev`를 각각 운영·개발 환경에 배포한다.
+Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
+환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
 
 ---
 
@@ -220,10 +167,3 @@ chore(infra): Dockerfile 최적화
 ```
 
 ---
-
-## 운영 환경
-
-- Jenkins 파이프라인 정의와 운영 환경 배포는 **home-server** 리포지토리에서 중앙 관리
-- 환경변수 및 시크릿: `home-server/config/jandi-band/`
-# Test webhook
-# Test webhook 2

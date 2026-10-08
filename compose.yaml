@@ -1,0 +1,27 @@
+name: jandi-band-${APP_ENV:?}
+
+services:
+  app:
+    image: ${APP_IMAGE:?}
+    container_name: ${APP_CONTAINER:?}
+    restart: unless-stopped
+    env_file:
+      - path: ${APP_ENV_FILE:?}
+        format: raw
+    environment:
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE:?}
+      SPRING_CONFIG_LOCATION: file:/app/config/application.properties
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://localhost:8080/actuator/health']
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+
+networks:
+  backend-net:
+    external: true
