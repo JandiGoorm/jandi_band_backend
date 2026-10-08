@@ -2,6 +2,7 @@
 
 ## 2026-10-08
 
+- 배포 작업에 Tailscale OIDC 연결과 SSH 전용 접근 설정을 추가했다.
 - main/dev 별 GitHub Actions 배포와 독립 Compose를 추가했다.
 - 비밀값을 환경변수 참조로 분리하고 공통·운영·개발 properties를 추가했다.
 - 카카오 콜백과 초대 링크를 새 프론트엔드 주소에 맞췄다.
