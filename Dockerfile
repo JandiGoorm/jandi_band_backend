@@ -7,11 +7,21 @@ WORKDIR /workspace/app
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-RUN --mount=type=cache,target=/root/.gradle \
-    chmod +x ./gradlew && ./gradlew build -x test --no-daemon || true
+RUN chmod +x ./gradlew
 
 # 소스 코드를 복사합니다.
 COPY src src
+
+FROM builder AS test
+COPY config deployment-config
+RUN apt-get update && apt-get install -y --no-install-recommends redis-server \
+    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/root/.gradle \
+    redis-server --bind 127.0.0.1 --daemonize yes && \
+    trap 'redis-cli shutdown' EXIT && \
+    ./gradlew test --no-daemon
+
+FROM builder AS package
 
 # 다시 빌드하여 최종 JAR 파일을 생성합니다.
 RUN --mount=type=cache,target=/root/.gradle \
@@ -20,7 +30,7 @@ RUN --mount=type=cache,target=/root/.gradle \
 # -----------------------------------------------------
 
 # 2. 실행(Final) 스테이지: 실제 운영 환경에서 사용될 이미지
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-jammy AS runtime
 WORKDIR /app
 
 # HEALTHCHECK에 필요한 curl 설치
@@ -28,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
 # JAR 파일 이름이 다를 경우, `band_backend-0.0.1-SNAPSHOT.jar` 부분을 실제 파일 이름으로 수정하세요.
-COPY --from=builder /workspace/app/build/libs/band_backend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=package /workspace/app/build/libs/band_backend-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 

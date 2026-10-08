@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,9 @@ class ClubRepositoryTest {
 
     @Autowired
     private ClubRepository clubRepository;
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Autowired
     private UniversityRepository universityRepository;
@@ -229,18 +233,20 @@ class ClubRepositoryTest {
 
     @Test
     @DisplayName("클럽 수정 시 수정일시 업데이트")
-    void updateClub_UpdateTimestamp() throws InterruptedException {
-        // Given
-        LocalDateTime originalUpdatedAt = club.getUpdatedAt();
-        Thread.sleep(1000); // 시간 차이를 만들기 위해 1초 대기
+    void updateClub_UpdateTimestamp() {
+        clubRepository.flush();
+        entityManager.clear();
+        Club persistedClub = clubRepository.findById(club.getId()).orElseThrow();
+        LocalDateTime originalCreatedAt = persistedClub.getCreatedAt();
+        LocalDateTime oldTimestamp = LocalDateTime.of(2000, 1, 1, 0, 0);
 
-        // When
-        club.setDescription("수정된 설명");
-        club.setUpdatedAt(LocalDateTime.now().plusSeconds(1)); // 명시적으로 미래 시간 설정
-        Club updatedClub = clubRepository.save(club);
+        persistedClub.setUpdatedAt(oldTimestamp);
+        persistedClub.setDescription("수정된 설명");
+        clubRepository.saveAndFlush(persistedClub);
+        entityManager.clear();
+        Club updatedClub = clubRepository.findById(club.getId()).orElseThrow();
 
-        // Then
-        assertThat(updatedClub.getUpdatedAt()).isAfter(originalUpdatedAt);
-        assertThat(updatedClub.getCreatedAt()).isEqualTo(club.getCreatedAt()); // 생성일시는 변경되지 않음
+        assertThat(updatedClub.getUpdatedAt()).isAfter(oldTimestamp);
+        assertThat(updatedClub.getCreatedAt()).isEqualTo(originalCreatedAt);
     }
 }
