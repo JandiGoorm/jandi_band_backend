@@ -7,4 +7,12 @@
 **/out/
 README.md
 HELP.md
-.DS_Store 
+.DS_Store
+.env
+.env.*
+**/application.properties
+**/application-*.properties
+!src/test/resources/application-test.properties
+*.pem
+*.key
+!config/*.properties

@@ -107,3 +107,9 @@ Desktop.ini
 ### Linux ###
 *~
 jenkinslog.txt
+
+.env.*
+!.env.example
+!config/*.properties
+*.pem
+*.key
