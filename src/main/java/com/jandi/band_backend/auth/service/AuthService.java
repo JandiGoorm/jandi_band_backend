@@ -212,7 +212,7 @@ public class AuthService {
     /// 리프레시 토큰 생성
     public TokenRespDTO refresh(String refreshToken) {
         // 리프레시 토큰 검증
-        if(!jwtTokenProvider.validateToken(refreshToken)) {
+        if (!jwtTokenProvider.validateToken(refreshToken) || jwtTokenProvider.isAccessToken(refreshToken)) {
             throw new InvalidTokenException();
         }
 
