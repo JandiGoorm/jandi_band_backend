@@ -20,7 +20,7 @@
 | **Language** | Java 21 |
 | **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8.0, Redis |
-| **Storage** | AWS S3 |
+| **Storage** | AWS S3 / Cloudflare R2 (S3 호환 API) |
 | **Infra** | Docker, GitHub Actions |
 | **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
@@ -125,6 +125,9 @@ docker build --target runtime -t jandi-band:local .
 이 저장소의 GitHub Actions가 `main`과 `dev`를 각각 운영·개발 환경에 배포한다.
 Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
 환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
+
+이미지 저장소의 S3/R2 설정 계약, Docker HTTP 검증과 데이터 이전 설계는
+[이미지 저장소 문서](docs/image-storage.md)에서 관리한다. 실제 환경 파일은 사용자 관리 대상이다.
 
 ---
 

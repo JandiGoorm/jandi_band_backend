@@ -21,6 +21,11 @@ RUN --mount=type=cache,target=/root/.gradle \
     trap 'redis-cli shutdown' EXIT && \
     ./gradlew test --no-daemon
 
+FROM test AS storage-smoke
+RUN --mount=type=cache,target=/root/.gradle ./gradlew prepareStorageSmoke --no-daemon
+EXPOSE 8080 9091
+CMD ["sh", "-c", "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.LocalStorageSmokeServer"]
+
 FROM builder AS package
 
 # 다시 빌드하여 최종 JAR 파일을 생성합니다.
