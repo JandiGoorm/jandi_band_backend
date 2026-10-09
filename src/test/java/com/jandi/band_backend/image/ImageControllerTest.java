@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 class ImageControllerTest {
 
     @Mock
-    private S3Service s3Service;
+    private R2Service r2Service;
 
     @Mock
     private UserRepository userRepository;
@@ -42,7 +42,7 @@ class ImageControllerTest {
     void uploadImage_AdminUser_Succeeds() throws IOException {
         Users adminUser = createUser(1, Users.AdminRole.ADMIN);
         when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(s3Service.uploadImage(any(), eq("test"))).thenReturn("https://cdn.example.com/test/image.jpg");
+        when(r2Service.uploadImage(any(), eq("test"))).thenReturn("https://cdn.example.com/test/image.jpg");
 
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "file",
@@ -61,7 +61,7 @@ class ImageControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isSuccess()).isTrue();
         assertThat(response.getBody().getData()).isEqualTo("https://cdn.example.com/test/image.jpg");
-        verify(s3Service).uploadImage(multipartFile, "test");
+        verify(r2Service).uploadImage(multipartFile, "test");
     }
 
     @Test
@@ -100,7 +100,7 @@ class ImageControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isSuccess()).isTrue();
         assertThat(response.getBody().getData()).isNull();
-        verify(s3Service).deleteImage("folder/image.jpg");
+        verify(r2Service).deleteImage("folder/image.jpg");
     }
 
     @Test

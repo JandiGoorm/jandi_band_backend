@@ -1,6 +1,6 @@
 package com.jandi.band_backend.global.util;
 
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,17 +9,17 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class S3FileManagementUtil {
-    private final S3Service s3Service;
+public class R2FileManagementUtil {
+    private final R2Service r2Service;
 
     /**
      * 안전한 파일 업로드 (예외 처리 포함)
      */
     public String uploadFile(MultipartFile file, String directory, String errorMessage) {
         try {
-            return s3Service.uploadImage(file, directory);
+            return r2Service.uploadImage(file, directory);
         } catch (Exception e) {
-            log.error("S3 파일 업로드 실패: directory={}, error={}", directory, e.getMessage());
+            log.error("R2 파일 업로드 실패: directory={}, error={}", directory, e.getMessage());
             throw new RuntimeException(errorMessage + ": " + e.getMessage());
         }
     }
@@ -36,10 +36,10 @@ public class S3FileManagementUtil {
      */
     public void deleteFileSafely(String fileUrl) {
         try {
-            s3Service.deleteImage(fileUrl);
+            r2Service.deleteImage(fileUrl);
             log.debug("이미지 정리 요청 처리: {}", fileUrl);
         } catch (Exception e) {
-            log.error("S3 파일 삭제 실패: url={}, error={}", fileUrl, e.getMessage());
+            log.error("R2 파일 삭제 실패: url={}, error={}", fileUrl, e.getMessage());
             // 파일 삭제 실패는 치명적이지 않으므로 예외를 던지지 않음
         }
     }

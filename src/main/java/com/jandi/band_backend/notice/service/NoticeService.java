@@ -9,7 +9,7 @@ import com.jandi.band_backend.notice.dto.NoticeDetailRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeRespDTO;
 import com.jandi.band_backend.notice.entity.Notice;
 import com.jandi.band_backend.notice.repository.NoticeRepository;
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +33,9 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final UserRepository userRepository;
-    private final S3Service s3Service;
+    private final R2Service r2Service;
 
-    private static final String S3_DIRNAME = "notice-photo";
+    private static final String IMAGE_DIRECTORY = "notice-photo";
 
     private Users validateAdminPermissionAndGetUser(Integer userId) {
         Users user = userRepository.findById(userId)
@@ -153,7 +153,7 @@ public class NoticeService {
     public NoticeDetailRespDTO updateNotice(Integer noticeId, NoticeUpdateReqDTO request, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
-        Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
+        Notice notice = noticeRepository.findForUpdate(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
         validateUpdateRequest(request, notice);
@@ -223,7 +223,7 @@ public class NoticeService {
     public void deleteNotice(Integer noticeId, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
-        Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
+        Notice notice = noticeRepository.findForUpdate(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
         String imageUrl = notice.getImageUrl();
@@ -232,7 +232,7 @@ public class NoticeService {
         notice.setDeletedAt(LocalDateTime.now());
         noticeRepository.save(notice);
 
-        // DB 반영 후 S3 이미지 삭제
+        // DB 반영 후 R2 이미지 삭제
         if (imageUrl != null) {
             deleteImage(imageUrl);
         }
@@ -244,7 +244,7 @@ public class NoticeService {
     public NoticeRespDTO toggleNoticeStatus(Integer noticeId, Integer userId) {
         validateAdminPermissionAndGetUser(userId);
 
-        Notice notice = noticeRepository.findByIdAndDeletedAtIsNull(noticeId)
+        Notice notice = noticeRepository.findForUpdate(noticeId)
                 .orElseThrow(() -> new ResourceNotFoundException("공지사항을 찾을 수 없습니다."));
 
         notice.setIsPaused(!notice.getIsPaused());
@@ -255,10 +255,10 @@ public class NoticeService {
         return new NoticeRespDTO(updatedNotice);
     }
 
-    /// S3 이미지 처리 관련
+    /// R2 이미지 처리 관련
     private String uploadImage(MultipartFile file){
         try {
-            return s3Service.uploadImage(file, S3_DIRNAME);
+            return r2Service.uploadImage(file, IMAGE_DIRECTORY);
         } catch (IOException e) {
             throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
         }
@@ -267,7 +267,7 @@ public class NoticeService {
     private void deleteImage(String imageUrl){
         try {
             if (imageUrl != null) {
-                s3Service.deleteImage(imageUrl);
+                r2Service.deleteImage(imageUrl);
             }
         } catch (Exception e) {
             log.warn("이미지 삭제 실패: {}", imageUrl, e);
@@ -277,7 +277,7 @@ public class NoticeService {
     private void tryDeleteImage(String imageUrl, String successMessage, String errorMessage) {
         if (imageUrl != null) {
             try {
-                s3Service.deleteImage(imageUrl);
+                r2Service.deleteImage(imageUrl);
                 log.info(successMessage, imageUrl);
             } catch (Exception e) {
                 log.error(errorMessage + " - URL: {}", imageUrl, e);

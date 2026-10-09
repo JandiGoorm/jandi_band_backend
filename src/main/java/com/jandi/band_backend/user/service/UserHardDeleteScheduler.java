@@ -1,7 +1,7 @@
 package com.jandi.band_backend.user.service;
 
 import com.jandi.band_backend.club.repository.ClubMemberRepository;
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import com.jandi.band_backend.team.repository.TeamMemberRepository;
 import com.jandi.band_backend.user.entity.UserPhoto;
 import com.jandi.band_backend.user.entity.Users;
@@ -28,7 +28,7 @@ public class UserHardDeleteScheduler {
     private final UserPhotoRepository userPhotoRepository;
     private final ClubMemberRepository clubMemberRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final S3Service s3Service;
+    private final R2Service r2Service;
 
     @Value("${user-withdraw.days}")
     private int userWithdrawDays;
@@ -59,9 +59,9 @@ public class UserHardDeleteScheduler {
                 String imageUrl = userPhoto.getImageUrl();
                 log.info(" - userId={} 의 프로필 삭제 처리 시작: imageUrl={}", userId, imageUrl);
                 try {
-                    s3Service.deleteImage(imageUrl);
+                    r2Service.deleteImage(imageUrl);
                     userPhotoRepository.delete(userPhoto);
-                    log.info(" - 프로필 사진 S3 및 DB 삭제 완료");
+                    log.info(" - 프로필 사진 R2 및 DB 삭제 완료");
                 } catch (Exception e) {
                     log.error(" - 프로필 사진 삭제 실패: {}", e.getMessage(), e);
                 }

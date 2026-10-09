@@ -23,7 +23,6 @@ if ($R2EnvFile) {
     }
     if (-not $settings.IMAGE_STORAGE_BUCKET.EndsWith('-dev')) { throw 'R2 smoke requires a development bucket' }
     $baseUrl = $settings.IMAGE_STORAGE_PUBLIC_URL.TrimEnd('/')
-    $legacyBase = $settings.IMAGE_STORAGE_LEGACY_PUBLIC_URLS.Split(',')[0].TrimEnd('/')
     $settings.Clear()
     $dockerOptions = @('--env-file', $R2EnvFile)
     $command = @('sh', '-c', "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.LocalStorageSmokeServer --external-r2")
@@ -62,7 +61,7 @@ try {
     if (-not $result.success) { throw 'Image API reported an upload failure' }
     $url = [string]$result.data
     if (-not $url.StartsWith($baseUrl + '/smoke/')) { throw 'Unexpected public image URL' }
-    if ($url.Contains('+') -or -not $url.Contains('%2B')) { throw 'Literal plus must be encoded for S3 public URLs' }
+    if ($url.Contains('+') -or -not $url.Contains('%2B')) { throw 'Literal plus must be encoded for public URLs' }
     $download = $public.GetAsync($url).GetAwaiter().GetResult()
     $download.EnsureSuccessStatusCode() | Out-Null
     $downloaded = $download.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
@@ -78,12 +77,11 @@ try {
         $check = $public.GetAsync($preserved).GetAwaiter().GetResult()
         $check.EnsureSuccessStatusCode() | Out-Null
     }
-    $legacy = $legacyBase + '/' + $key
-    $deleted = $api.DeleteAsync('http://localhost:18081/api/images?fileUrl=' + [Uri]::EscapeDataString($legacy)).GetAwaiter().GetResult()
+    $deleted = $api.DeleteAsync('http://localhost:18081/api/images?fileUrl=' + [Uri]::EscapeDataString($url)).GetAwaiter().GetResult()
     $deleted.EnsureSuccessStatusCode() | Out-Null
     $missing = $public.GetAsync($url).GetAwaiter().GetResult()
     if ([int]$missing.StatusCode -ne 404) { throw 'Object still exists after deletion' }
-    Write-Output 'PASS: authenticated API upload, Unicode key, exact bytes, Content-Type, external/default protection, legacy URL delete, final 404'
+    Write-Output 'PASS: authenticated API upload, Unicode key, exact bytes, Content-Type, external/default protection, current URL delete, final 404'
 } catch {
     if ($created) { docker logs --tail 50 $container }
     throw

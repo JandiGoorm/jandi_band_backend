@@ -1,7 +1,7 @@
 package com.jandi.band_backend.image;
 
 import com.jandi.band_backend.config.ImageStorageProperties;
-import com.jandi.band_backend.config.S3Config;
+import com.jandi.band_backend.config.R2Config;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.*;
 
-class S3ClientCompatibilityTest {
+class R2ClientCompatibilityTest {
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.NullSource
+    @ValueSource(strings = {""})
+    void rejectsMissingEndpointBeforeAnyRequest(String endpoint) {
+        var properties = new ImageStorageProperties();
+        properties.setAccessKey("test-access-key");
+        properties.setSecretKey("test-secret-key");
+        properties.setEndpoint(endpoint);
+        assertThatThrownBy(() -> new R2Config().s3Client(properties))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     @ParameterizedTest
     @ValueSource(ints = {24, 1048576})
     void customEndpointReceivesSignedUnchunkedUploadAndDeleteWithoutAclCalls(int size) throws Exception {
@@ -29,13 +41,12 @@ class S3ClientCompatibilityTest {
             server.enqueue(new MockResponse().setResponseCode(200));
             server.enqueue(new MockResponse().setResponseCode(204));
             var properties = properties(server);
-            try (var client = new S3Config().s3Client(properties)) {
-                var service = new S3Service(client, properties,
-                        new ImageUrls("https://images.example.com", List.of(), "club-photo/rhythmeet.webp"));
-                byte[] content = new byte[size];
-                Arrays.fill(content, (byte) 0xA7);
+            try (var client = new R2Config().s3Client(properties)) {
+                var service = new R2Service(client, properties,
+                        new ImageUrls("https://images.example.com", "club-photo/rhythmeet.webp"));
+                byte[] content = ImageTestFiles.bytes("png", size);
                 var openStreams = new AtomicInteger();
-                var file = new MockMultipartFile("file", "image.webp", "image/webp", content) {
+                var file = new MockMultipartFile("file", "image.png", "image/png", content) {
                     @Override
                     public InputStream getInputStream() throws IOException {
                         openStreams.incrementAndGet();
@@ -56,7 +67,7 @@ class S3ClientCompatibilityTest {
                 assertThat(upload).isNotNull();
                 assertThat(upload.getMethod()).isEqualTo("PUT");
                 assertThat(upload.getPath()).startsWith("/test-bucket/club-photo/");
-                assertThat(upload.getHeader("Content-Type")).isEqualTo("image/webp");
+                assertThat(upload.getHeader("Content-Type")).isEqualTo("image/png");
                 assertThat(upload.getHeader("Content-Length")).isEqualTo(String.valueOf(content.length));
                 assertThat(upload.getHeader("Transfer-Encoding")).isNull();
                 assertThat(upload.getHeader("Content-Encoding")).isNotEqualTo("aws-chunked");
@@ -79,11 +90,11 @@ class S3ClientCompatibilityTest {
             server.enqueue(new MockResponse().setResponseCode(403).setHeader("Content-Type", "application/xml")
                     .setBody("<Error><Code>AccessDenied</Code><Message>denied</Message></Error>"));
             var properties = properties(server);
-            try (var client = new S3Config().s3Client(properties)) {
-                var service = new S3Service(client, properties,
-                        new ImageUrls("https://images.example.com", List.of(), "club-photo/rhythmeet.webp"));
+            try (var client = new R2Config().s3Client(properties)) {
+                var service = new R2Service(client, properties,
+                        new ImageUrls("https://images.example.com", "club-photo/rhythmeet.webp"));
                 assertThatThrownBy(() -> service.uploadImage(
-                        new MockMultipartFile("file", "image.jpg", "image/jpeg", new byte[2]), "photo"))
+                        new MockMultipartFile("file", "image.jpg", "image/jpeg", ImageTestFiles.bytes("jpeg", 2)), "photo"))
                         .isInstanceOfSatisfying(S3Exception.class, e -> assertThat(e.statusCode()).isEqualTo(403));
                 assertThat(server.getRequestCount()).isEqualTo(1);
             }

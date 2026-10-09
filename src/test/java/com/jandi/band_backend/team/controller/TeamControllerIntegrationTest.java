@@ -159,7 +159,7 @@ public class TeamControllerIntegrationTest {
         mockMvc.perform(post("/api/clubs/{clubId}/teams", testClub.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     // === 동아리 팀 목록 조회 테스트 ===
@@ -278,7 +278,7 @@ public class TeamControllerIntegrationTest {
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     // === 팀 삭제 테스트 ===
@@ -326,7 +326,7 @@ public class TeamControllerIntegrationTest {
         // When & Then
         mockMvc.perform(delete("/api/teams/{teamId}", team.getId())
                         .header("Authorization", "Bearer " + otherUserToken))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     // === 팀 탈퇴 테스트 ===

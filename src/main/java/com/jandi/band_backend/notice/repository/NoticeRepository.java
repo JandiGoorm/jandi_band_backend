@@ -4,6 +4,8 @@ import com.jandi.band_backend.notice.entity.Notice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,9 @@ import java.util.Optional;
 
 @Repository
 public interface NoticeRepository extends JpaRepository<Notice, Integer> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT n FROM Notice n WHERE n.id = :id AND n.deletedAt IS NULL")
+    Optional<Notice> findForUpdate(@Param("id") Integer id);
 
     // 전체 목록 조회 (소프트 삭제되지 않은 것만)
     @Query("SELECT n FROM Notice n LEFT JOIN FETCH n.creator WHERE n.deletedAt IS NULL ORDER BY n.createdAt DESC")

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 @Tag(name = "User API")
 @RestController
@@ -37,6 +38,7 @@ public class UserController {
 
     @Operation(summary = "내 정보 수정")
     @PatchMapping("/me/info")
+    @Transactional
     public CommonRespDTO<?> updateMyInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(value = "nickname", required = false) String nickname,
