@@ -28,11 +28,6 @@ public class S3FileManagementUtil {
      * 안전한 파일 삭제 (예외 처리 포함, 카카오 URL 제외)
      */
     public void deleteFileWithKakaoCheck(String fileUrl) {
-        // 카카오 기본 프로필인 경우 삭제하지 않음
-        if (isKakaoUrl(fileUrl)) {
-            log.debug("카카오 프로필은 삭제하지 않습니다: {}", fileUrl);
-            return;
-        }
         deleteFileSafely(fileUrl);
     }
 
@@ -42,7 +37,7 @@ public class S3FileManagementUtil {
     public void deleteFileSafely(String fileUrl) {
         try {
             s3Service.deleteImage(fileUrl);
-            log.info("S3 파일 삭제 성공: {}", fileUrl);
+            log.debug("이미지 정리 요청 처리: {}", fileUrl);
         } catch (Exception e) {
             log.error("S3 파일 삭제 실패: url={}, error={}", fileUrl, e.getMessage());
             // 파일 삭제 실패는 치명적이지 않으므로 예외를 던지지 않음
@@ -60,10 +55,4 @@ public class S3FileManagementUtil {
         }
     }
 
-    /**
-     * 카카오 URL 판별
-     */
-    private boolean isKakaoUrl(String url) {
-        return url != null && url.contains("k.kakaocdn.net");
-    }
-} 
+}

@@ -79,15 +79,17 @@ dependencies {
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'commons-codec:commons-codec'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // Redis
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // AWS SDK
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.261'
+    implementation platform('software.amazon.awssdk:bom:2.55.13')
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:url-connection-client'
 
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
@@ -99,6 +101,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+}
+
+// Test-only HTTP fixture: no cloud credentials or production database are used.
+tasks.register('prepareStorageSmoke', Sync) {
+    dependsOn testClasses
+    from sourceSets.test.runtimeClasspath
+    into layout.buildDirectory.dir('storage-smoke')
 }
 
 // JaCoCo 테스트 커버리지

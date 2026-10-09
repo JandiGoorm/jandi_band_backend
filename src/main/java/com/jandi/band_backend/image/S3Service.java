@@ -1,103 +1,57 @@
 package com.jandi.band_backend.image;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.*;
+import com.jandi.band_backend.config.ImageStorageProperties;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class S3Service {
-
-    private final AmazonS3Client amazonS3Client;
-
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
-
-    @Value("${cloud.aws.s3.url}")
-    private String s3Url;
+    private final S3Client s3Client;
+    private final ImageStorageProperties properties;
+    private final ImageUrls imageUrls;
 
     public String uploadImage(MultipartFile file, String dirName) throws IOException {
-        log.info("=== S3 Upload Debug Info ===");
-        log.info("Bucket name: {}", bucket);
-        log.info("S3 URL: {}", s3Url);
-        log.info("File name: {}", file.getOriginalFilename());
-        log.info("File size: {} bytes", file.getSize());
-        log.info("Content type: {}", file.getContentType());
-        log.info("Directory name: {}", dirName);
-
-        String fileName = createFileName(file.getOriginalFilename(), dirName);
-        log.info("Generated file key: {}", fileName);
-
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(file.getContentType());
-        objectMetadata.setContentLength(file.getSize());
-
-        boolean bucketExists = amazonS3Client.doesBucketExistV2(bucket);
-        log.info("Bucket exists: {}", bucketExists);
-
-        try {
-            AccessControlList acl = amazonS3Client.getBucketAcl(bucket);
-            log.info("Bucket ACL: {}", acl.getGrantsAsList());
-        } catch (Exception e) {
-            log.error("Failed to get bucket ACL: {}", e.getMessage());
+        ImageUrls.validateKey(dirName);
+        String originalName = file.getOriginalFilename();
+        int dot = originalName == null ? -1 : originalName.lastIndexOf('.');
+        if (dot < 0 || dot == originalName.length() - 1) {
+            throw new IllegalArgumentException("잘못된 형식의 파일입니다.");
         }
-
-        try (InputStream inputStream = file.getInputStream()) {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, fileName, inputStream, objectMetadata);
-            
-            log.info("Attempting to upload with PutObjectRequest: bucket={}, key={}", 
-                    putObjectRequest.getBucketName(), 
-                    putObjectRequest.getKey());
-            
-            amazonS3Client.putObject(putObjectRequest);
-            log.info("Upload successful");
-            
-            return s3Url + "/" + fileName;
-        } catch (Exception e) {
-            log.error("Upload failed: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to upload file to S3", e);
+        String extension = originalName.substring(dot);
+        if (!extension.matches("\\.[a-zA-Z0-9]+")) {
+            throw new IllegalArgumentException("잘못된 형식의 파일입니다.");
         }
+        String key = dirName + "/" + UUID.randomUUID() + extension;
+        String url = imageUrls.publicUrl(key);
+        String contentType = file.getContentType() == null ? "application/octet-stream" : file.getContentType();
+        var request = PutObjectRequest.builder().bucket(properties.getBucket()).key(key)
+                .contentType(contentType).contentLength(file.getSize()).build();
+        // Repeatable multipart streams for SDK signing and transfer
+        var streams = ContentStreamProvider.fromInputStreamSupplier(() -> {
+            try {
+                return file.getInputStream();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+        s3Client.putObject(request, RequestBody.fromContentProvider(streams, file.getSize(), contentType));
+        return url;
     }
 
     public void deleteImage(String fileUrl) {
-        log.info("=== S3 Delete Debug Info ===");
-        log.info("File URL to delete: {}", fileUrl);
-        
-        String fileName = fileUrl.replace(s3Url + "/", "");
-        log.info("Extracted file key: {}", fileName);
-        
-        try {
-            amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, fileName));
-            log.info("Delete successful");
-        } catch (Exception e) {
-            log.error("Delete failed: {}", e.getMessage(), e);
-            throw e;
-        }
+        imageUrls.managedKey(fileUrl).filter(key -> !imageUrls.isDefaultClubKey(key))
+                .ifPresent(key -> s3Client.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(properties.getBucket()).key(key).build()));
     }
-
-    private String createFileName(String originalFileName, String dirName) {
-        String fileName = dirName + "/" + UUID.randomUUID().toString() + getFileExtension(originalFileName);
-        log.info("Created file name: {} from original: {}", fileName, originalFileName);
-        return fileName;
-    }
-
-    private String getFileExtension(String fileName) {
-        try {
-            String extension = fileName.substring(fileName.lastIndexOf("."));
-            log.info("File extension: {} from file: {}", extension, fileName);
-            return extension;
-        } catch (StringIndexOutOfBoundsException e) {
-            log.error("Invalid file name format: {}", fileName);
-            throw new IllegalArgumentException("잘못된 형식의 파일입니다.");
-        }
-    }
-} 
+}
