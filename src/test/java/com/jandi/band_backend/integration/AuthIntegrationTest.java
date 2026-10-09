@@ -21,6 +21,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.Mockito.doNothing;
@@ -64,7 +66,7 @@ class AuthIntegrationTest {
         university.setUniversityCode("SNU0001");
         university = universityRepository.save(university);
 
-        testUser = TestDataFactory.createTestUser("test_kakao_id", "테스트유저", university);
+        testUser = TestDataFactory.createTestUser("auth-test-" + UUID.randomUUID(), "테스트유저", university);
         testUser = userRepository.save(testUser);
 
         // JWT 토큰 생성
@@ -191,7 +193,36 @@ class AuthIntegrationTest {
                 .content(objectMapper.writeValueAsString(refreshRequest)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().exists("AccessToken"))
+                .andExpect(cookie().maxAge("RefreshToken", 604800))
+                .andExpect(cookie().httpOnly("RefreshToken", true))
+                .andExpect(cookie().secure("RefreshToken", true))
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("토큰 재발급 API - 유효한 액세스 토큰으로 재발급 불가")
+    void refresh_AccessTokenRejected() throws Exception {
+        mockMvc.perform(post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RefreshReqDTO(accessToken))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_TOKEN"))
+                .andExpect(header().doesNotExist("AccessToken"))
+                .andExpect(header().doesNotExist("Set-Cookie"));
+    }
+
+    @Test
+    @DisplayName("일반 인증 API - 리프레시 토큰의 Bearer 인증 불가")
+    void logout_RefreshTokenAuthenticationRejected() throws Exception {
+        String refreshToken = jwtTokenProvider.generateRefreshToken(testUser.getKakaoOauthId());
+
+        mockMvc.perform(post("/api/auth/logout")
+                .header("Authorization", "Bearer " + refreshToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new RefreshReqDTO(refreshToken))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_TOKEN"));
     }
 
     @Test

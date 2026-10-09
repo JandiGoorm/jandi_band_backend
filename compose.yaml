@@ -5,6 +5,11 @@ services:
     image: ${APP_IMAGE:?}
     container_name: ${APP_CONTAINER:?}
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
     env_file:
       - path: ${APP_ENV_FILE:?}
         format: raw

@@ -79,7 +79,15 @@ test "$(docker image inspect "$image" --format '{{.Architecture}}')" = arm64
 test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$revision"
 printf 'APP_ENV=%s\nAPP_CONTAINER=%s\nAPP_PROFILE=%s\nAPP_IMAGE=%s\nAPP_ENV_FILE=%s/.env\n' \
     "$environment" "$container" "$profile" "$image" "$root" > "$release/deployment.env"
+printf 'REDIS_AUTH_FILE=%s/redis-auth.conf\n' "$root" >> "$release/deployment.env"
+printf 'REDIS_AUTH_GID=%s\n' "$(id -g)" >> "$release/deployment.env"
 compose "$release" config --quiet
+if [[ "$app" == jandi-band ]]; then
+    python3 "$release/scripts/prepare-redis.py" "$root"
+    chmod 644 "$release/config/redis.conf"
+    docker compose --env-file "$release/deployment.env" -f "$release/compose.redis.yaml" \
+        up -d --wait --wait-timeout 90 redis
+fi
 
 if docker container inspect "$container" >/dev/null 2>&1; then
     owner=$(docker inspect "$container" --format '{{index .Config.Labels "com.docker.compose.project"}}')
