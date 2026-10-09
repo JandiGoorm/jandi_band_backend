@@ -36,7 +36,8 @@ def main():
 
     payload = io.BytesIO()
     with tarfile.open(fileobj=payload, mode="w:gz") as archive:
-        files = [Path("compose.yaml"), Path("scripts/deploy.sh")]
+        files = [Path("compose.yaml"), Path("compose.redis.yaml"), Path("scripts/deploy.sh"),
+                 Path("scripts/prepare-redis.py"), Path("config/redis.conf")]
         files.extend(sorted(Path("config").glob("*.properties")))
         for path in files:
             if path.is_symlink():

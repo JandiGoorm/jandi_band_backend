@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+
 @Tag(name = "Auth API")
 @RestController
 @RequestMapping("/api/auth")
@@ -114,7 +116,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(refreshValidityInMilliseconds)
+                .maxAge(Duration.ofMillis(refreshValidityInMilliseconds))
                 .build();
     }
 }

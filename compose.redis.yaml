@@ -1,0 +1,38 @@
+name: jandi-band-redis-${APP_ENV:?}
+
+services:
+  redis:
+    image: redis:8.6.7-alpine@sha256:ac2da09bc822f325a9f68f533120b86fa39c1b8db46b3aa7c1bbea7fdfd4fcba
+    container_name: jandi-band-redis-${APP_ENV:?}
+    restart: unless-stopped
+    user: '999:${REDIS_AUTH_GID:?}'
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    command: [redis-server, /usr/local/etc/redis/redis.conf]
+    volumes:
+      - redis-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ${REDIS_AUTH_FILE:?}:/run/secrets/redis-auth.conf:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: [CMD-SHELL, "redis-cli ping 2>&1 | grep -q '^NOAUTH'"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:
+
+networks:
+  backend-net:
+    external: true
