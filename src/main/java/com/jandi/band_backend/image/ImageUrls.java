@@ -31,7 +31,7 @@ public final class ImageUrls {
     public String publicUrl(String key) {
         validateKey(key);
         try {
-            return publicBase.toASCIIString() + new URI(null, null, "/" + key, null).toASCIIString();
+            return publicBase.toASCIIString() + new URI(null, null, "/" + key, null).toASCIIString().replace("+", "%2B");
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid image key", e);
         }

@@ -62,6 +62,7 @@ try {
     if (-not $result.success) { throw 'Image API reported an upload failure' }
     $url = [string]$result.data
     if (-not $url.StartsWith($baseUrl + '/smoke/')) { throw 'Unexpected public image URL' }
+    if ($url.Contains('+') -or -not $url.Contains('%2B')) { throw 'Literal plus must be encoded for S3 public URLs' }
     $download = $public.GetAsync($url).GetAwaiter().GetResult()
     $download.EnsureSuccessStatusCode() | Out-Null
     $downloaded = $download.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()

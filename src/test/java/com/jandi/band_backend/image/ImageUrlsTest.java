@@ -15,7 +15,10 @@ class ImageUrlsTest {
     @ValueSource(strings = {"photo/a.jpg", "한글/공백 + 더하기.jpg", "photo/100%real.jpg", "photo/literal%2F.jpg"})
     void encodesAndDecodesKeysExactlyOnce(String key) {
         String url = urls.publicUrl(key);
-        assertThat(url).startsWith("https://cdn.example.com/assets/").doesNotContain(" ");
+        assertThat(url).startsWith("https://cdn.example.com/assets/").doesNotContain(" ", "+");
+        if (key.contains("+")) {
+            assertThat(url).contains("%2B");
+        }
         assertThat(urls.managedKey(url)).contains(key);
         assertThat(urls.managedKey(url.replace("https://cdn.example.com/assets", "https://old.example.com/bucket")))
                 .contains(key);
