@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ImageUrlsTest {
     private final ImageUrls urls = new ImageUrls("https://cdn.example.com/assets/",
-            List.of("https://old.example.com/bucket"), "club-photo/rhythmeet.webp");
+            "club-photo/rhythmeet.webp");
 
     @ParameterizedTest
     @ValueSource(strings = {"photo/a.jpg", "한글/공백 + 더하기.jpg", "photo/100%real.jpg", "photo/literal%2F.jpg"})
@@ -21,7 +21,7 @@ class ImageUrlsTest {
         }
         assertThat(urls.managedKey(url)).contains(key);
         assertThat(urls.managedKey(url.replace("https://cdn.example.com/assets", "https://old.example.com/bucket")))
-                .contains(key);
+                .isEmpty();
     }
 
     @ParameterizedTest

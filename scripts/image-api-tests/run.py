@@ -2,6 +2,7 @@
 Reports exclude credentials and tokens; failed feature requests are not retried.
 """
 import json
+import base64
 import os
 import struct
 import sys
@@ -10,6 +11,7 @@ import uuid
 import zlib
 from http.cookies import SimpleCookie
 from datetime import datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
 
@@ -329,9 +331,10 @@ def admin_storage():
                    PUBLIC + "/club-photo/rhythmeet.webp"]:
         api("DELETE", "/api/images", "admin", params={"fileUrl": target})
         check("unmanaged/default deletion does not delete test file", exists(url))
-    legacy = os.environ["IMAGE_STORAGE_LEGACY_PUBLIC_URLS"].split(",")[0].rstrip("/")
-    api("DELETE", "/api/images", "admin", params={"fileUrl": legacy + "/" + quote(key(url), safe="/")})
-    removed("legacy alias deletion in active bucket", url)
+    api("DELETE", "/api/images", "admin", params={"fileUrl": "https://retired-storage.example/" + quote(key(url), safe="/")})
+    check("retired storage URL cannot delete R2 file", exists(url))
+    api("DELETE", "/api/images", "admin", params={"fileUrl": url})
+    removed("current public URL deletes active bucket object", url)
     for directory in ["../bad", "safe/../bad", "/absolute", "bad\\path", "double//slash"]:
         r = api("POST", "/api/images/upload", "admin", expected=None,
                 data={"dirName": directory}, files={"file": file()})
@@ -417,6 +420,72 @@ def db_failure():
     image_failures(True)
 
 
+def concurrent_updates():
+    for name, method, path, actor, field, original, table, ref in failure_cases():
+        before = set(SESSION.get(CONTROL + "/fixture/status", timeout=5).json()["keys"])
+        def upload(body):
+            return requests.request(method, API + path, headers={"Authorization": "Bearer " + ACTORS[actor]["token"]},
+                                    files={field: file(body)}, timeout=60)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            responses = list(pool.map(upload, [RED, BLUE]))
+        for response in responses:
+            REQUESTS.append({"scenario": SCENARIO, "method": method, "path": path, "status": response.status_code})
+        check(name + " concurrent uploads succeed", all(r.status_code == 200 for r in responses))
+        saved = data(api("GET", path.removesuffix("/main-image"), actor))[ref]
+        current = saved[0] if isinstance(saved, list) else saved
+        created = set(SESSION.get(CONTROL + "/fixture/status", timeout=5).json()["keys"]) - before
+        remaining = [k for k in created if exists(PUBLIC + "/" + quote(k, safe="/"))]
+        check(name + " concurrent updates leave one referenced object", len(created) == 2 and remaining == [key(current)])
+        check(name + " concurrent updates remove original", not exists(original))
+        if name in ("gallery", "notice"):
+            suffix = "/pin" if name == "gallery" else "/toggle-pause"
+            flag = "isPinned" if name == "gallery" else "isPaused"
+            previous_flag = data(api("GET", path, actor))[flag]
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                future = pool.submit(upload, BLUE)
+                api("PATCH", path + suffix, actor)
+                response = future.result()
+            REQUESTS.append({"scenario": SCENARIO, "method": method, "path": path, "status": response.status_code})
+            check(name + " upload concurrent with toggle succeeds", response.status_code == 200)
+            saved = data(api("GET", path, actor))
+            check(name + " concurrent toggle and image both persist", saved[flag] != previous_flag and saved[ref] != current)
+            image(name + " image survives concurrent toggle", saved[ref], BLUE)
+            removed(name + " concurrent toggle old object deleted", current)
+
+
+def delete_failure():
+    p = "/api/users/me/info"
+    old = data(api("PATCH", p, "owner", files={"profilePhoto": file()}))["profilePhoto"]
+    SESSION.post(CONTROL + "/fixture/fail-next-delete", timeout=5).raise_for_status()
+    r = api("PATCH", p, "owner", expected=None, files={"profilePhoto": file(BLUE)})
+    check("post-commit cleanup failure is explicit", r.status_code == 502 and r.json().get("errorCode") == "IMAGE_CLEANUP_FAILED")
+    current = data(api("GET", p, "owner"))["profilePhoto"]
+    image("committed image survives cleanup error", current, BLUE)
+    check("failed deletion still has original object", exists(old))
+    api("DELETE", "/api/images", "admin", params={"fileUrl": old})
+    removed("explicit administrator cleanup", old)
+
+
+def file_validation():
+    fields = {"dirName": "api-test/formats"}
+    for name, content, mime in [
+        ("fake.png", b"not an image", "image/png"),
+        ("wrong.jpg", RED, "image/jpeg"),
+        ("wrong-mime.png", RED, "image/jpeg"),
+        ("truncated.png", RED[:8], "image/png"),
+    ]:
+        r = api("POST", "/api/images/upload", "admin", expected=None, data=fields,
+                files={"file": file(content, name, mime)})
+        check("reject forged/mismatched image " + name, r.status_code == 400, "HTTP " + str(r.status_code))
+    webp = base64.b64decode("UklGRhwAAABXRUJQVlA4TA8AAAAvAAAAAAcQ/Y/+ByKi/wEA")
+    url = data(api("POST", "/api/images/upload", "admin", data=fields, files={"file": file(webp, "tiny.WEBP", "image/webp")}))
+    response = SESSION.get(url, timeout=30)
+    check("real uppercase WebP round trip", response.status_code == 200 and response.content == webp and
+          response.headers.get("Content-Type") == "image/webp")
+    api("DELETE", "/api/images", "admin", params={"fileUrl": url})
+    removed("WebP deleted", url)
+
+
 def withdrawal():
     register("withdraw")
     url = data(api("PATCH", "/api/users/me/info", "withdraw", files={"profilePhoto": file()}))["profilePhoto"]
@@ -448,7 +517,8 @@ def main():
     before = inventory()
     try:
         for scenario in [auth_profile, club_gallery, gallery_members, promo, notice, admin_storage,
-                         invalid_uploads, upload_failure, db_failure, withdrawal]:
+                         invalid_uploads, file_validation, upload_failure, db_failure,
+                         concurrent_updates, delete_failure, withdrawal]:
             SCENARIO = scenario.__name__
             print("SCENARIO " + SCENARIO)
             try:

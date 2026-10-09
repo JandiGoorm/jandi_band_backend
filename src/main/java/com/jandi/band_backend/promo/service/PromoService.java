@@ -13,7 +13,7 @@ import com.jandi.band_backend.promo.repository.PromoPhotoRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
-import com.jandi.band_backend.global.util.S3FileManagementUtil;
+import com.jandi.band_backend.global.util.R2FileManagementUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,7 +41,7 @@ public class PromoService {
     private final PromoLikeService promoLikeService;
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
-    private final S3FileManagementUtil s3FileManagementUtil;
+    private final R2FileManagementUtil r2FileManagementUtil;
     private static final String PROMO_PHOTO_DIR = "promo-photo";
 
     // 공연 홍보 목록 조회
@@ -125,7 +125,7 @@ public class PromoService {
     // 공연 홍보 수정
     @Transactional
     public void updatePromo(Integer promoId, PromoReqDTO request, Integer userId) {
-        Promo promo = promoRepository.findByIdAndNotDeleted(promoId);
+        Promo promo = promoRepository.findForUpdate(promoId);
         if (promo == null) {
             throw new ResourceNotFoundException("공연 홍보를 찾을 수 없습니다.");
         }
@@ -181,7 +181,7 @@ public class PromoService {
     // 공연 홍보 삭제 (소프트 삭제)
     @Transactional
     public void deletePromo(Integer promoId, Integer userId) {
-        Promo promo = promoRepository.findByIdAndNotDeleted(promoId);
+        Promo promo = promoRepository.findForUpdate(promoId);
         if (promo == null) {
             throw new ResourceNotFoundException("공연 홍보를 찾을 수 없습니다.");
         }
@@ -193,8 +193,8 @@ public class PromoService {
         List<PromoPhoto> photos = promoPhotoRepository.findByPromoIdAndNotDeleted(promoId);
         for (PromoPhoto photo : photos) {
             photo.setDeletedAt(LocalDateTime.now());
-            // S3에서도 실제 파일 삭제
-            s3FileManagementUtil.deleteFileSafely(photo.getImageUrl());
+            // R2에서도 실제 파일 삭제
+            r2FileManagementUtil.deleteFileSafely(photo.getImageUrl());
         }
 
         promo.setDeletedAt(LocalDateTime.now());
@@ -202,17 +202,18 @@ public class PromoService {
 
     // 단일 이미지 처리 헬퍼 메소드 - 기존 레코드 업데이트 또는 새 레코드 생성
     private void processImage(Promo promo, MultipartFile image, Users uploader) {
-        List<PromoPhoto> existingPhotos = promoPhotoRepository.findByPromoIdAndNotDeleted(promo.getId());
+        var currentPhoto = promoPhotoRepository.findByPromoIdAndIsCurrentTrue(promo.getId());
 
-        String newImageUrl = s3FileManagementUtil.uploadFile(image, PROMO_PHOTO_DIR, "공연 홍보 이미지 업로드 실패");
+        String newImageUrl = r2FileManagementUtil.uploadFile(image, PROMO_PHOTO_DIR, "공연 홍보 이미지 업로드 실패");
 
-        if (!existingPhotos.isEmpty()) {
-            PromoPhoto existingPhoto = existingPhotos.get(0);
+        if (currentPhoto.isPresent()) {
+            PromoPhoto existingPhoto = currentPhoto.get();
             String oldImageUrl = existingPhoto.getImageUrl();
 
-            s3FileManagementUtil.deleteFileSafely(oldImageUrl);
+            r2FileManagementUtil.deleteFileSafely(oldImageUrl);
 
             existingPhoto.setImageUrl(newImageUrl);
+            existingPhoto.setDeletedAt(null);
             existingPhoto.setUploader(uploader);
             existingPhoto.setUploadedAt(LocalDateTime.now());
             promoPhotoRepository.save(existingPhoto);
@@ -231,8 +232,8 @@ public class PromoService {
         PromoPhoto photo = promoPhotoRepository.findByPromoIdAndImageUrlAndNotDeleted(promo.getId(), imageUrl);
         if (photo != null) {
             photo.setDeletedAt(LocalDateTime.now());
-            // S3에서도 실제 파일 삭제
-            s3FileManagementUtil.deleteFileSafely(imageUrl);
+            // R2에서도 실제 파일 삭제
+            r2FileManagementUtil.deleteFileSafely(imageUrl);
             promoPhotoRepository.save(photo);
         }
     }

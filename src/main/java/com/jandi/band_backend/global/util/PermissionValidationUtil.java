@@ -3,6 +3,7 @@ package com.jandi.band_backend.global.util;
 import com.jandi.band_backend.club.entity.ClubMember;
 import com.jandi.band_backend.club.repository.ClubMemberRepository;
 import com.jandi.band_backend.global.exception.UnauthorizedClubAccessException;
+import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;
 import com.jandi.band_backend.team.repository.TeamMemberRepository;
@@ -84,7 +85,7 @@ public class PermissionValidationUtil {
         }
 
         if (!contentOwnerId.equals(userId)) {
-            throw new IllegalStateException(errorMessage);
+            throw new InvalidAccessException(errorMessage);
         }
     }
 }

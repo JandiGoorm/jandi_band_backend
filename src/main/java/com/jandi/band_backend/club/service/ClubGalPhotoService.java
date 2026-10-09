@@ -13,7 +13,7 @@ import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +35,9 @@ public class ClubGalPhotoService {
     private final ClubRepository clubRepository;
     private final UserRepository userRepository;
     private final ClubMemberRepository clubMemberRepository;
-    private final S3Service s3Service;
+    private final R2Service r2Service;
 
-    private static final String S3_DIRNAME = "club-gal-photo";
+    private static final String IMAGE_DIRECTORY = "club-gal-photo";
 
     @Transactional(readOnly = true)
     public Page<ClubGalPhotoRespDTO> getClubGalPhotoList(Integer clubId, Integer userId, Pageable pageable) {
@@ -57,6 +57,7 @@ public class ClubGalPhotoService {
 
     @Transactional
     public ClubGalPhotoRespDTO createClubGalPhoto(Integer clubId, Integer userId, ClubGalPhotoReqDTO reqDTO) {
+        lockClub(clubId);
         if(isClubMember(clubId, userId))
             return createClubPhotoRecord(clubId, userId, reqDTO);
 
@@ -65,6 +66,7 @@ public class ClubGalPhotoService {
 
     @Transactional
     public ClubGalPhotoRespDetailDTO updateClubGalPhoto(Integer clubId, Integer userId, Integer photoId, ClubGalPhotoReqDTO reqDTO) {
+        lockClub(clubId);
         ClubGalPhoto photo = getClubGalPhotoRecord(clubId, photoId);
 
         if(isUploader(clubId, photoId, userId))
@@ -75,6 +77,7 @@ public class ClubGalPhotoService {
 
     @Transactional
     public boolean pinnedClubGalPhoto(Integer clubId, Integer userId, Integer photoId) {
+        lockClub(clubId);
         ClubGalPhoto photo = getClubGalPhotoRecord(clubId, photoId);
 
         if(isClubRepresentative(clubId, userId)){
@@ -86,6 +89,7 @@ public class ClubGalPhotoService {
 
     @Transactional
     public void deleteClubGalPhoto(Integer clubId, Integer userId, Integer photoId) {
+        lockClub(clubId);
         ClubGalPhoto photo = getClubGalPhotoRecord(clubId, photoId);
 
         if(isUploader(clubId, photoId, userId) || isClubRepresentative(clubId, userId)){
@@ -153,7 +157,7 @@ public class ClubGalPhotoService {
 
         try{
             clubGalPhotoRepository.save(photo);
-            deleteImage(oldImageUrl);
+            if (!oldImageUrl.equals(photo.getImageUrl())) deleteImage(oldImageUrl);
         }catch (Exception e){
             throw new RuntimeException("DB 저장 실패: " + e);
         }
@@ -179,7 +183,7 @@ public class ClubGalPhotoService {
             throw new RuntimeException("DB 삭제 실패", e);
         }
 
-        // DB 반영 후 S3 삭제
+        // DB 반영 후 R2 삭제
         deleteImage(imageUrl);
     }
 
@@ -203,6 +207,11 @@ public class ClubGalPhotoService {
         return user.equals(photo.getUploader());
     }
 
+    private void lockClub(Integer clubId) {
+        clubRepository.findForUpdate(clubId)
+                .orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
+    }
+
     private Club getClubRecord(Integer clubId) {
         return clubRepository.findByIdAndDeletedAtIsNull(clubId)
                 .orElseThrow(() -> new ClubNotFoundException("존재하지 않는 동아리입니다."));
@@ -213,10 +222,10 @@ public class ClubGalPhotoService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
-    /// S3 이미지 처리 관련
+    /// R2 이미지 처리 관련
     private String uploadImage(MultipartFile file){
         try {
-            return s3Service.uploadImage(file, S3_DIRNAME);
+            return r2Service.uploadImage(file, IMAGE_DIRECTORY);
         } catch (IOException e) {
             throw new RuntimeException("이미지 업로드 실패: " + e);
         }
@@ -225,7 +234,7 @@ public class ClubGalPhotoService {
     private void deleteImage(String imageUrl){
         try {
             if (imageUrl != null)
-                s3Service.deleteImage(imageUrl);
+                r2Service.deleteImage(imageUrl);
         } catch (Exception e) {
             log.warn("기존 이미지 삭제 실패: {}", imageUrl, e);
         }

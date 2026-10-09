@@ -1,7 +1,7 @@
 package com.jandi.band_backend.promo.controller;
 
 import com.jandi.band_backend.config.IntegrationTest;
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import com.jandi.band_backend.promo.entity.Promo;
 import com.jandi.band_backend.promo.entity.PromoLike;
 import com.jandi.band_backend.promo.repository.PromoLikeRepository;
@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>MockMvc를 사용한 전체 Spring Boot 통합 테스트</li>
  *   <li>실제 JWT 인증 플로우 포함</li>
- *   <li>S3Service는 Mock으로 외부 의존성 격리</li>
+ *   <li>R2Service는 Mock으로 외부 의존성 격리</li>
  *   <li>공연 홍보글의 CRUD, 좋아요, 검색 기능 검증</li>
  * </ul>
  *
@@ -59,7 +59,7 @@ public class PromoControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private S3Service s3Service;
+    private R2Service r2Service;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -105,8 +105,8 @@ public class PromoControllerIntegrationTest {
         testUserToken = jwtTokenProvider.generateAccessToken(testUser.getKakaoOauthId());
         otherUserToken = jwtTokenProvider.generateAccessToken(otherUser.getKakaoOauthId());
 
-        // S3 Mock 설정
-        when(s3Service.uploadImage(any(), anyString())).thenReturn("https://s3.example.com/promo/test-image.jpg");
+        // R2 Mock 설정
+        when(r2Service.uploadImage(any(), anyString())).thenReturn("https://images.example.com/promo/test-image.jpg");
     }
 
     // === 홍보글 생성 테스트 ===
@@ -167,7 +167,7 @@ public class PromoControllerIntegrationTest {
                         .param("teamName", "테스트 밴드")
                         .param("title", "정기 공연 안내")
                         .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -281,7 +281,7 @@ public class PromoControllerIntegrationTest {
                         .param("title", "수정된 제목")
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.MULTIPART_FORM_DATA_VALUE))
-                .andExpect(status().isBadRequest()); // 실제로는 400 반환
+                .andExpect(status().isForbidden());
     }
 
     // === 홍보글 삭제 테스트 ===
@@ -311,7 +311,7 @@ public class PromoControllerIntegrationTest {
         // When & Then
         mockMvc.perform(delete("/api/promos/{promoId}", promo.getId())
                         .header("Authorization", "Bearer " + otherUserToken))
-                .andExpect(status().isBadRequest()); // 실제로는 400 반환
+                .andExpect(status().isForbidden());
     }
 
     // === 좋아요 기능 테스트 ===

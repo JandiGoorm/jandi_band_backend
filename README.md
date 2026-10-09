@@ -20,7 +20,7 @@
 | **Language** | Java 21 |
 | **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8.0, Redis |
-| **Storage** | AWS S3 / Cloudflare R2 (S3 호환 API) |
+| **Storage** | Cloudflare R2 (S3 호환 API) |
 | **Infra** | Docker, GitHub Actions |
 | **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
@@ -68,7 +68,7 @@ jandi_band_backend/
 ```bash
 # 1. 환경변수 설정
 cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 파일에 DB, Redis, S3 정보 입력
+# application.properties 파일에 DB, Redis, R2 정보 입력
 
 # 2. 빌드
 ./gradlew clean build -x test
@@ -126,7 +126,7 @@ docker build --target runtime -t jandi-band:local .
 Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
 환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
 
-이미지 저장소의 S3/R2 설정 계약, Docker HTTP 검증과 데이터 이전 설계는
+이미지 저장소의 R2 설정 계약, 이미지 변경 순서와 Docker HTTP 검증는
 [이미지 저장소 문서](docs/image-storage.md)에서 관리한다. 실제 환경 파일은 사용자 관리 대상이다.
 
 ---

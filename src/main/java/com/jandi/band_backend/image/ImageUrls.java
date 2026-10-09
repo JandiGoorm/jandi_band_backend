@@ -7,23 +7,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 public final class ImageUrls {
     private final URI publicBase;
-    private final List<URI> managedBases;
     private final String defaultClubKey;
 
-    public ImageUrls(String publicUrl, List<String> legacyPublicUrls, String defaultClubKey) {
+    public ImageUrls(String publicUrl, String defaultClubKey) {
         this.publicBase = parseBase(publicUrl);
-        var bases = new ArrayList<URI>();
-        bases.add(publicBase);
-        legacyPublicUrls.stream().filter(url -> !url.isBlank()).map(ImageUrls::parseBase).forEach(bases::add);
-        bases.sort(Comparator.comparingInt((URI base) -> base.getPath().length()).reversed());
-        this.managedBases = List.copyOf(bases);
         validateKey(defaultClubKey);
         this.defaultClubKey = defaultClubKey;
     }
@@ -56,15 +47,13 @@ public final class ImageUrls {
                 return Optional.empty();
             }
             String path = decodedPath(url);
-            for (URI base : managedBases) {
-                String prefix = base.getPath() + "/";
-                if (base.getScheme().equalsIgnoreCase(url.getScheme())
-                        && base.getHost().equalsIgnoreCase(url.getHost())
-                        && port(base) == port(url) && path.startsWith(prefix)) {
-                    String key = path.substring(prefix.length());
-                    validateKey(key);
-                    return Optional.of(key);
-                }
+            String prefix = publicBase.getPath() + "/";
+            if (publicBase.getScheme().equalsIgnoreCase(url.getScheme())
+                    && publicBase.getHost().equalsIgnoreCase(url.getHost())
+                    && port(publicBase) == port(url) && path.startsWith(prefix)) {
+                String key = path.substring(prefix.length());
+                validateKey(key);
+                return Optional.of(key);
             }
         } catch (URISyntaxException | IllegalArgumentException | CharacterCodingException e) {
             return Optional.empty();

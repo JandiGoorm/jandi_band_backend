@@ -29,7 +29,7 @@ curl -X POST "http://localhost:8080/api/images/upload" \
 {
   "success": true,
   "message": "이미지 업로드 성공",
-  "data": "https://s3.amazonaws.com/bucket/profiles/image-uuid.jpg"
+  "data": "https://images.example.com/profiles/image-uuid.jpg"
 }
 ```
 
@@ -52,7 +52,7 @@ Authorization: Bearer {JWT_TOKEN}
 
 ### 요청 예시
 ```bash
-curl -X DELETE "http://localhost:8080/api/images?fileUrl=https://s3.amazonaws.com/bucket/profiles/image-uuid.jpg" \
+curl -X DELETE "http://localhost:8080/api/images?fileUrl=https://images.example.com/profiles/image-uuid.jpg" \
   -H "Authorization: Bearer {JWT_TOKEN}"
 ```
 
@@ -71,7 +71,7 @@ curl -X DELETE "http://localhost:8080/api/images?fileUrl=https://s3.amazonaws.co
 ### 실패 응답
 - **401**: 인증 실패
 - **403**: ADMIN 권한 없음
-- **404**: 존재하지 않는 이미지
+- 없는 파일과 외부·이전 URL·공용 기본 이미지 삭제는 성공 응답으로 끝나며 파일을 변경하지 않는다.
 
 ---
 
@@ -94,11 +94,12 @@ curl -X DELETE "http://localhost:8080/api/images?fileUrl=https://s3.amazonaws.co
 
 ## 지원 형식
 - JPG, JPEG, PNG, GIF, WebP
-- 최대 크기: 10MB
+- 최대 크기: 10MiB, 최대 4천만 픽셀
+- 확장자·Content-Type·실제 이미지 형식 일치 및 첫 프레임 디코딩 확인
 - 용도: 프로필 사진, 동아리 사진, 홍보글 이미지
 
 ## 참고사항
 - **권한**: ADMIN 권한을 가진 사용자만 접근 가능
-- **디렉토리**: dirName 파라미터로 S3 내 저장 경로 지정
+- **디렉토리**: dirName 파라미터로 R2 내 저장 경로 지정
 - **파일명**: UUID로 자동 생성되어 중복 방지
-- **CDN**: S3 + CloudFront를 통한 빠른 이미지 전송 
+- **CDN**: Cloudflare R2 공개 이미지 도메인

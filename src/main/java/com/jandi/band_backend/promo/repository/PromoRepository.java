@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,9 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface PromoRepository extends JpaRepository<Promo, Integer> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Promo p WHERE p.id = :id AND p.deletedAt IS NULL")
+    Promo findForUpdate(@Param("id") Integer id);
     
     @Query("SELECT p FROM Promo p LEFT JOIN FETCH p.photos WHERE p.deletedAt IS NULL")
     Page<Promo> findAllNotDeleted(Pageable pageable);

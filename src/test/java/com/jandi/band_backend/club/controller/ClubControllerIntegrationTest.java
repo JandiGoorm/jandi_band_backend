@@ -10,7 +10,7 @@ import com.jandi.band_backend.club.repository.ClubMemberRepository;
 import com.jandi.band_backend.club.repository.ClubPhotoRepository;
 import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.config.IntegrationTest;
-import com.jandi.band_backend.image.S3Service;
+import com.jandi.band_backend.image.R2Service;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
 import com.jandi.band_backend.univ.entity.Region;
 import com.jandi.band_backend.univ.entity.University;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>MockMvc를 사용한 전체 Spring Boot 통합 테스트</li>
  *   <li>실제 JWT 인증 플로우 포함 (JwtTokenProvider 사용)</li>
- *   <li>S3Service는 @MockBean으로 격리 (외부 의존성)</li>
+ *   <li>R2Service는 @MockBean으로 격리 (외부 의존성)</li>
  *   <li>ClubService는 실제 빈 사용 (통합 테스트 목적)</li>
  *   <li>권한 검증(대표자/일반 회원) 포함</li>
  * </ul>
@@ -65,7 +65,7 @@ public class ClubControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private S3Service s3Service;
+    private R2Service r2Service;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -149,11 +149,11 @@ public class ClubControllerIntegrationTest {
         request.setUniversityId(university.getId());
 
         // When & Then
-        // Spring Security는 JWT 없으면 400 반환
+        // JWT 없는 요청의 인증 실패
         mockMvc.perform(post("/api/clubs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     // === 동아리 목록 조회 테스트 ===
@@ -398,7 +398,7 @@ public class ClubControllerIntegrationTest {
                 "test image content".getBytes()
         );
 
-        given(s3Service.uploadImage(any(), anyString())).willReturn("https://s3.example.com/test.jpg");
+        given(r2Service.uploadImage(any(), anyString())).willReturn("https://s3.example.com/test.jpg");
 
         // When & Then
         mockMvc.perform(multipart("/api/clubs/{clubId}/main-image", club.getId())

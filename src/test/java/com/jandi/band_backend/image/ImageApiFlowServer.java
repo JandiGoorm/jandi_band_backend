@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class ImageApiFlowServer {
     private static final Set<String> uploadedKeys = ConcurrentHashMap.newKeySet();
     private static final AtomicBoolean failNextPut = new AtomicBoolean();
+    private static final AtomicBoolean failNextDelete = new AtomicBoolean();
     private static final AtomicInteger tokenCalls = new AtomicInteger();
     private static final AtomicInteger userCalls = new AtomicInteger();
     private static final ObjectMapper json = new ObjectMapper();
@@ -50,6 +51,10 @@ public final class ImageApiFlowServer {
                     }
                     if (path.equals("/fixture/fail-next-put")) {
                         failNextPut.set(true);
+                        return response(Map.of("armed", true));
+                    }
+                    if (path.equals("/fixture/fail-next-delete")) {
+                        failNextDelete.set(true);
                         return response(Map.of("armed", true));
                     }
                     if (path.equals("/oauth/token")) {
@@ -88,7 +93,7 @@ public final class ImageApiFlowServer {
                 "--kakao.user-info-url=http://127.0.0.1:9092/v2/user/me",
                 "--kakao.user-unlink-url=http://127.0.0.1:9092/v1/user/unlink"));
         for (String field : List.of("ACCESS_KEY", "SECRET_KEY", "ENDPOINT", "REGION", "PATH_STYLE",
-                "BUCKET", "PUBLIC_URL", "LEGACY_PUBLIC_URLS")) {
+                "BUCKET", "PUBLIC_URL")) {
             String value = System.getenv("IMAGE_STORAGE_" + field);
             if (value == null || value.isBlank()) throw new IllegalArgumentException("Missing test storage field: " + field);
             options.add("--image.storage." + field.toLowerCase().replace('_', '-') + "=" + value);
@@ -124,6 +129,9 @@ public final class ImageApiFlowServer {
                                     if (failNextPut.getAndSet(false)) {
                                         throw S3Exception.builder().statusCode(503).message("Injected test upload failure").build();
                                     }
+                                }
+                                if (method.getName().equals("deleteObject") && failNextDelete.getAndSet(false)) {
+                                    throw S3Exception.builder().statusCode(503).message("Injected test deletion failure").build();
                                 }
                                 try { return method.invoke(client, args); }
                                 catch (InvocationTargetException e) { throw e.getCause(); }
