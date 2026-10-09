@@ -16,11 +16,13 @@ import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.univ.entity.University;
 import com.jandi.band_backend.univ.repository.UniversityRepository;
 import com.jandi.band_backend.user.entity.Users;
+import com.jandi.band_backend.image.ImageUrls;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,6 +40,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ClubService 단위 테스트")
 class ClubServiceTest {
+    @Spy
+    private ImageUrls imageUrls = new ImageUrls("https://images.example.com", List.of(), "club-photo/rhythmeet.webp");
 
     @Mock
     private ClubRepository clubRepository;
@@ -121,7 +125,8 @@ class ClubServiceTest {
         verify(userValidationUtil).getUserById(userId);
         verify(universityRepository).findById(1);
         verify(clubRepository).save(any(Club.class));
-        verify(clubPhotoRepository).save(any(ClubPhoto.class));
+        verify(clubPhotoRepository).save(argThat(photo ->
+                photo.getImageUrl().equals("https://images.example.com/club-photo/rhythmeet.webp")));
         verify(clubMemberRepository).save(any(ClubMember.class));
     }
 

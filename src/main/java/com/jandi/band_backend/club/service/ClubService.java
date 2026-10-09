@@ -34,6 +34,7 @@ import com.jandi.band_backend.global.util.EntityValidationUtil;
 import com.jandi.band_backend.global.util.S3FileManagementUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
+import com.jandi.band_backend.image.ImageUrls;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,9 +65,9 @@ public class ClubService {
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
     private final TeamService teamService;
+    private final ImageUrls imageUrls;
 
     private static final String CLUB_PHOTO_DIR = "club-photo";
-    private static final String DEFAULT_CLUB_PHOTO_URL = "https://jandi-rhythmeet.s3.ap-northeast-2.amazonaws.com/club-photo/rhythmeet.webp";
 
     @Transactional
     public ClubDetailRespDTO createClub(ClubReqDTO request, Integer userId) {
@@ -91,7 +92,7 @@ public class ClubService {
 
         ClubPhoto defaultPhoto = new ClubPhoto();
         defaultPhoto.setClub(savedClub);
-        defaultPhoto.setImageUrl(DEFAULT_CLUB_PHOTO_URL);
+        defaultPhoto.setImageUrl(imageUrls.defaultClubPhotoUrl());
         defaultPhoto.setIsCurrent(true);
         clubPhotoRepository.save(defaultPhoto);
 
@@ -104,7 +105,7 @@ public class ClubService {
 
         clubMemberRepository.save(clubMember);
 
-        return convertToClubDetailRespDTO(savedClub, DEFAULT_CLUB_PHOTO_URL, 1, userId);
+        return convertToClubDetailRespDTO(savedClub, imageUrls.defaultClubPhotoUrl(), 1, userId);
     }
 
     @Transactional(readOnly = true)
@@ -338,7 +339,7 @@ public class ClubService {
 
         // S3에서 이전 이미지 삭제 및 새로운 이미지 업로드 후 적용
         String newUrl = s3FileManagementUtil.uploadFile(image, CLUB_PHOTO_DIR, "동아리 사진 업로드 실패");
-        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, DEFAULT_CLUB_PHOTO_URL);
+        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
         clubPhoto.setImageUrl(newUrl);
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);
@@ -358,8 +359,8 @@ public class ClubService {
         String originalUrl = clubPhoto.getImageUrl();
 
         // S3에서 이전 이미지 삭제 및 기본 이미지 적용
-        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, DEFAULT_CLUB_PHOTO_URL);
-        clubPhoto.setImageUrl(DEFAULT_CLUB_PHOTO_URL);
+        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
+        clubPhoto.setImageUrl(imageUrls.defaultClubPhotoUrl());
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);
     }
