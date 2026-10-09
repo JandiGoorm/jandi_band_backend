@@ -102,6 +102,8 @@ DB 변환 도구의 안전 조건:
 
 ### 실제 개발 버킷 HTTP 검증
 
+회원가입·로그인 API부터 프로필·동아리·갤러리·홍보·공지의 이미지 생성·수정·삭제와 장애 처리를 검사하려면 [이미지 API 기능 검사](image-api-tests.md)를 사용한다. 아래 검사는 관리자 테스트 토큰을 사용하는 저장소 단독 검사다.
+
 ```powershell
 pwsh -NoProfile -File ./scripts/test-image-storage.ps1 -R2EnvFile '<Git 외부의 개발 R2 환경 파일>'
 ```
