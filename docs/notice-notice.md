@@ -196,7 +196,7 @@ curl -X POST "http://localhost:8080/api/notices" \
 - **403**: 관리자 권한 없음
 
 ### 이미지 업로드 참고사항
-- 이미지는 S3에 `notice-photo` 폴더에 저장됩니다
+- 이미지는 R2에 `notice-photo` 폴더에 저장됩니다
 - 지원하는 이미지 형식: jpg, jpeg, png, gif, webp
 - 이미지 크기는 10MB로 제한됩니다
 - 이미지 업로드 실패 시 전체 공지사항 생성이 롤백됩니다
@@ -317,7 +317,7 @@ curl -X DELETE "http://localhost:8080/api/notices/1" \
 - **소프트 삭제**: `deletedAt` 필드에 삭제 시각 설정
 - 삭제된 공지사항은 모든 조회 API에서 제외됨
 - 팝업 노출에서도 자동으로 제외됨
-- **첨부 이미지도 S3에서 자동으로 삭제됩니다**
+- **첨부 이미지도 R2에서 자동으로 삭제됩니다**
 
 ### 실패 응답
 - **403**: 관리자 권한 없음
@@ -397,7 +397,7 @@ curl -X PATCH "http://localhost:8080/api/notices/1/toggle-pause" \
 - 시각 정보는 `LocalDateTime` 형식으로 처리
 
 ### 이미지 관리
-- **업로드**: S3의 `notice-photo` 폴더에 저장
+- **업로드**: R2의 `notice-photo` 폴더에 저장
 - **교체**: 새 이미지 업로드 후 기존 이미지 삭제
 - **삭제**: 공지사항 삭제 시 첨부 이미지도 함께 삭제
 - **롤백**: DB 저장 실패 시 업로드된 이미지 자동 삭제

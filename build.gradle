@@ -86,10 +86,11 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // AWS SDK
+    // R2 S3-compatible API
     implementation platform('software.amazon.awssdk:bom:2.55.13')
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.3'
 
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
@@ -103,7 +104,7 @@ tasks.named('test') {
     finalizedBy jacocoTestReport
 }
 
-// Test-only HTTP fixture: no cloud credentials or production database are used.
+// Test-only HTTP fixture classpath; excluded from the runtime JAR.
 tasks.register('prepareStorageSmoke', Sync) {
     dependsOn testClasses
     from sourceSets.test.runtimeClasspath

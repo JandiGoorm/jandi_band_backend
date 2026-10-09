@@ -237,7 +237,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("IllegalArgumentException -> 403 + ILLEGAL_ARGUMENT")
+    @DisplayName("IllegalArgumentException -> 400 + ILLEGAL_ARGUMENT")
     void handleIllegalArgumentException() {
         // Given
         IllegalArgumentException exception = new IllegalArgumentException("잘못된 인자입니다");
@@ -246,7 +246,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<CommonRespDTO<?>> response = handler.handleIllegalArgument(exception);
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().isSuccess()).isFalse();
         assertThat(response.getBody().getErrorCode()).isEqualTo("ILLEGAL_ARGUMENT");

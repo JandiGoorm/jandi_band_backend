@@ -24,18 +24,17 @@ kakao.token-url=https://kauth.kakao.com/oauth/token
 kakao.user-info-url=https://kapi.kakao.com/v2/user/me
 kakao.user-unlink-url=https://kapi.kakao.com/v1/user/unlink
 kakao.admin-key=
-# S3-compatible image storage; deployment configuration lives in config/.
+# Cloudflare R2 image storage; deployment configuration lives in config/.
 image.storage.access-key=
 image.storage.secret-key=
-image.storage.region=ap-northeast-2
+image.storage.region=auto
 image.storage.endpoint=
-image.storage.path-style=false
+image.storage.path-style=true
 image.storage.bucket=
 image.storage.public-url=https://images.example.com
-image.storage.legacy-public-urls=
 #Multipart File Configuration
 spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
+spring.servlet.multipart.max-request-size=11MB
 #Swagger
 springdoc.api-docs.path=/v3/api-docs
 springdoc.swagger-ui.path=/swagger-ui.html

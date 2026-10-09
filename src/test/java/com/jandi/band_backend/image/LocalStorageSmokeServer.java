@@ -63,8 +63,7 @@ public final class LocalStorageSmokeServer {
                 "--image.storage.endpoint=http://127.0.0.1:9091",
                 "--image.storage.region=auto",
                 "--image.storage.path-style=true",
-                "--image.storage.public-url=http://localhost:19091/test-bucket",
-                "--image.storage.legacy-public-urls=https://old-images.example.com"));
+                "--image.storage.public-url=http://localhost:19091/test-bucket"));
         if (List.of(args).contains("--external-r2")) {
             String bucket = System.getenv("IMAGE_STORAGE_BUCKET");
             if (bucket == null || !bucket.endsWith("-dev")) {
@@ -72,7 +71,7 @@ public final class LocalStorageSmokeServer {
             }
             options.removeIf(value -> value.startsWith("--image.storage."));
             for (String field : List.of("ACCESS_KEY", "SECRET_KEY", "ENDPOINT", "REGION", "PATH_STYLE",
-                    "BUCKET", "PUBLIC_URL", "LEGACY_PUBLIC_URLS")) {
+                    "BUCKET", "PUBLIC_URL")) {
                 String value = System.getenv("IMAGE_STORAGE_" + field);
                 if (value == null || value.isBlank()) {
                     throw new IllegalArgumentException("Missing storage smoke configuration: " + field);

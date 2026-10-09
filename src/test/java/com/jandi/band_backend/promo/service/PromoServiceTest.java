@@ -2,7 +2,7 @@ package com.jandi.band_backend.promo.service;
 
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
-import com.jandi.band_backend.global.util.S3FileManagementUtil;
+import com.jandi.band_backend.global.util.R2FileManagementUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.promo.dto.PromoReqDTO;
 import com.jandi.band_backend.promo.dto.PromoRespDTO;
@@ -55,7 +55,7 @@ class PromoServiceTest {
     private UserValidationUtil userValidationUtil;
 
     @Mock
-    private S3FileManagementUtil s3FileManagementUtil;
+    private R2FileManagementUtil r2FileManagementUtil;
 
     @InjectMocks
     private PromoService promoService;
@@ -205,7 +205,7 @@ class PromoServiceTest {
         when(userValidationUtil.getUserById(creatorId)).thenReturn(mockCreator);
         when(promoRepository.save(any(Promo.class))).thenReturn(savedPromo);
         when(mockImage.isEmpty()).thenReturn(false);
-        when(s3FileManagementUtil.uploadFile(any(), anyString(), anyString())).thenReturn("https://example.com/image.jpg");
+        when(r2FileManagementUtil.uploadFile(any(), anyString(), anyString())).thenReturn("https://example.com/image.jpg");
 
         // When
         PromoSimpleRespDTO result = promoService.createPromo(request, creatorId);
@@ -216,7 +216,7 @@ class PromoServiceTest {
 
         verify(userValidationUtil).getUserById(creatorId);
         verify(promoRepository).save(any(Promo.class));
-        verify(s3FileManagementUtil).uploadFile(any(), anyString(), anyString());
+        verify(r2FileManagementUtil).uploadFile(any(), anyString(), anyString());
     }
 
     @Test

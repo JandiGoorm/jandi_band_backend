@@ -31,7 +31,7 @@ import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.UniversityNotFoundException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
-import com.jandi.band_backend.global.util.S3FileManagementUtil;
+import com.jandi.band_backend.global.util.R2FileManagementUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.image.ImageUrls;
@@ -61,7 +61,7 @@ public class ClubService {
     private final TeamEventRepository teamEventRepository;
     private final UniversityRepository universityRepository;
     private final EntityValidationUtil entityValidationUtil;
-    private final S3FileManagementUtil s3FileManagementUtil;
+    private final R2FileManagementUtil r2FileManagementUtil;
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
     private final TeamService teamService;
@@ -226,7 +226,7 @@ public class ClubService {
 
     @Transactional
     public void deleteClub(Integer clubId, Integer userId) {
-        Club club = entityValidationUtil.validateClubExists(clubId);
+        Club club = lockClub(clubId);
 
         permissionValidationUtil.validateClubRepresentativeAccess(clubId, userId, "동아리 삭제 권한이 없습니다.");
 
@@ -252,15 +252,15 @@ public class ClubService {
         // 동아리 갤러리 사진들 소환
         List<ClubGalPhoto> clubGalPhotos = clubGalPhotoRepository.findByClubIdAndDeletedAtIsNull(clubId);
         clubGalPhotos.forEach(clubGalPhoto -> {
-            // S3에서 이미지 삭제
-            s3FileManagementUtil.deleteFileSafely(clubGalPhoto.getImageUrl());
+            // R2에서 이미지 삭제
+            r2FileManagementUtil.deleteFileSafely(clubGalPhoto.getImageUrl());
 
             // DB 레코드 소프트 삭제
             clubGalPhoto.setDeletedAt(deletedTime);
         });
         clubGalPhotoRepository.saveAll(clubGalPhotos);
 
-        // 동아리 대표 사진 S3 삭제
+        // 동아리 대표 사진 R2 삭제
         deleteClubPhoto(clubId, userId);
 
         // 동아리 대표 사진 DB 레코드 소프트 삭제
@@ -328,7 +328,7 @@ public class ClubService {
 
     @Transactional
     public String uploadClubPhoto(Integer clubId, MultipartFile image, Integer userId) {
-        entityValidationUtil.validateClubExists(clubId);
+        lockClub(clubId);
 
         permissionValidationUtil.validateClubMemberAccess(clubId, userId, "동아리 회원이 아닙니다.");
 
@@ -337,9 +337,9 @@ public class ClubService {
                 .orElseThrow(() -> new ResourceNotFoundException("이미지를 찾을 수 없습니다."));
         String originalUrl = clubPhoto.getImageUrl();
 
-        // S3에서 이전 이미지 삭제 및 새로운 이미지 업로드 후 적용
-        String newUrl = s3FileManagementUtil.uploadFile(image, CLUB_PHOTO_DIR, "동아리 사진 업로드 실패");
-        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
+        // R2에서 이전 이미지 삭제 및 새로운 이미지 업로드 후 적용
+        String newUrl = r2FileManagementUtil.uploadFile(image, CLUB_PHOTO_DIR, "동아리 사진 업로드 실패");
+        r2FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
         clubPhoto.setImageUrl(newUrl);
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);
@@ -349,7 +349,7 @@ public class ClubService {
 
     @Transactional
     public void deleteClubPhoto(Integer clubId, Integer userId) {
-        entityValidationUtil.validateClubExists(clubId);
+        lockClub(clubId);
 
         permissionValidationUtil.validateClubMemberAccess(clubId, userId, "동아리 사진 삭제 권한이 없습니다.");
 
@@ -358,11 +358,16 @@ public class ClubService {
                 .orElseThrow(() -> new ResourceNotFoundException("이미지를 찾을 수 없습니다."));
         String originalUrl = clubPhoto.getImageUrl();
 
-        // S3에서 이전 이미지 삭제 및 기본 이미지 적용
-        s3FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
+        // R2에서 이전 이미지 삭제 및 기본 이미지 적용
+        r2FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
         clubPhoto.setImageUrl(imageUrls.defaultClubPhotoUrl());
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);
+    }
+
+    private Club lockClub(Integer clubId) {
+        return clubRepository.findForUpdate(clubId)
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 동아리입니다."));
     }
 
     private ClubDetailRespDTO convertToClubDetailRespDTO(Club club, String photoUrl, int memberCount, Integer representativeId) {

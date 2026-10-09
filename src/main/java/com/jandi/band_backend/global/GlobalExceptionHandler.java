@@ -2,6 +2,7 @@ package com.jandi.band_backend.global;
 
 import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.exception.*;
+import com.jandi.band_backend.image.ImageCleanupException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -10,6 +11,11 @@ import org.springframework.web.bind.annotation.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ImageCleanupException.class)
+    public ResponseEntity<CommonRespDTO<?>> handleImageCleanup(ImageCleanupException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(CommonRespDTO.error(ex.getMessage(), "IMAGE_CLEANUP_FAILED"));
+    }
     /// 일반적인 예외 처리
     // 전역적 런타임 에러
     @ExceptionHandler(RuntimeException.class)
@@ -136,7 +142,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CommonRespDTO<?>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(CommonRespDTO.error(ex.getMessage(), "ILLEGAL_ARGUMENT"));
     }
 

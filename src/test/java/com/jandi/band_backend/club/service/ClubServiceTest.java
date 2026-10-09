@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("ClubService 단위 테스트")
 class ClubServiceTest {
     @Spy
-    private ImageUrls imageUrls = new ImageUrls("https://images.example.com", List.of(), "club-photo/rhythmeet.webp");
+    private ImageUrls imageUrls = new ImageUrls("https://images.example.com", "club-photo/rhythmeet.webp");
 
     @Mock
     private ClubRepository clubRepository;

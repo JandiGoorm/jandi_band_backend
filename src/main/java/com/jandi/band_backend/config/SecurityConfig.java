@@ -33,6 +33,9 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/refresh"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/images/**", "/api/clubs/**", "/api/promos/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/images/**", "/api/clubs/**", "/api/promos/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/images/**", "/api/clubs/**", "/api/promos/**").authenticated()
                         .requestMatchers(
                                 "/health",
                                 "/api/clubs/**",

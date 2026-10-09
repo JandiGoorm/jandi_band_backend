@@ -17,7 +17,7 @@ import java.net.URI;
 
 @Configuration
 @EnableConfigurationProperties(ImageStorageProperties.class)
-public class S3Config {
+public class R2Config {
     @Bean(destroyMethod = "close")
     public S3Client s3Client(ImageStorageProperties properties) {
         var builder = S3Client.builder()
@@ -30,15 +30,19 @@ public class S3Config {
                         .chunkedEncodingEnabled(false).build())
                 .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                 .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED);
-        if (properties.getEndpoint() != null && !properties.getEndpoint().isBlank()) {
-            builder.endpointOverride(URI.create(properties.getEndpoint()));
-        }
+        builder.endpointOverride(requiredEndpoint(properties.getEndpoint()));
         return builder.build();
+    }
+
+    private URI requiredEndpoint(String endpoint) {
+        if (endpoint == null || endpoint.isBlank()) {
+            throw new IllegalArgumentException("R2 endpoint is required");
+        }
+        return URI.create(endpoint);
     }
 
     @Bean
     public ImageUrls imageUrls(ImageStorageProperties properties) {
-        return new ImageUrls(properties.getPublicUrl(), properties.getLegacyPublicUrls(),
-                properties.getDefaultClubKey());
+        return new ImageUrls(properties.getPublicUrl(), properties.getDefaultClubKey());
     }
 }

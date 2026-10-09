@@ -1,0 +1,40 @@
+name: rhythmeet-image-api-test
+services:
+  mysql:
+    image: mysql:8.4
+    command: [--skip-log-bin]
+    networks:
+      default:
+        aliases: [image-api-mysql]
+    environment:
+      MYSQL_ROOT_PASSWORD: image-test-root-only
+      MYSQL_DATABASE: image_api_test
+      MYSQL_USER: image_test
+      MYSQL_PASSWORD: image-test-only
+    tmpfs: [/var/lib/mysql]
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, localhost, --silent]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  app:
+    build:
+      context: .
+      target: storage-smoke
+    image: jandi-band:image-api-test
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of development r2.env}
+        format: raw
+    ports: ["127.0.0.1:19080:8080"]
+    command: [sh, -c, "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.ImageApiFlowServer"]
+  runner:
+    build: scripts/image-api-tests
+    profiles: [test]
+    depends_on: [app]
+    env_file:
+      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of development r2.env}
+        format: raw
+    volumes: ["./build/image-api-tests:/reports"]
