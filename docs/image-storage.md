@@ -14,10 +14,12 @@ OCI Object Storage의 S3 호환 API를 사용한다.
 | `IMAGE_STORAGE_REGION` | 버킷 리전 |
 | `IMAGE_STORAGE_PATH_STYLE` | 경로 방식 사용 여부 |
 | `IMAGE_STORAGE_BUCKET` | 운영 이미지 버킷 |
-| `IMAGE_STORAGE_PUBLIC_URL` | 기존 공개 이미지 도메인 |
+| `IMAGE_STORAGE_PUBLIC_URL` | OCI 공개 객체 기본 URL (`/n/<namespace>/b/<bucket>/o`까지) |
 
 비밀값은 Git 외부 `.env`에서 관리한다. endpoint가 없으면 시작에 실패한다.
-기존 공개 URL과 객체 key를 유지하므로 프론트엔드와 저장된 이미지 주소를 바꾸지 않는다.
+이미지 조회는 OCI 공개 객체 URL을 직접 사용한다. 별도 이미지 도메인이나 Nginx 중계는 사용하지 않는다.
+공개 기본 URL을 변경할 때는 DB에 저장된 이미지 URL도 함께 전환한다.
+객체 key와 API 요청·응답 필드 구조는 유지한다.
 실제 도메인·버킷 매핑과 백업 보관 정책은 개인 OCI 운영 문서에서 관리한다.
 
 ## 변경 순서
