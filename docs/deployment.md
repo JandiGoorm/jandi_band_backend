@@ -15,6 +15,7 @@ GitHub `production` 환경의 `OCI_HOST`, `OCI_USER`, `OCI_KNOWN_HOSTS` 변수�
 `OCI_SSH_KEY` 시크릿을 사용한다. 레지스트리는 작업별 `GITHUB_TOKEN`을 사용한다.
 Tailscale OIDC 연결은 `TS_CLIENT_ID`, `TS_AUDIENCE` 변수로 구성한다.
 런타임 DB·JWT·카카오·이미지 자격증명은 서버 `.env`에만 둔다.
+배포 시 공개 `config/`는 755, properties는 644로 설정해 컨테이너의 비루트 사용자가 읽을 수 있게 한다. `.env`와 레지스트리 토큰은 이 권한 변경에 포함하지 않는다.
 
 ## 자원과 데이터
 
