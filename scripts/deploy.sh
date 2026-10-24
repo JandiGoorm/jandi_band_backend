@@ -65,6 +65,8 @@ trap failed ERR
 if [[ "$app" == jandi-band ]]; then
     test -s "$root/.env"
     test -s "$root/tls/mysql-truststore.p12"
+    chmod 755 "$release/config"
+    chmod 644 "$release"/config/*.properties
 fi
 docker network inspect backend-net >/dev/null
 mkdir -m 700 "$release/.docker"
