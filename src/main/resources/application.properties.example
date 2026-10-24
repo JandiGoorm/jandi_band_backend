@@ -31,7 +31,7 @@ image.storage.region=ap-chuncheon-1
 image.storage.endpoint=
 image.storage.path-style=true
 image.storage.bucket=
-image.storage.public-url=https://images.example.com
+image.storage.public-url=https://objectstorage.ap-chuncheon-1.oraclecloud.com/n/example-namespace/b/example-bucket/o
 #Multipart File Configuration
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=11MB
