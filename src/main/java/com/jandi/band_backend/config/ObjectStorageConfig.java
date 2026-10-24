@@ -17,7 +17,7 @@ import java.net.URI;
 
 @Configuration
 @EnableConfigurationProperties(ImageStorageProperties.class)
-public class R2Config {
+public class ObjectStorageConfig {
     @Bean(destroyMethod = "close")
     public S3Client s3Client(ImageStorageProperties properties) {
         var builder = S3Client.builder()
@@ -36,7 +36,7 @@ public class R2Config {
 
     private URI requiredEndpoint(String endpoint) {
         if (endpoint == null || endpoint.isBlank()) {
-            throw new IllegalArgumentException("R2 endpoint is required");
+            throw new IllegalArgumentException("Object Storage endpoint is required");
         }
         return URI.create(endpoint);
     }

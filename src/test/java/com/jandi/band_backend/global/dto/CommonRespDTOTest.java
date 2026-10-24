@@ -1,6 +1,6 @@
 package com.jandi.band_backend.global.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("CommonRespDTO 테스트")
 class CommonRespDTOTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
 
     @Test
     @DisplayName("success() 메서드는 success=true와 데이터를 반환한다")

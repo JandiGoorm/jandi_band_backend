@@ -1,7 +1,7 @@
 package com.jandi.band_backend.global.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
@@ -16,7 +16,7 @@ public class TimetableValidationUtil {
 
     // String 형식의 시간표 데이터를 JSON으로 변환
     public JsonNode stringToJson(String stringData) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         try {
             return objectMapper.readTree(stringData);
         } catch (Exception e) {
@@ -46,7 +46,7 @@ public class TimetableValidationUtil {
         }
 
         // 불필요한 요일이 있는지 확인
-        Iterator<String> fieldNames = jsonNode.fieldNames();
+        Iterator<String> fieldNames = jsonNode.propertyNames().iterator();
         while (fieldNames.hasNext()) {
             String field = fieldNames.next();
             if (!WEEKDAYS.contains(field)) {
@@ -94,4 +94,4 @@ public class TimetableValidationUtil {
         }
         return timeNode.asText();
     }
-} 
+}

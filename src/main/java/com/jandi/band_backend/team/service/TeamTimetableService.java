@@ -1,8 +1,8 @@
 package com.jandi.band_backend.team.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
@@ -149,7 +149,7 @@ public class TeamTimetableService {
                     .updatedTimetableAt(teamMember.getUpdatedTimetableAt())
                     .build();
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("시간표 데이터 JSON 변환 오류: {}", e.getMessage());
             throw new BadRequestException("시간표 데이터 처리 중 오류가 발생했습니다.");
         }

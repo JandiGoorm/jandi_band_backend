@@ -2,7 +2,7 @@ package com.jandi.band_backend.auth.service;
 
 import com.jandi.band_backend.auth.dto.*;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
-import com.jandi.band_backend.auth.redis.TokenBlacklistService;
+import com.jandi.band_backend.auth.store.TokenBlacklistService;
 import com.jandi.band_backend.auth.service.kakao.KakaoUserService;
 import com.jandi.band_backend.club.entity.ClubMember;
 import com.jandi.band_backend.club.repository.ClubMemberRepository;

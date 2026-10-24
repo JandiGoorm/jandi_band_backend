@@ -15,9 +15,9 @@ APP = "jandi-band"
 
 def main():
     branch = os.environ["GITHUB_REF_NAME"]
-    if branch not in {"main", "dev"}:
-        raise ValueError("Only main/dev may deploy")
-    environment = "production" if branch == "main" else "development"
+    if branch != "main":
+        raise ValueError("Only main may deploy")
+    environment = "production"
     image = os.environ["APP_IMAGE"]
     if not re.fullmatch(rf"ghcr.io/jandigoorm/{APP}@sha256:[0-9a-f]{{64}}", image):
         raise ValueError("Expected an immutable application image")
@@ -36,8 +36,7 @@ def main():
 
     payload = io.BytesIO()
     with tarfile.open(fileobj=payload, mode="w:gz") as archive:
-        files = [Path("compose.yaml"), Path("compose.redis.yaml"), Path("scripts/deploy.sh"),
-                 Path("scripts/prepare-redis.py"), Path("config/redis.conf")]
+        files = [Path("compose.yaml"), Path("scripts/deploy.sh")]
         files.extend(sorted(Path("config").glob("*.properties")))
         for path in files:
             if path.is_symlink():

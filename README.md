@@ -17,12 +17,12 @@
 
 | 구분 | 기술 |
 |:-----|:-----|
-| **Language** | Java 21 |
-| **Framework** | Spring Boot 3.x, Spring Security, Spring Data JPA |
-| **Database** | MySQL 8.0, Redis |
-| **Storage** | Cloudflare R2 (S3 호환 API) |
+| **Language** | Java 25 LTS |
+| **Framework** | Spring Boot 4.1.2, Spring Security, Spring Data JPA |
+| **Database** | 관리형 MySQL |
+| **Storage** | OCI Object Storage (S3 호환 API) |
 | **Infra** | Docker, GitHub Actions |
-| **Test** | JUnit 5, Mockito, H2 (테스트 DB) |
+| **Test** | JUnit, Mockito, H2 (테스트 DB) |
 | **Docs** | Swagger (SpringDoc OpenAPI) |
 
 ---
@@ -59,16 +59,15 @@ jandi_band_backend/
 
 ### 사전 요구사항
 
-- Java 21
-- MySQL 8.0
-- Redis
+- Java 25 LTS
+- MySQL 26.10 (OCI 관리형)
 
 ### 실행 방법
 
 ```bash
 # 1. 환경변수 설정
 cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 파일에 DB, Redis, R2 정보 입력
+# application.properties 파일에 DB, Object Storage 정보 입력
 
 # 2. 빌드
 ./gradlew clean build -x test
@@ -126,7 +125,7 @@ docker build --target runtime -t jandi-band:local .
 Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
 환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
 
-이미지 저장소의 R2 설정 계약, 이미지 변경 순서와 Docker HTTP 검증는
+이미지 저장소의 Object Storage 설정 계약, 이미지 변경 순서와 Docker HTTP 검증는
 [이미지 저장소 문서](docs/image-storage.md)에서 관리한다. 실제 환경 파일은 사용자 관리 대상이다.
 
 ---

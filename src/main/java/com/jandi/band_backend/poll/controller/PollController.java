@@ -4,7 +4,7 @@ import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.dto.PagedRespDTO;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.invite.dto.JoinRespDTO;
-import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.invite.store.InviteCodeService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;

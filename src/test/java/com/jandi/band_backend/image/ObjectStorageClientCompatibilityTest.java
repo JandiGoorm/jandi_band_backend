@@ -1,7 +1,7 @@
 package com.jandi.band_backend.image;
 
 import com.jandi.band_backend.config.ImageStorageProperties;
-import com.jandi.band_backend.config.R2Config;
+import com.jandi.band_backend.config.ObjectStorageConfig;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.*;
 
-class R2ClientCompatibilityTest {
+class ObjectStorageClientCompatibilityTest {
     @ParameterizedTest
     @org.junit.jupiter.params.provider.NullSource
     @ValueSource(strings = {""})
@@ -29,7 +29,7 @@ class R2ClientCompatibilityTest {
         properties.setAccessKey("test-access-key");
         properties.setSecretKey("test-secret-key");
         properties.setEndpoint(endpoint);
-        assertThatThrownBy(() -> new R2Config().s3Client(properties))
+        assertThatThrownBy(() -> new ObjectStorageConfig().s3Client(properties))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -41,8 +41,8 @@ class R2ClientCompatibilityTest {
             server.enqueue(new MockResponse().setResponseCode(200));
             server.enqueue(new MockResponse().setResponseCode(204));
             var properties = properties(server);
-            try (var client = new R2Config().s3Client(properties)) {
-                var service = new R2Service(client, properties,
+            try (var client = new ObjectStorageConfig().s3Client(properties)) {
+                var service = new ObjectStorageService(client, properties,
                         new ImageUrls("https://images.example.com", "club-photo/rhythmeet.webp"));
                 byte[] content = ImageTestFiles.bytes("png", size);
                 var openStreams = new AtomicInteger();
@@ -90,8 +90,8 @@ class R2ClientCompatibilityTest {
             server.enqueue(new MockResponse().setResponseCode(403).setHeader("Content-Type", "application/xml")
                     .setBody("<Error><Code>AccessDenied</Code><Message>denied</Message></Error>"));
             var properties = properties(server);
-            try (var client = new R2Config().s3Client(properties)) {
-                var service = new R2Service(client, properties,
+            try (var client = new ObjectStorageConfig().s3Client(properties)) {
+                var service = new ObjectStorageService(client, properties,
                         new ImageUrls("https://images.example.com", "club-photo/rhythmeet.webp"));
                 assertThatThrownBy(() -> service.uploadImage(
                         new MockMultipartFile("file", "image.jpg", "image/jpeg", ImageTestFiles.bytes("jpeg", 2)), "photo"))

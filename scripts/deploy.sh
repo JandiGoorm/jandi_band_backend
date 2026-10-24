@@ -8,7 +8,7 @@ image=${3:?}
 revision=${4:?}
 registry_user=${5:?}
 case "$app" in jandi-band|jandi-band-py) ;; *) exit 2 ;; esac
-case "$environment" in production|development) ;; *) exit 2 ;; esac
+[[ "$environment" == production ]] || exit 2
 [[ "$image" =~ ^ghcr\.io/jandigoorm/$app@sha256:[a-f0-9]{64}$ ]] || exit 2
 [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || exit 2
 
@@ -17,10 +17,6 @@ release=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
 [[ "$release" == "$root"/releases/release.* ]] || exit 2
 container="$app"
 profile=prod
-if [[ "$environment" == development ]]; then
-    container="$app-dev"
-    profile=dev
-fi
 project="$app-$environment"
 exec 9>"$root/deploy.lock"
 flock -w 300 9
@@ -68,6 +64,7 @@ trap failed ERR
 
 if [[ "$app" == jandi-band ]]; then
     test -s "$root/.env"
+    test -s "$root/tls/mysql-truststore.p12"
 fi
 docker network inspect backend-net >/dev/null
 mkdir -m 700 "$release/.docker"
@@ -75,19 +72,11 @@ export DOCKER_CONFIG="$release/.docker"
 docker login ghcr.io -u "$registry_user" --password-stdin < "$release/.registry-token"
 rm -f "$release/.registry-token"
 docker pull "$image"
-test "$(docker image inspect "$image" --format '{{.Architecture}}')" = arm64
+test "$(docker image inspect "$image" --format '{{.Architecture}}')" = amd64
 test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$revision"
 printf 'APP_ENV=%s\nAPP_CONTAINER=%s\nAPP_PROFILE=%s\nAPP_IMAGE=%s\nAPP_ENV_FILE=%s/.env\n' \
     "$environment" "$container" "$profile" "$image" "$root" > "$release/deployment.env"
-printf 'REDIS_AUTH_FILE=%s/redis-auth.conf\n' "$root" >> "$release/deployment.env"
-printf 'REDIS_AUTH_GID=%s\n' "$(id -g)" >> "$release/deployment.env"
 compose "$release" config --quiet
-if [[ "$app" == jandi-band ]]; then
-    python3 "$release/scripts/prepare-redis.py" "$root"
-    chmod 644 "$release/config/redis.conf"
-    docker compose --env-file "$release/deployment.env" -f "$release/compose.redis.yaml" \
-        up -d --wait --wait-timeout 90 redis
-fi
 
 if docker container inspect "$container" >/dev/null 2>&1; then
     owner=$(docker inspect "$container" --format '{{index .Config.Labels "com.docker.compose.project"}}')

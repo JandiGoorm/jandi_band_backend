@@ -7,7 +7,7 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -26,10 +26,10 @@ public class MetricsConfig {
 
     // 활성 사용자 수를 추적하는 게이지
     private final AtomicInteger activeUsers = new AtomicInteger(0);
-    
+
     // API 호출 횟수를 추적하는 카운터
     private Counter apiCallCounter;
-    
+
     // 비즈니스 로직 처리 시간을 추적하는 타이머
     private Timer businessLogicTimer;
 
@@ -47,7 +47,7 @@ public class MetricsConfig {
                     "environment", getEnvironment()
                 )
             );
-            
+
             // 커스텀 메트릭 등록
             registerCustomMetrics(registry);
         };
@@ -118,4 +118,4 @@ public class MetricsConfig {
     public Timer getBusinessLogicTimer() {
         return businessLogicTimer;
     }
-} 
+}

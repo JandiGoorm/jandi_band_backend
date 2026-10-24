@@ -2,8 +2,8 @@ package com.jandi.band_backend.invite.service;
 
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.invite.dto.InviteLinkRespDTO;
-import com.jandi.band_backend.invite.redis.InviteCodeService;
-import com.jandi.band_backend.invite.redis.InviteType;
+import com.jandi.band_backend.invite.store.InviteCodeService;
+import com.jandi.band_backend.invite.store.InviteType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class InviteService {
             throw new InvalidAccessException("초대 권한이 없습니다");
         }
 
-        // code 생성 후 Redis 서버에 저장
+        // 만료 시각을 포함한 초대 코드 저장
         String code = generateRandomCode();
         inviteCodeService.saveCode(InviteType.CLUB, clubId, code);
         return new InviteLinkRespDTO(code);
@@ -37,7 +37,7 @@ public class InviteService {
             throw new InvalidAccessException("초대 권한이 없습니다");
         }
 
-        // code 생성 후 Redis 서버에 저장
+        // 만료 시각을 포함한 초대 코드 저장
         String code = generateRandomCode();
         inviteCodeService.saveCode(InviteType.TEAM, teamId, code);
         return new InviteLinkRespDTO(code);

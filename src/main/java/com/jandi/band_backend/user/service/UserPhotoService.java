@@ -3,7 +3,7 @@ package com.jandi.band_backend.user.service;
 import com.jandi.band_backend.user.entity.UserPhoto;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserPhotoRepository;
-import com.jandi.band_backend.global.util.R2FileManagementUtil;
+import com.jandi.band_backend.global.util.ImageFileManagementUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserPhotoService {
     private final UserService userService;
     private final UserPhotoRepository userPhotoRepository;
-    private final R2FileManagementUtil r2FileManagementUtil;
+    private final ImageFileManagementUtil imageFileManagementUtil;
     
     private static final String USER_PHOTO_DIR = "user-photo";
 
@@ -46,8 +46,8 @@ public class UserPhotoService {
         String originalUrl = profile.getImageUrl();
 
         // 새 이미지 업로드 및 이전 이미지 삭제
-        String newUrl = r2FileManagementUtil.uploadFile(newProfileFile, USER_PHOTO_DIR, "프로필 사진 업로드 실패");
-        r2FileManagementUtil.deleteFileWithKakaoCheck(originalUrl);
+        String newUrl = imageFileManagementUtil.uploadFile(newProfileFile, USER_PHOTO_DIR, "프로필 사진 업로드 실패");
+        imageFileManagementUtil.deleteFileWithKakaoCheck(originalUrl);
         profile.setImageUrl(newUrl);
         userPhotoRepository.save(profile);
     }

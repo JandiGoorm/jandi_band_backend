@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ImageStorageProperties {
     private String accessKey;
     private String secretKey;
-    private String region = "auto";
+    private String region = "ap-chuncheon-1";
     private String endpoint = "";
     private boolean pathStyle = true;
     private String bucket;

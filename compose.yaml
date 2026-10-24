@@ -5,6 +5,8 @@ services:
     image: ${APP_IMAGE:?}
     container_name: ${APP_CONTAINER:?}
     restart: unless-stopped
+    mem_limit: 700m
+    cpus: 1.0
     logging:
       driver: json-file
       options:
@@ -14,10 +16,12 @@ services:
       - path: ${APP_ENV_FILE:?}
         format: raw
     environment:
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx320m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=64m -Xss512k
       SPRING_PROFILES_ACTIVE: ${APP_PROFILE:?}
       SPRING_CONFIG_LOCATION: file:/app/config/application.properties
     volumes:
       - ./config:/app/config:ro
+      - /opt/jandi-band/production/tls:/app/tls:ro
     networks:
       - backend-net
     healthcheck:

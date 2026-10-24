@@ -1,0 +1,6147 @@
+{
+  "paths": {
+    "/api/polls/{pollId}/songs/{songId}/votes/{emoji}": {
+      "put": {
+        "operationId": "setVoteForSong",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "songId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "emoji",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPollSongRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeVoteFromSong",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "songId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "emoji",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPollSongRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me/timetables": {
+      "get": {
+        "operationId": "getMyTimetables",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListUserTimetableRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createTimetable",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserTimetableReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserTimetableDetailsRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/schedule-suggestion": {
+      "post": {
+        "operationId": "startScheduleSuggestion",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOScheduleSuggestionRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/practice-schedules": {
+      "get": {
+        "operationId": "getPracticeSchedulesByTeam",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPracticeScheduleRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPracticeSchedule",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PracticeScheduleReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPracticeScheduleRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/members/me/timetable": {
+      "post": {
+        "operationId": "registerMyTimetable",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTimetableRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateMyTimetable",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableUpdateReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTimetableRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos": {
+      "get": {
+        "operationId": "getPromos",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPromo",
+        "parameters": [
+          {
+            "name": "teamName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "admissionFee",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "eventDatetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPromoSimpleRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/{promoId}/like": {
+      "post": {
+        "operationId": "togglePromoLike",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/{promoId}/comments": {
+      "get": {
+        "operationId": "getCommentsByPromo",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoCommentRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createComment",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoCommentReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPromoCommentRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/reports": {
+      "get": {
+        "operationId": "getPromoReports",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoReportRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPromoReport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoReportReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/comments/{commentId}/like": {
+      "post": {
+        "operationId": "toggleCommentLike",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/comments/reports": {
+      "get": {
+        "operationId": "getPromoCommentReports",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoCommentReportRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPromoCommentReport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoCommentReportReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/polls": {
+      "post": {
+        "operationId": "createPoll",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PollReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPollRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/polls/{pollId}/songs": {
+      "get": {
+        "operationId": "getPollSongs",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "LIKE"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListPollSongResultRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "addSongToPoll",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PollSongReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPollSongRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices": {
+      "get": {
+        "operationId": "getAllNotices",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTONoticeRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createNotice",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NoticeReqDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTONoticeDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/join/teams": {
+      "post": {
+        "operationId": "joinTeam",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOJoinRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/join/clubs": {
+      "post": {
+        "operationId": "joinClub",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOJoinRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invite/teams/{teamId}": {
+      "post": {
+        "operationId": "inviteTeam",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOInviteLinkRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invite/polls/{pollId}": {
+      "post": {
+        "operationId": "invitePoll",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOInviteLinkRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invite/clubs/{clubId}": {
+      "post": {
+        "operationId": "inviteClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOInviteLinkRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/images/upload": {
+      "post": {
+        "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "dirName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs": {
+      "get": {
+        "operationId": "getClubList",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOClubRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createClub",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClubReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/teams": {
+      "get": {
+        "operationId": "getTeamsByClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOTeamRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createTeam",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTeamDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/photo": {
+      "get": {
+        "operationId": "getClubGalPhotoList",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOClubGalPhotoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createClubGalPhoto",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "isPublic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubGalPhotoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/pendings": {
+      "get": {
+        "operationId": "getPendingListByClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubPendingListRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "applyToClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubPendingRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/main-image": {
+      "post": {
+        "operationId": "uploadClubPhoto",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteClubPhoto",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/events": {
+      "post": {
+        "operationId": "createClubEvent",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClubEventReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubEventRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "operationId": "signUp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserInfoDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTokenRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/cancel": {
+      "post": {
+        "operationId": "cancel",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserInfoDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me/timetables/{timetableId}": {
+      "get": {
+        "operationId": "getTimetableById",
+        "parameters": [
+          {
+            "name": "timetableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserTimetableDetailsRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteTimetable",
+        "parameters": [
+          {
+            "name": "timetableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateTimetable",
+        "parameters": [
+          {
+            "name": "timetableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserTimetableReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserTimetableDetailsRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me/info": {
+      "get": {
+        "operationId": "getMyInfo",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUserInfoDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateMyInfo",
+        "parameters": [
+          {
+            "name": "nickname",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "university",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profilePhoto": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}": {
+      "get": {
+        "operationId": "getTeamDetail",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTeamDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteTeam",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateTeam",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOTeamRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/{promoId}": {
+      "get": {
+        "operationId": "getPromo",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePromo",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updatePromo",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "teamName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "admissionFee",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "eventDatetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deleteImageUrl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/comments/{commentId}": {
+      "delete": {
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoCommentReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPromoCommentRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{noticeId}": {
+      "get": {
+        "operationId": "getNoticeDetail",
+        "parameters": [
+          {
+            "name": "noticeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTONoticeDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteNotice",
+        "parameters": [
+          {
+            "name": "noticeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateNotice",
+        "parameters": [
+          {
+            "name": "noticeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "request",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NoticeUpdateReqDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTONoticeDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{noticeId}/toggle-pause": {
+      "patch": {
+        "operationId": "toggleNoticePause",
+        "parameters": [
+          {
+            "name": "noticeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTONoticeRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}": {
+      "get": {
+        "operationId": "getClubDetail",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClubUpdateReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/representative": {
+      "patch": {
+        "operationId": "transferRepresentative",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRepresentativeReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/photo/{photoId}": {
+      "get": {
+        "operationId": "getClubGalPhotoDetail",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubGalPhotoRespDetailDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteClubGalPhotoList",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOObject"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateClubGalPhotoList",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isPublic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubGalPhotoRespDetailDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/photo/{photoId}/pin": {
+      "patch": {
+        "operationId": "updateClubGalPhotoList_1",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/pendings/{pendingId}": {
+      "delete": {
+        "operationId": "cancelPending",
+        "parameters": [
+          {
+            "name": "pendingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "processPending",
+        "parameters": [
+          {
+            "name": "pendingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClubPendingProcessReqDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubPendingRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/users/increment": {
+      "get": {
+        "operationId": "incrementUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/users/decrement": {
+      "get": {
+        "operationId": "decrementUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/redis": {
+      "get": {
+        "operationId": "redisHealthCheck",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/redis/info": {
+      "get": {
+        "operationId": "redisInfo",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/redis/basic": {
+      "get": {
+        "operationId": "basicRedisTest",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/metrics": {
+      "get": {
+        "operationId": "getMetrics",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/univ/{univId}": {
+      "get": {
+        "operationId": "getUniversityById",
+        "parameters": [
+          {
+            "name": "univId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOUniversityDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/univ/all": {
+      "get": {
+        "operationId": "getAllUniversity",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListUniversityRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/practice-schedules/{scheduleId}": {
+      "get": {
+        "operationId": "getPracticeSchedule",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPracticeScheduleRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePracticeSchedule",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/region/all": {
+      "get": {
+        "operationId": "getAllRegion",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListRegionRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/{promoId}/like/status": {
+      "get": {
+        "operationId": "getPromoLikeStatus",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/{promoId}/like/count": {
+      "get": {
+        "operationId": "getPromoLikeCount",
+        "parameters": [
+          {
+            "name": "promoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOInteger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/status": {
+      "get": {
+        "operationId": "filterPromosByStatus",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "eventDatetime,asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/search": {
+      "get": {
+        "operationId": "searchPromos",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/map": {
+      "get": {
+        "operationId": "filterMapPromos",
+        "parameters": [
+          {
+            "name": "startLatitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "startLongitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "endLatitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "endLongitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/filter": {
+      "get": {
+        "operationId": "filterPromos",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "teamName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt,desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPromoRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/comments/{commentId}/like/status": {
+      "get": {
+        "operationId": "getCommentLikeStatus",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promos/comments/{commentId}/like/count": {
+      "get": {
+        "operationId": "getCommentLikeCount",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOInteger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/polls/{pollId}": {
+      "get": {
+        "operationId": "getPollDetail",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPollDetailRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePoll",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/polls/clubs/{clubId}": {
+      "get": {
+        "operationId": "getPollList",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOPagedRespDTOPollRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/active": {
+      "get": {
+        "operationId": "getActiveNotices",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListNoticeRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my/teams": {
+      "get": {
+        "operationId": "getMyTeams",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListMyTeamRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my/clubs": {
+      "get": {
+        "operationId": "getMyClubs",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListMyClubRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/pendings/my": {
+      "get": {
+        "operationId": "getMyPendingForClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubPendingRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/members": {
+      "get": {
+        "operationId": "getClubMembers",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubMembersRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/events/{eventId}": {
+      "get": {
+        "operationId": "getClubEventDetail",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOClubEventRespDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteClubEvent",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/calendar": {
+      "get": {
+        "operationId": "getCalendarEvents",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOListCalendarEventRespDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "get": {
+        "operationId": "kakaoLogin",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamId}/members/me": {
+      "delete": {
+        "operationId": "leaveTeam",
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/polls/{pollId}/songs/{songId}": {
+      "delete": {
+        "operationId": "deleteSongFromPoll",
+        "parameters": [
+          {
+            "name": "pollId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "songId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/images": {
+      "delete": {
+        "operationId": "deleteImage",
+        "parameters": [
+          {
+            "name": "fileUrl",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/members/{userId}": {
+      "delete": {
+        "operationId": "kickMember",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clubs/{clubId}/members/me": {
+      "delete": {
+        "operationId": "leaveClub",
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonRespDTOVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CommonRespDTOPollSongRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PollSongRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PollSongRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pollId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "songName": {
+            "type": "string"
+          },
+          "artistName": {
+            "type": "string"
+          },
+          "youtubeUrl": {
+            "type": "string"
+          },
+          "suggesterId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggesterName": {
+            "type": "string"
+          },
+          "suggesterProfilePhoto": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dislikeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hajjCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userVoteType": {
+            "type": "string"
+          }
+        }
+      },
+      "JsonNode": {},
+      "UserTimetableReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "timetableData": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        }
+      },
+      "CommonRespDTOUserTimetableDetailsRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserTimetableDetailsRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UserTimetableDetailsRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timetableData": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        }
+      },
+      "CommonRespDTOScheduleSuggestionRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleSuggestionRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduleSuggestionRespDTO": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggestedScheduleAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "suggesterUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggesterName": {
+            "type": "string"
+          }
+        }
+      },
+      "PracticeScheduleReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "noPosition": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "endDatetime",
+          "name",
+          "startDatetime"
+        ]
+      },
+      "CommonRespDTOPracticeScheduleRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PracticeScheduleRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PracticeScheduleRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "noPosition": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TimetableReqDTO": {
+        "type": "object",
+        "properties": {
+          "userTimetableId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "userTimetableId"
+        ]
+      },
+      "CommonRespDTOTimetableRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TimetableRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "TimetableRespDTO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timetableData": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "updatedTimetableAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOPromoSimpleRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PromoSimpleRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PromoSimpleRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOString": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PromoCommentReqDTO": {
+        "type": "object",
+        "properties": {},
+        "required": [
+          "description"
+        ]
+      },
+      "CommonRespDTOPromoCommentRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PromoCommentRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PromoCommentRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "creatorProfilePhoto": {
+            "type": "string"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isLikedByUser": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PromoReportReqDTO": {
+        "type": "object",
+        "properties": {
+          "promoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportReasonId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "promoId",
+          "reportReasonId"
+        ]
+      },
+      "CommonRespDTOVoid": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {},
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PromoCommentReportReqDTO": {
+        "type": "object",
+        "properties": {
+          "promoCommentId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportReasonId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "promoCommentId",
+          "reportReasonId"
+        ]
+      },
+      "PollReqDTO": {
+        "type": "object",
+        "properties": {
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "clubId",
+          "endDatetime",
+          "title"
+        ]
+      },
+      "CommonRespDTOPollRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PollRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PollRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PollSongReqDTO": {
+        "type": "object",
+        "properties": {
+          "songName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artistName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "artistName",
+          "songName",
+          "youtubeUrl"
+        ]
+      },
+      "NoticeReqDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isPaused": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "endDatetime",
+          "startDatetime",
+          "title"
+        ]
+      },
+      "CommonRespDTONoticeDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeDetailRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "NoticeDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isPaused": {
+            "type": "boolean"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOJoinRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/JoinRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "JoinRespDTO": {
+        "type": "object",
+        "properties": {
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOInviteLinkRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/InviteLinkRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "InviteLinkRespDTO": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "universityId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chatroomUrl": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "instagramId": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "photoUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ClubDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "university": {
+            "$ref": "#/components/schemas/UniversityRespDTO"
+          },
+          "isUnionClub": {
+            "type": "boolean"
+          },
+          "chatroomUrl": {
+            "type": "string"
+          },
+          "instagramId": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "representativeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOClubDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubDetailRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UniversityRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CommonRespDTOTeamDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamDetailRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "MemberInfoDTO": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "timetableUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isSubmitted": {
+            "type": "boolean"
+          },
+          "timetableData": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        }
+      },
+      "SubmissionProgressDTO": {
+        "type": "object",
+        "properties": {
+          "submittedMember": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMember": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TeamDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberInfoDTO"
+            }
+          },
+          "suggestedScheduleAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionProgress": {
+            "$ref": "#/components/schemas/SubmissionProgressDTO"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ClubGalPhotoRespDTO": {
+        "type": "object",
+        "properties": {
+          "photoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploaderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploaderName": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "isPinned": {
+            "type": "boolean"
+          },
+          "isPublic": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CommonRespDTOClubGalPhotoRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubGalPhotoRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubPendingRespDTO": {
+        "type": "object",
+        "properties": {
+          "pendingId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "userNickname": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processedBy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processedByNickname": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOClubPendingRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubPendingRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubEventReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ClubEventRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOClubEventRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubEventRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "SignUpReqDTO": {
+        "type": "object",
+        "properties": {
+          "position": {
+            "type": "string"
+          },
+          "university": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOUserInfoDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UserInfoDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "profilePhoto": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "university": {
+            "type": "string"
+          }
+        }
+      },
+      "RefreshReqDTO": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOTokenRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TokenRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "TokenRespDTO": {},
+      "CommonRespDTOObject": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {},
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOTeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TimetableUpdateReqDTO": {
+        "type": "object",
+        "properties": {
+          "timetableData": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        },
+        "required": [
+          "timetableData"
+        ]
+      },
+      "NoticeUpdateReqDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary"
+          },
+          "deleteImage": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CommonRespDTONoticeRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "NoticeRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isPaused": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubUpdateReqDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "universityId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chatroomUrl": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "instagramId": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "photoUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferRepresentativeReqDTO": {
+        "type": "object",
+        "properties": {
+          "newRepresentativeUserId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "newRepresentativeUserId"
+        ]
+      },
+      "ClubGalPhotoRespDetailDTO": {
+        "type": "object",
+        "properties": {
+          "photoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploaderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploaderName": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "isPinned": {
+            "type": "boolean"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOClubGalPhotoRespDetailDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubGalPhotoRespDetailDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubPendingProcessReqDTO": {
+        "type": "object",
+        "properties": {
+          "approve": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approve"
+        ]
+      },
+      "CommonRespDTOListUserTimetableRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserTimetableRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UserTimetableRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOUniversityDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UniversityDetailRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UniversityDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "universityCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOListUniversityRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UniversityRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPracticeScheduleRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPracticeScheduleRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PageInfo": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PagedRespDTOPracticeScheduleRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PracticeScheduleRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOListRegionRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegionRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "RegionRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPromoRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPromoRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOPromoRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromoRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "PromoRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "admissionFee": {
+            "type": "number"
+          },
+          "eventDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isLikedByUser": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "photoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommonRespDTOPromoRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PromoRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOBoolean": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOInteger": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPromoCommentRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPromoCommentRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOPromoCommentRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromoCommentRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPromoReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPromoReportRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOPromoReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromoReportRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "PromoReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoTitle": {
+            "type": "string"
+          },
+          "promoCreatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoCreatorName": {
+            "type": "string"
+          },
+          "reporterUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reporterUserName": {
+            "type": "string"
+          },
+          "reportReasonId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportReasonCode": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPromoCommentReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPromoCommentReportRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOPromoCommentReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromoCommentReportRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "PromoCommentReportRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "promoTitle": {
+            "type": "string"
+          },
+          "promoCommentId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commentContent": {
+            "type": "string"
+          },
+          "commentCreatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commentCreatorName": {
+            "type": "string"
+          },
+          "reporterUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reporterUserName": {
+            "type": "string"
+          },
+          "reportReasonId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportReasonCode": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommonRespDTOPollDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PollDetailRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PollDetailRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "songs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PollSongRespDTO"
+            }
+          }
+        }
+      },
+      "CommonRespDTOListPollSongResultRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PollSongResultRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PollSongResultRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pollId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "songName": {
+            "type": "string"
+          },
+          "artistName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "likeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dislikeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hajjCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOPollRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOPollRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOPollRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PollRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTONoticeRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTONoticeRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTONoticeRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NoticeRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOListNoticeRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NoticeRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOListMyTeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyTeamRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "MyTeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOListMyClubRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyClubRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "MyClubRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "universityName": {
+            "type": "string"
+          },
+          "myRole": {
+            "type": "string",
+            "enum": [
+              "REPRESENTATIVE",
+              "MEMBER",
+              "BANNED"
+            ]
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unionClub": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClubRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "universityName": {
+            "type": "string"
+          },
+          "isUnionClub": {
+            "type": "boolean"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOClubRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOClubRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOClubRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClubRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOTeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOTeamRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOTeamRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "CommonRespDTOPagedRespDTOClubGalPhotoRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PagedRespDTOClubGalPhotoRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PagedRespDTOClubGalPhotoRespDTO": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClubGalPhotoRespDTO"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "ClubPendingListRespDTO": {
+        "type": "object",
+        "properties": {
+          "clubId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "pendingMembers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClubPendingRespDTO"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOClubPendingListRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubPendingListRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ClubMembersRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberInfoDTO"
+            }
+          },
+          "vocalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guitarCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "keyboardCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bassCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "drumCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMemberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommonRespDTOClubMembersRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ClubMembersRespDTO"
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CalendarEventRespDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "CLUB_EVENT",
+              "TEAM_EVENT"
+            ]
+          },
+          "teamId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "teamName": {
+            "type": "string"
+          },
+          "noPosition": {
+            "type": "string"
+          }
+        }
+      },
+      "CommonRespDTOListCalendarEventRespDTO": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventRespDTO"
+            }
+          },
+          "errorCode": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "name": "Authorization",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

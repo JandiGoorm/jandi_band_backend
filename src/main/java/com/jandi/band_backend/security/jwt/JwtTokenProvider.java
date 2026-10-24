@@ -1,6 +1,6 @@
 package com.jandi.band_backend.security.jwt;
 
-import com.jandi.band_backend.auth.redis.TokenBlacklistService;
+import com.jandi.band_backend.auth.store.TokenBlacklistService;
 import com.jandi.band_backend.global.exception.InvalidTokenException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
 import com.jandi.band_backend.security.CustomUserDetailsService;
@@ -16,13 +16,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
-    private final Key secretKey;
+    private final SecretKey secretKey;
     private final long validityInMilliseconds;
     private final long refreshValidityInMilliseconds;
     private final long refreshTokenReissueThreshold;
@@ -153,10 +153,10 @@ public class JwtTokenProvider {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
