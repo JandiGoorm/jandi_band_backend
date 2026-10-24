@@ -1,7 +1,7 @@
 package com.jandi.band_backend.user.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.TimetableNotFoundException;
 import com.jandi.band_backend.global.util.UserValidationUtil;
@@ -83,7 +83,7 @@ class UserTimetableServiceTest1 {
         otherUser.setNickname("다른사용자");
         otherUser.setAdminRole(Users.AdminRole.USER);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         testTimetableData = objectMapper.readTree(TIMETABLE_JSON);
 
         testTimetable1 = new UserTimetable();

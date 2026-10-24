@@ -31,7 +31,7 @@ import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.UniversityNotFoundException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
-import com.jandi.band_backend.global.util.R2FileManagementUtil;
+import com.jandi.band_backend.global.util.ImageFileManagementUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
 import com.jandi.band_backend.image.ImageUrls;
@@ -61,7 +61,7 @@ public class ClubService {
     private final TeamEventRepository teamEventRepository;
     private final UniversityRepository universityRepository;
     private final EntityValidationUtil entityValidationUtil;
-    private final R2FileManagementUtil r2FileManagementUtil;
+    private final ImageFileManagementUtil imageFileManagementUtil;
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
     private final TeamService teamService;
@@ -253,7 +253,7 @@ public class ClubService {
         List<ClubGalPhoto> clubGalPhotos = clubGalPhotoRepository.findByClubIdAndDeletedAtIsNull(clubId);
         clubGalPhotos.forEach(clubGalPhoto -> {
             // R2에서 이미지 삭제
-            r2FileManagementUtil.deleteFileSafely(clubGalPhoto.getImageUrl());
+            imageFileManagementUtil.deleteFileSafely(clubGalPhoto.getImageUrl());
 
             // DB 레코드 소프트 삭제
             clubGalPhoto.setDeletedAt(deletedTime);
@@ -338,8 +338,8 @@ public class ClubService {
         String originalUrl = clubPhoto.getImageUrl();
 
         // R2에서 이전 이미지 삭제 및 새로운 이미지 업로드 후 적용
-        String newUrl = r2FileManagementUtil.uploadFile(image, CLUB_PHOTO_DIR, "동아리 사진 업로드 실패");
-        r2FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
+        String newUrl = imageFileManagementUtil.uploadFile(image, CLUB_PHOTO_DIR, "동아리 사진 업로드 실패");
+        imageFileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
         clubPhoto.setImageUrl(newUrl);
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);
@@ -359,7 +359,7 @@ public class ClubService {
         String originalUrl = clubPhoto.getImageUrl();
 
         // R2에서 이전 이미지 삭제 및 기본 이미지 적용
-        r2FileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
+        imageFileManagementUtil.deleteFileIfNotDefault(originalUrl, imageUrls.defaultClubPhotoUrl());
         clubPhoto.setImageUrl(imageUrls.defaultClubPhotoUrl());
         clubPhoto.setUploadedAt(LocalDateTime.now());
         clubPhotoRepository.save(clubPhoto);

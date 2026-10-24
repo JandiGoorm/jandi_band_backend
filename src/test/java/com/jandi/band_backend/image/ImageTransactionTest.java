@@ -18,13 +18,13 @@ import static org.mockito.ArgumentMatchers.*;
 
 class ImageTransactionTest {
     private S3Client client;
-    private R2Service service;
+    private ObjectStorageService service;
 
     @BeforeEach void setUp() {
         client = mock(S3Client.class);
         var properties = new ImageStorageProperties();
         properties.setBucket("test-bucket");
-        service = new R2Service(client, properties, new ImageUrls("https://images.example.com", "default.png"));
+        service = new ObjectStorageService(client, properties, new ImageUrls("https://images.example.com", "default.png"));
         TransactionSynchronizationManager.setActualTransactionActive(true);
         TransactionSynchronizationManager.initSynchronization();
     }

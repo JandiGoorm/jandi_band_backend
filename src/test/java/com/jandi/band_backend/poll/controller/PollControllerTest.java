@@ -1,12 +1,12 @@
 package com.jandi.band_backend.poll.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.config.TestConfig;
 import com.jandi.band_backend.poll.dto.*;
 import com.jandi.band_backend.poll.service.PollService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
-import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.invite.store.InviteCodeService;
 import com.jandi.band_backend.security.CustomUserDetails;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
 import com.jandi.band_backend.user.entity.Users;
@@ -14,10 +14,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -46,19 +46,19 @@ class PollControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private PollService pollService;
 
-    @MockBean
+    @MockitoBean
     private JoinService joinService;
 
-    @MockBean
+    @MockitoBean
     private InviteUtilService inviteUtilService;
 
-    @MockBean
+    @MockitoBean
     private InviteCodeService inviteCodeService;
 
-    @MockBean
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     private PollReqDTO validPollReqDTO;

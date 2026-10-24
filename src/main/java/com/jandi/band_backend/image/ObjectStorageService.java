@@ -22,7 +22,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class R2Service {
+public class ObjectStorageService {
     private final S3Client s3Client;
     private final ImageStorageProperties properties;
     private final ImageUrls imageUrls;

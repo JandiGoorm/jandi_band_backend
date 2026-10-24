@@ -1,4 +1,4 @@
-"""Real HTTP/MySQL/Redis/R2 checks with simulated Kakao responses.
+"""Real HTTP/MySQL/object storage checks with simulated Kakao responses.
 Reports exclude credentials and tokens; failed feature requests are not retried.
 """
 import json
@@ -24,13 +24,14 @@ API = "http://app:8080"
 CONTROL = "http://app:9092"
 BUCKET = os.environ["IMAGE_STORAGE_BUCKET"]
 PUBLIC = os.environ["IMAGE_STORAGE_PUBLIC_URL"].rstrip("/")
-assert BUCKET == "rhythmeet-dev", "Only development storage is allowed"
+assert BUCKET == "rhythmeet-dev" or os.environ.get("IMAGE_API_TEST_ALLOW_SHARED_BUCKET") == "true", \
+    "Shared storage requires an explicit test-only opt-in"
 SESSION = requests.Session()
 SESSION.headers["User-Agent"] = "Rhythmeet-Backend-Image-Verification/1.0"
 S3 = boto3.client("s3", endpoint_url=os.environ["IMAGE_STORAGE_ENDPOINT"],
                   aws_access_key_id=os.environ["IMAGE_STORAGE_ACCESS_KEY"],
                   aws_secret_access_key=os.environ["IMAGE_STORAGE_SECRET_KEY"],
-                  region_name="auto", config=Config(retries={"max_attempts": 0},
+                  region_name=os.environ.get("IMAGE_STORAGE_REGION", "auto"), config=Config(retries={"max_attempts": 0},
                       s3={"addressing_style": "path"}, request_checksum_calculation="when_required"))
 RESULTS = []
 REQUESTS = []
@@ -541,7 +542,7 @@ def main():
         check("Kakao HTTP provider was exercised", state["tokenCalls"] >= 7 and state["userCalls"] >= 7)
         DB.close()
         report = {"run": RUN, "utc": datetime.now(timezone.utc).isoformat(),
-                  "environment": "isolated MySQL 8.4 + Redis; real development R2; simulated Kakao responses",
+                  "environment": "isolated MySQL; external object storage; simulated Kakao responses",
                   "baselineObjects": len(before), "testObjectKeys": len(owned),
                   "passed": sum(r["passed"] for r in RESULTS), "failed": sum(not r["passed"] for r in RESULTS),
                   "checks": RESULTS, "requests": REQUESTS}

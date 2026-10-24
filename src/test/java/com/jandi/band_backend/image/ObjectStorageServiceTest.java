@@ -24,15 +24,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class R2ServiceTest {
+class ObjectStorageServiceTest {
     @Mock private S3Client client;
-    private R2Service service;
+    private ObjectStorageService service;
 
     @BeforeEach
     void setUp() {
         var properties = new ImageStorageProperties();
         properties.setBucket("test-bucket");
-        service = new R2Service(client, properties, new ImageUrls("https://images.example.com",
+        service = new ObjectStorageService(client, properties, new ImageUrls("https://images.example.com",
                 "club-photo/rhythmeet.webp"));
     }
 

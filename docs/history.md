@@ -43,3 +43,5 @@
 - Docker 테스트 단계에 Redis를 제공하고 운영·개발 설정 로딩을 검증했다.
 - 수정 시각 테스트에서 대기와 미래 시각 대입을 제거하고 DB flush 후 수정 시각 갱신을 검증했다.
 - 테스트 JWT 키를 운영 값과 분리했다.
+
+- 2026-10-24: OCI 단일 운영 환경 준비. Java 25 / Spring Boot 4.1, Redis 대체 MySQL 만료 테이블, OCI Object Storage 설정, AMD64 main 전용 배포. API 계약 검사 및 이미지 HTTP 254개 검사 통과.

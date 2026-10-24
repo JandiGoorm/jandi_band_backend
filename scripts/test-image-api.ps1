@@ -1,13 +1,13 @@
 param(
-    [Parameter(Mandatory = $true)][string]$R2EnvFile,
+    [Parameter(Mandatory = $true)][string]$StorageEnvFile,
     [switch]$SkipBuild
 )
 
 $ErrorActionPreference = 'Stop'
 $repoPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$configPath = (Resolve-Path -LiteralPath $R2EnvFile).Path
+$configPath = (Resolve-Path -LiteralPath $StorageEnvFile).Path
 if ($configPath.StartsWith($repoPath + [System.IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
-    throw '개발 R2 환경 파일은 Git 저장소 밖에서 관리해야 합니다.'
+    throw '테스트 저장소 환경 파일은 Git 저장소 밖에서 관리해야 합니다.'
 }
 $previousConfig = $env:IMAGE_API_TEST_ENV_FILE
 $env:IMAGE_API_TEST_ENV_FILE = $configPath

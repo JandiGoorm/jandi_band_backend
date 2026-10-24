@@ -1,7 +1,7 @@
 package com.jandi.band_backend.notice.controller;
 
 import com.jandi.band_backend.config.IntegrationTest;
-import com.jandi.band_backend.image.R2Service;
+import com.jandi.band_backend.image.ObjectStorageService;
 import com.jandi.band_backend.notice.entity.Notice;
 import com.jandi.band_backend.notice.repository.NoticeRepository;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>MockMvc를 사용한 전체 Spring Boot 통합 테스트</li>
  *   <li>실제 JWT 인증 플로우 포함</li>
- *   <li>R2Service는 Mock으로 외부 의존성 격리</li>
+ *   <li>ObjectStorageService는 Mock으로 외부 의존성 격리</li>
  *   <li>공지사항 CRUD 및 일시정지 기능 검증</li>
  * </ul>
  *
@@ -61,7 +61,7 @@ public class NoticeControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private R2Service r2Service;
+    private ObjectStorageService objectStorageService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -99,7 +99,7 @@ public class NoticeControllerIntegrationTest {
         adminToken = jwtTokenProvider.generateAccessToken(adminUser.getKakaoOauthId());
 
         // R2 Mock 설정
-        when(r2Service.uploadImage(any(), anyString())).thenReturn("https://s3.example.com/notice/test-image.jpg");
+        when(objectStorageService.uploadImage(any(), anyString())).thenReturn("https://s3.example.com/notice/test-image.jpg");
     }
 
     // === 공지사항 생성 테스트 ===

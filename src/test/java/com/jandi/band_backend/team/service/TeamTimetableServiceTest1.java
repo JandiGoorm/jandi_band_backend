@@ -1,8 +1,8 @@
 package com.jandi.band_backend.team.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.global.exception.TimetableNotFoundException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
@@ -96,7 +96,7 @@ class TeamTimetableServiceTest1 {
         testUserTimetable.setName("내 시간표");
         testUserTimetable.setTimetableData(TIMETABLE_JSON);
 
-        ObjectMapper realObjectMapper = new ObjectMapper();
+        ObjectMapper realObjectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         testTimetableData = realObjectMapper.readTree(TIMETABLE_JSON);
 
         validReqDTO = new TimetableReqDTO();
@@ -171,7 +171,7 @@ class TeamTimetableServiceTest1 {
 
     @Test
     @DisplayName("2-1. 본인의 개인 시간표를 팀 시간표로 정상 등록")
-    void registerMyTimetable_Success() throws JsonProcessingException {
+    void registerMyTimetable_Success() throws JacksonException {
         // Given
         when(entityValidationUtil.validateTeamExists(TEST_TEAM_ID)).thenReturn(testTeam);
         when(permissionValidationUtil.validateTeamMemberAccess(TEST_TEAM_ID, TEST_USER_ID, "본인의 시간표만 입력할 수 있습니다."))

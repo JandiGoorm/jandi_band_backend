@@ -7,7 +7,7 @@ import com.jandi.band_backend.global.exception.BannedMemberJoinAttemptException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
 import com.jandi.band_backend.invite.dto.JoinRespDTO;
-import com.jandi.band_backend.invite.redis.InviteCodeService;
+import com.jandi.band_backend.invite.store.InviteCodeService;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.team.entity.Team;
 import com.jandi.band_backend.team.entity.TeamMember;

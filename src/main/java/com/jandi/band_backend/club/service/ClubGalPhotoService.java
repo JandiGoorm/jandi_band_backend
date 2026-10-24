@@ -13,7 +13,7 @@ import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.ResourceNotFoundException;
 import com.jandi.band_backend.global.exception.UserNotFoundException;
-import com.jandi.band_backend.image.R2Service;
+import com.jandi.band_backend.image.ObjectStorageService;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class ClubGalPhotoService {
     private final ClubRepository clubRepository;
     private final UserRepository userRepository;
     private final ClubMemberRepository clubMemberRepository;
-    private final R2Service r2Service;
+    private final ObjectStorageService objectStorageService;
 
     private static final String IMAGE_DIRECTORY = "club-gal-photo";
 
@@ -225,7 +225,7 @@ public class ClubGalPhotoService {
     /// R2 이미지 처리 관련
     private String uploadImage(MultipartFile file){
         try {
-            return r2Service.uploadImage(file, IMAGE_DIRECTORY);
+            return objectStorageService.uploadImage(file, IMAGE_DIRECTORY);
         } catch (IOException e) {
             throw new RuntimeException("이미지 업로드 실패: " + e);
         }
@@ -234,7 +234,7 @@ public class ClubGalPhotoService {
     private void deleteImage(String imageUrl){
         try {
             if (imageUrl != null)
-                r2Service.deleteImage(imageUrl);
+                objectStorageService.deleteImage(imageUrl);
         } catch (Exception e) {
             log.warn("기존 이미지 삭제 실패: {}", imageUrl, e);
         }

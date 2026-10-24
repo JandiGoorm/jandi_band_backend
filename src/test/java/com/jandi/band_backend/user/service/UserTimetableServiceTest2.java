@@ -1,7 +1,7 @@
 package com.jandi.band_backend.user.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.exception.InvalidAccessException;
 import com.jandi.band_backend.global.exception.TimetableNotFoundException;
 import com.jandi.band_backend.global.util.UserValidationUtil;
@@ -79,7 +79,7 @@ class UserTimetableServiceTest2 {
         otherUser.setNickname("다른사용자");
         otherUser.setAdminRole(Users.AdminRole.USER);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         validTimetableData = objectMapper.readTree(VALID_TIMETABLE_JSON);
 
         validReqDTO = new UserTimetableReqDTO("새 시간표", validTimetableData);
@@ -179,7 +179,7 @@ class UserTimetableServiceTest2 {
               "Thu": []
             }
             """;
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         JsonNode invalidData = objectMapper.readTree(invalidJsonMissingWeekday);
         UserTimetableReqDTO invalidReqDTO = new UserTimetableReqDTO("시간표", invalidData);
 
@@ -213,7 +213,7 @@ class UserTimetableServiceTest2 {
               "Sun": []
             }
             """;
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         JsonNode invalidData = objectMapper.readTree(invalidJsonTimeFormat);
         UserTimetableReqDTO invalidReqDTO = new UserTimetableReqDTO("시간표", invalidData);
 
@@ -245,7 +245,7 @@ class UserTimetableServiceTest2 {
               "Sun": []
             }
             """;
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         JsonNode invalidData = objectMapper.readTree(invalidJsonMinute);
         UserTimetableReqDTO invalidReqDTO = new UserTimetableReqDTO("시간표", invalidData);
 

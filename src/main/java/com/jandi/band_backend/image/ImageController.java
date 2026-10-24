@@ -21,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ImageController {
 
-    private final R2Service r2Service;
+    private final ObjectStorageService objectStorageService;
     private final UserRepository userRepository;
 
     @Operation(summary = "이미지 업로드 (관리자 전용)")
@@ -34,7 +34,7 @@ public class ImageController {
         // ADMIN 권한 체크
         validateAdminPermission(userDetails.getUserId());
 
-        String imageUrl = r2Service.uploadImage(file, dirName);
+        String imageUrl = objectStorageService.uploadImage(file, dirName);
         return ResponseEntity.ok(CommonRespDTO.success("이미지 업로드 성공", imageUrl));
     }
 
@@ -47,7 +47,7 @@ public class ImageController {
         // ADMIN 권한 체크
         validateAdminPermission(userDetails.getUserId());
 
-        r2Service.deleteImage(fileUrl);
+        objectStorageService.deleteImage(fileUrl);
         return ResponseEntity.ok(CommonRespDTO.success("이미지 삭제 성공"));
     }
 

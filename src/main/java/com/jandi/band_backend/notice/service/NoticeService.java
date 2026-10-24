@@ -9,7 +9,7 @@ import com.jandi.band_backend.notice.dto.NoticeDetailRespDTO;
 import com.jandi.band_backend.notice.dto.NoticeRespDTO;
 import com.jandi.band_backend.notice.entity.Notice;
 import com.jandi.band_backend.notice.repository.NoticeRepository;
-import com.jandi.band_backend.image.R2Service;
+import com.jandi.band_backend.image.ObjectStorageService;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final UserRepository userRepository;
-    private final R2Service r2Service;
+    private final ObjectStorageService objectStorageService;
 
     private static final String IMAGE_DIRECTORY = "notice-photo";
 
@@ -258,7 +258,7 @@ public class NoticeService {
     /// R2 이미지 처리 관련
     private String uploadImage(MultipartFile file){
         try {
-            return r2Service.uploadImage(file, IMAGE_DIRECTORY);
+            return objectStorageService.uploadImage(file, IMAGE_DIRECTORY);
         } catch (IOException e) {
             throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
         }
@@ -267,7 +267,7 @@ public class NoticeService {
     private void deleteImage(String imageUrl){
         try {
             if (imageUrl != null) {
-                r2Service.deleteImage(imageUrl);
+                objectStorageService.deleteImage(imageUrl);
             }
         } catch (Exception e) {
             log.warn("이미지 삭제 실패: {}", imageUrl, e);
@@ -277,7 +277,7 @@ public class NoticeService {
     private void tryDeleteImage(String imageUrl, String successMessage, String errorMessage) {
         if (imageUrl != null) {
             try {
-                r2Service.deleteImage(imageUrl);
+                objectStorageService.deleteImage(imageUrl);
                 log.info(successMessage, imageUrl);
             } catch (Exception e) {
                 log.error(errorMessage + " - URL: {}", imageUrl, e);

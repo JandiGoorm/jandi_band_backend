@@ -100,6 +100,6 @@ curl -X DELETE "http://localhost:8080/api/images?fileUrl=https://images.example.
 
 ## 참고사항
 - **권한**: ADMIN 권한을 가진 사용자만 접근 가능
-- **디렉토리**: dirName 파라미터로 R2 내 저장 경로 지정
+- **디렉토리**: dirName 파라미터로 Object Storage 내 저장 경로 지정
 - **파일명**: UUID로 자동 생성되어 중복 방지
-- **CDN**: Cloudflare R2 공개 이미지 도메인
+- **CDN**: 기존 공개 이미지 도메인
