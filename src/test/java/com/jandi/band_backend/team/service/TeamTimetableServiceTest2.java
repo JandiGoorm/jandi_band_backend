@@ -1,8 +1,8 @@
 package com.jandi.band_backend.team.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.exception.BadRequestException;
 import com.jandi.band_backend.global.util.EntityValidationUtil;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
@@ -81,7 +81,7 @@ class TeamTimetableServiceTest2 {
         testTeamMember.setTeam(testTeam);
         testTeamMember.setUser(testUser);
 
-        ObjectMapper realObjectMapper = new ObjectMapper();
+        ObjectMapper realObjectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
         validTimetableData = realObjectMapper.readTree(VALID_TIMETABLE_JSON);
 
         validUpdateReqDTO = new TimetableUpdateReqDTO();
@@ -92,7 +92,7 @@ class TeamTimetableServiceTest2 {
 
     @Test
     @DisplayName("3-1. 팀원이 자신의 팀 시간표 정상 수정")
-    void updateMyTimetable_Success() throws JsonProcessingException {
+    void updateMyTimetable_Success() throws JacksonException {
         // Given
         when(entityValidationUtil.validateTeamExists(TEST_TEAM_ID)).thenReturn(testTeam);
         when(permissionValidationUtil.validateTeamMemberAccess(TEST_TEAM_ID, TEST_USER_ID, "본인의 시간표만 입력할 수 있습니다."))
@@ -144,14 +144,14 @@ class TeamTimetableServiceTest2 {
 
     @Test
     @DisplayName("3-3. JSON 변환 오류 발생 시 예외 발생")
-    void updateMyTimetable_ThrowsException_JsonProcessingError() throws JsonProcessingException {
+    void updateMyTimetable_ThrowsException_JsonProcessingError() throws JacksonException {
         // Given
         when(entityValidationUtil.validateTeamExists(TEST_TEAM_ID)).thenReturn(testTeam);
         when(permissionValidationUtil.validateTeamMemberAccess(TEST_TEAM_ID, TEST_USER_ID, "본인의 시간표만 입력할 수 있습니다."))
                 .thenReturn(testTeamMember);
         doNothing().when(teamTimetableUtil).validateTimetableRequest(validUpdateReqDTO);
         when(objectMapper.writeValueAsString(validTimetableData))
-                .thenThrow(new JsonProcessingException("JSON 변환 실패") {});
+                .thenThrow(new JacksonException("JSON 변환 실패") {});
 
         // When & Then
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -168,7 +168,7 @@ class TeamTimetableServiceTest2 {
 
     @Test
     @DisplayName("3-4. 시간표 업데이트 시간이 올바르게 설정되는지 확인")
-    void updateMyTimetable_VerifyTimeUpdate() throws JsonProcessingException {
+    void updateMyTimetable_VerifyTimeUpdate() throws JacksonException {
         // Given
         LocalDateTime beforeUpdate = LocalDateTime.now();
 

@@ -1,6 +1,6 @@
 package com.jandi.band_backend.user.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.jandi.band_backend.global.util.TimetableValidationUtil;
 import com.jandi.band_backend.user.dto.UserTimetableReqDTO;
 import lombok.RequiredArgsConstructor;

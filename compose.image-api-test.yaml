@@ -1,7 +1,7 @@
 name: rhythmeet-image-api-test
 services:
   mysql:
-    image: mysql:8.4
+    image: mysql:innovation@sha256:f51c9c01c16b0eb5d81bb70ab7e7fcb3b96abc6a54114be3a94e8e569cae7815
     command: [--skip-log-bin]
     networks:
       default:
@@ -26,15 +26,15 @@ services:
       mysql:
         condition: service_healthy
     env_file:
-      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of development r2.env}
+      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of test storage.env}
         format: raw
     ports: ["127.0.0.1:19080:8080"]
-    command: [sh, -c, "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.ImageApiFlowServer"]
+    command: [sh, -c, "exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.ImageApiFlowServer"]
   runner:
     build: scripts/image-api-tests
     profiles: [test]
     depends_on: [app]
     env_file:
-      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of development r2.env}
+      - path: ${IMAGE_API_TEST_ENV_FILE:?Set the absolute path of test storage.env}
         format: raw
     volumes: ["./build/image-api-tests:/reports"]

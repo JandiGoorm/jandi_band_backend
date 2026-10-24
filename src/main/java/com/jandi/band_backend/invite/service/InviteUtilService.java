@@ -6,7 +6,7 @@ import com.jandi.band_backend.club.repository.ClubMemberRepository;
 import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.global.exception.ClubNotFoundException;
 import com.jandi.band_backend.global.exception.TeamNotFoundException;
-import com.jandi.band_backend.invite.redis.InviteType;
+import com.jandi.band_backend.invite.store.InviteType;
 import com.jandi.band_backend.poll.entity.Poll;
 import com.jandi.band_backend.poll.repository.PollRepository;
 import com.jandi.band_backend.team.entity.Team;

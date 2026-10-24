@@ -64,7 +64,7 @@ public final class LocalStorageSmokeServer {
                 "--image.storage.region=auto",
                 "--image.storage.path-style=true",
                 "--image.storage.public-url=http://localhost:19091/test-bucket"));
-        if (List.of(args).contains("--external-r2")) {
+        if (List.of(args).contains("--external-storage")) {
             String bucket = System.getenv("IMAGE_STORAGE_BUCKET");
             if (bucket == null || !bucket.endsWith("-dev")) {
                 throw new IllegalArgumentException("External smoke requires a dedicated development bucket");

@@ -13,7 +13,7 @@ import com.jandi.band_backend.promo.repository.PromoPhotoRepository;
 import com.jandi.band_backend.user.entity.Users;
 import com.jandi.band_backend.global.util.PermissionValidationUtil;
 import com.jandi.band_backend.global.util.UserValidationUtil;
-import com.jandi.band_backend.global.util.R2FileManagementUtil;
+import com.jandi.band_backend.global.util.ImageFileManagementUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,7 +41,7 @@ public class PromoService {
     private final PromoLikeService promoLikeService;
     private final PermissionValidationUtil permissionValidationUtil;
     private final UserValidationUtil userValidationUtil;
-    private final R2FileManagementUtil r2FileManagementUtil;
+    private final ImageFileManagementUtil imageFileManagementUtil;
     private static final String PROMO_PHOTO_DIR = "promo-photo";
 
     // 공연 홍보 목록 조회
@@ -194,7 +194,7 @@ public class PromoService {
         for (PromoPhoto photo : photos) {
             photo.setDeletedAt(LocalDateTime.now());
             // R2에서도 실제 파일 삭제
-            r2FileManagementUtil.deleteFileSafely(photo.getImageUrl());
+            imageFileManagementUtil.deleteFileSafely(photo.getImageUrl());
         }
 
         promo.setDeletedAt(LocalDateTime.now());
@@ -204,13 +204,13 @@ public class PromoService {
     private void processImage(Promo promo, MultipartFile image, Users uploader) {
         var currentPhoto = promoPhotoRepository.findByPromoIdAndIsCurrentTrue(promo.getId());
 
-        String newImageUrl = r2FileManagementUtil.uploadFile(image, PROMO_PHOTO_DIR, "공연 홍보 이미지 업로드 실패");
+        String newImageUrl = imageFileManagementUtil.uploadFile(image, PROMO_PHOTO_DIR, "공연 홍보 이미지 업로드 실패");
 
         if (currentPhoto.isPresent()) {
             PromoPhoto existingPhoto = currentPhoto.get();
             String oldImageUrl = existingPhoto.getImageUrl();
 
-            r2FileManagementUtil.deleteFileSafely(oldImageUrl);
+            imageFileManagementUtil.deleteFileSafely(oldImageUrl);
 
             existingPhoto.setImageUrl(newImageUrl);
             existingPhoto.setDeletedAt(null);
@@ -233,7 +233,7 @@ public class PromoService {
         if (photo != null) {
             photo.setDeletedAt(LocalDateTime.now());
             // R2에서도 실제 파일 삭제
-            r2FileManagementUtil.deleteFileSafely(imageUrl);
+            imageFileManagementUtil.deleteFileSafely(imageUrl);
             promoPhotoRepository.save(photo);
         }
     }

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # 1. 빌드(Build) 스테이지: 소스 코드를 JAR 파일로 빌드
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM eclipse-temurin:25-jdk-resolute AS builder
 WORKDIR /workspace/app
 
 # Gradle 관련 파일 복사 (캐시 레이어 활용)
@@ -14,17 +14,14 @@ COPY src src
 
 FROM builder AS test
 COPY config deployment-config
-RUN apt-get update && apt-get install -y --no-install-recommends redis-server \
-    && rm -rf /var/lib/apt/lists/*
 RUN --mount=type=cache,target=/root/.gradle \
-    redis-server --bind 127.0.0.1 --daemonize yes && \
-    trap 'redis-cli shutdown' EXIT && \
     ./gradlew test --no-daemon
 
 FROM test AS storage-smoke
+COPY database database
 RUN --mount=type=cache,target=/root/.gradle ./gradlew prepareStorageSmoke --no-daemon
 EXPOSE 8080 9091
-CMD ["sh", "-c", "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.LocalStorageSmokeServer"]
+CMD ["java", "-cp", "build/storage-smoke:build/storage-smoke/*", "com.jandi.band_backend.image.LocalStorageSmokeServer"]
 
 FROM builder AS package
 
@@ -35,15 +32,19 @@ RUN --mount=type=cache,target=/root/.gradle \
 # -----------------------------------------------------
 
 # 2. 실행(Final) 스테이지: 실제 운영 환경에서 사용될 이미지
-FROM eclipse-temurin:21-jre-jammy AS runtime
+FROM eclipse-temurin:25-jre-resolute AS runtime
 WORKDIR /app
 
 # HEALTHCHECK에 필요한 curl 설치
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN useradd --system --uid 10001 --create-home app
+RUN mkdir -p /app/logs && chown app:app /app/logs
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
 # JAR 파일 이름이 다를 경우, `band_backend-0.0.1-SNAPSHOT.jar` 부분을 실제 파일 이름으로 수정하세요.
 COPY --from=package /workspace/app/build/libs/band_backend-0.0.1-SNAPSHOT.jar app.jar
+
+USER app
 
 EXPOSE 8080
 

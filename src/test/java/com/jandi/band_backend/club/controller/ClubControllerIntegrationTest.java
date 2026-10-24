@@ -1,6 +1,6 @@
 package com.jandi.band_backend.club.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.club.dto.ClubReqDTO;
 import com.jandi.band_backend.club.dto.ClubUpdateReqDTO;
 import com.jandi.band_backend.club.entity.Club;
@@ -10,7 +10,7 @@ import com.jandi.band_backend.club.repository.ClubMemberRepository;
 import com.jandi.band_backend.club.repository.ClubPhotoRepository;
 import com.jandi.band_backend.club.repository.ClubRepository;
 import com.jandi.band_backend.config.IntegrationTest;
-import com.jandi.band_backend.image.R2Service;
+import com.jandi.band_backend.image.ObjectStorageService;
 import com.jandi.band_backend.security.jwt.JwtTokenProvider;
 import com.jandi.band_backend.univ.entity.Region;
 import com.jandi.band_backend.univ.entity.University;
@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>MockMvc를 사용한 전체 Spring Boot 통합 테스트</li>
  *   <li>실제 JWT 인증 플로우 포함 (JwtTokenProvider 사용)</li>
- *   <li>R2Service는 @MockBean으로 격리 (외부 의존성)</li>
+ *   <li>ObjectStorageService는 @MockitoBean으로 격리 (외부 의존성)</li>
  *   <li>ClubService는 실제 빈 사용 (통합 테스트 목적)</li>
  *   <li>권한 검증(대표자/일반 회원) 포함</li>
  * </ul>
@@ -64,8 +64,8 @@ public class ClubControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private R2Service r2Service;
+    @MockitoBean
+    private ObjectStorageService objectStorageService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -398,7 +398,7 @@ public class ClubControllerIntegrationTest {
                 "test image content".getBytes()
         );
 
-        given(r2Service.uploadImage(any(), anyString())).willReturn("https://s3.example.com/test.jpg");
+        given(objectStorageService.uploadImage(any(), anyString())).willReturn("https://s3.example.com/test.jpg");
 
         // When & Then
         mockMvc.perform(multipart("/api/clubs/{clubId}/main-image", club.getId())

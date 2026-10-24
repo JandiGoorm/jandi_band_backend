@@ -1,6 +1,6 @@
 package com.jandi.band_backend.auth.service.kakao;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.auth.dto.kakao.KakaoUserInfoDTO;
 import com.jandi.band_backend.global.exception.FailKakaoLoginException;
 import com.jandi.band_backend.global.exception.FailKakaoReadUserException;
@@ -14,7 +14,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -86,10 +86,10 @@ public class KakaoUserService {
         }catch (HttpClientErrorException | HttpServerErrorException e){
             try {
                 // 카카오 오류 응답을 적절히 파싱하여 에러 처리
-                Map errorBody = new ObjectMapper().readValue(e.getResponseBodyAsString(), Map.class);
+                Map errorBody = tools.jackson.databind.json.JsonMapper.builder().build().readValue(e.getResponseBodyAsString(), Map.class);
                 throw new FailKakaoLoginException(errorBody);
 
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 throw new FailKakaoLoginException("카카오 응답 파싱 실패");
             }
         }
@@ -131,9 +131,9 @@ public class KakaoUserService {
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             try {
-                Map errorBody = new ObjectMapper().readValue(e.getResponseBodyAsString(), Map.class);
+                Map errorBody = tools.jackson.databind.json.JsonMapper.builder().build().readValue(e.getResponseBodyAsString(), Map.class);
                 throw new FailKakaoLoginException(errorBody);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 throw new FailKakaoLoginException("카카오 응답 파싱 실패");
             }
         }

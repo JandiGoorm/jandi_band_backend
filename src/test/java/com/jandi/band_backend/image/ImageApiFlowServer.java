@@ -1,6 +1,6 @@
 package com.jandi.band_backend.image;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.JandiBandBackendApplication;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
@@ -34,11 +34,12 @@ public final class ImageApiFlowServer {
     private static final AtomicBoolean failNextDelete = new AtomicBoolean();
     private static final AtomicInteger tokenCalls = new AtomicInteger();
     private static final AtomicInteger userCalls = new AtomicInteger();
-    private static final ObjectMapper json = new ObjectMapper();
+    private static final ObjectMapper json = tools.jackson.databind.json.JsonMapper.builder().build();
 
     public static void main(String[] args) throws Exception {
-        if (!"rhythmeet-dev".equals(System.getenv("IMAGE_STORAGE_BUCKET"))) {
-            throw new IllegalArgumentException("Only the development R2 bucket is allowed");
+        if (!"rhythmeet-dev".equals(System.getenv("IMAGE_STORAGE_BUCKET"))
+                && !"true".equals(System.getenv("IMAGE_API_TEST_ALLOW_SHARED_BUCKET"))) {
+            throw new IllegalArgumentException("Only the dedicated test bucket is allowed");
         }
         MockWebServer provider = new MockWebServer();
         provider.setDispatcher(new Dispatcher() {
@@ -87,7 +88,8 @@ public final class ImageApiFlowServer {
                 "--spring.datasource.url=jdbc:mysql://image-api-mysql:3306/image_api_test",
                 "--spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
                 "--spring.datasource.username=image_test", "--spring.datasource.password=image-test-only",
-                "--spring.jpa.hibernate.ddl-auto=create-drop", "--spring.sql.init.mode=never",
+                "--spring.jpa.hibernate.ddl-auto=create-drop", "--spring.sql.init.mode=always",
+                "--spring.sql.init.schema-locations=file:database/001_expiring_values.sql",
                 "--spring.servlet.multipart.max-file-size=10MB", "--spring.servlet.multipart.max-request-size=11MB",
                 "--kakao.token-url=http://127.0.0.1:9092/oauth/token",
                 "--kakao.user-info-url=http://127.0.0.1:9092/v2/user/me",
@@ -100,7 +102,7 @@ public final class ImageApiFlowServer {
         }
         SpringApplication.run(new Class<?>[]{JandiBandBackendApplication.class, StorageRecorder.class},
                 options.toArray(String[]::new));
-        System.out.println("Image API fixture ready: isolated MySQL/Redis, simulated Kakao, real development R2");
+        System.out.println("Image API fixture ready: isolated MySQL, simulated Kakao, external object storage");
     }
 
     private static String form(String body, String key) {

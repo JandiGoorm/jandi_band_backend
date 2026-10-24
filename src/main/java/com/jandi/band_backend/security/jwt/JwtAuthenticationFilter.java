@@ -1,6 +1,6 @@
 package com.jandi.band_backend.security.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jandi.band_backend.global.dto.CommonRespDTO;
 import com.jandi.band_backend.global.exception.InvalidTokenException;
 import jakarta.servlet.FilterChain;

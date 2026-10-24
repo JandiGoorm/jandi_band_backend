@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([string]$R2EnvFile)
+param([string]$StorageEnvFile)
 $ErrorActionPreference = 'Stop'
 $repository = Split-Path -Parent $PSScriptRoot
 $container = 'jandi-storage-smoke-' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
@@ -12,20 +12,20 @@ $baseUrl = 'http://localhost:19091/test-bucket'
 $legacyBase = 'https://old-images.example.com'
 $dockerOptions = @()
 $command = @()
-if ($R2EnvFile) {
-    $R2EnvFile = (Resolve-Path -LiteralPath $R2EnvFile).Path
+if ($StorageEnvFile) {
+    $StorageEnvFile = (Resolve-Path -LiteralPath $StorageEnvFile).Path
     $settings = @{}
-    foreach ($line in [IO.File]::ReadAllLines($R2EnvFile)) {
+    foreach ($line in [IO.File]::ReadAllLines($StorageEnvFile)) {
         if ($line -and -not $line.StartsWith('#') -and $line.Contains('=')) {
             $key, $value = $line.Split('=', 2)
             $settings[$key] = $value
         }
     }
-    if (-not $settings.IMAGE_STORAGE_BUCKET.EndsWith('-dev')) { throw 'R2 smoke requires a development bucket' }
+    if (-not $settings.IMAGE_STORAGE_BUCKET.EndsWith('-dev')) { throw 'External smoke requires a dedicated test bucket' }
     $baseUrl = $settings.IMAGE_STORAGE_PUBLIC_URL.TrimEnd('/')
     $settings.Clear()
-    $dockerOptions = @('--env-file', $R2EnvFile)
-    $command = @('sh', '-c', "redis-server --bind 127.0.0.1 --daemonize yes && exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.LocalStorageSmokeServer --external-r2")
+    $dockerOptions = @('--env-file', $StorageEnvFile)
+    $command = @('sh', '-c', "exec java -cp 'build/storage-smoke:build/storage-smoke/*' com.jandi.band_backend.image.LocalStorageSmokeServer --external-storage")
 }
 try {
     docker build --target storage-smoke -t jandi-band:storage-smoke $repository

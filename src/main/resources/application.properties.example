@@ -24,10 +24,10 @@ kakao.token-url=https://kauth.kakao.com/oauth/token
 kakao.user-info-url=https://kapi.kakao.com/v2/user/me
 kakao.user-unlink-url=https://kapi.kakao.com/v1/user/unlink
 kakao.admin-key=
-# Cloudflare R2 image storage; deployment configuration lives in config/.
+# OCI Object Storage; deployment configuration lives in config/.
 image.storage.access-key=
 image.storage.secret-key=
-image.storage.region=auto
+image.storage.region=ap-chuncheon-1
 image.storage.endpoint=
 image.storage.path-style=true
 image.storage.bucket=
@@ -42,9 +42,6 @@ springdoc.swagger-ui.operations-sorter=alpha
 springdoc.swagger-ui.tags-sorter=alpha
 springdoc.swagger-ui.try-it-out-enabled=true
 springdoc.swagger-ui.filter=true
-#Redis
-spring.data.redis.host=127.0.0.1
-spring.data.redis.port=6379
 invite.club.link.prefix=http://localhost:5173/invite/club/accept
 invite.team.link.prefix=http://localhost:5173/invite/team/accept
 invite.expire.days=7

@@ -1,7 +1,7 @@
 package com.jandi.band_backend.poll.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jandi.band_backend.invite.redis.InviteCodeService;
+import tools.jackson.databind.ObjectMapper;
+import com.jandi.band_backend.invite.store.InviteCodeService;
 import com.jandi.band_backend.invite.service.InviteUtilService;
 import com.jandi.band_backend.invite.service.JoinService;
 import com.jandi.band_backend.poll.dto.*;
@@ -74,8 +74,7 @@ class PollControllerUnitTest {
         mockMvc = MockMvcBuilders.standaloneSetup(pollController)
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
     }
 
     private void authenticate() {
