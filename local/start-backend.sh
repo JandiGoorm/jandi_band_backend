@@ -5,9 +5,9 @@ set -- java -Xmx512m \
   -Dspring.config.location=file:/app/config/application.properties \
   -Dspring.jpa.hibernate.ddl-auto=validate \
   -Dspring.sql.init.mode=never \
-  -Dinvite.club.link.prefix=http://localhost:19090/invite/club/accept \
-  -Dinvite.team.link.prefix=http://localhost:19090/invite/team/accept \
-  "-Dkakao.redirect-url=${KAKAO_REDIRECT_URL:-http://localhost:19090/callback}"
+  -Dinvite.club.link.prefix=http://localhost:3000/invite/club/accept \
+  -Dinvite.team.link.prefix=http://localhost:3000/invite/team/accept \
+  "-Dkakao.redirect-url=${KAKAO_REDIRECT_URL:-http://localhost:3000/callback}"
 
 case "${LOCAL_AUTH_MODE:-mock}" in
   mock)
