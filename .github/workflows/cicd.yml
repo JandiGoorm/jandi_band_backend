@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [main, develop]
   push:
-    branches: [main, dev]
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
