@@ -55,24 +55,26 @@ jandi_band_backend/
 
 ---
 
-## 로컬 개발: 프론트엔드·백엔드·MySQL을 Docker로 실행
+## 로컬 개발: 프론트엔드·Spring·FastAPI·MySQL을 Docker로 실행
 
-Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 호스트에 Java·Node.js·MySQL을 따로 설치할 필요는 없다. 프론트 컨테이너는 원래의 `npm run dev`로 Vite 개발 서버를 실행한다. 로컬 파일 변경은 핫리로드로 반영하고, `/api` 요청은 Vite가 Spring 백엔드에 전달한다. Redis는 필요 없다.
+Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 호스트에 Java·Node.js·Python·MySQL을 따로 설치할 필요는 없다. 프론트 컨테이너는 원래의 `npm run dev`로 Vite 개발 서버를 실행한다. 로컬 파일 변경은 핫리로드로 반영한다. Vite는 `/api` 요청을 Spring으로, `/scraper` 요청을 접두사 제거 후 FastAPI로 전달한다. Redis는 필요 없다.
 
 ### 1. 저장소 준비
 
-두 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
+세 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
 
 ```powershell
 git clone --branch dev https://github.com/JandiGoorm/jandi_band_backend.git
 git clone https://github.com/JandiGoorm/jandi_band_frontend.git
+git clone --branch dev https://github.com/JandiGoorm/jandi_band_py.git
 cd jandi_band_backend
 ```
 
 ```text
 개발 폴더/
 ├── jandi_band_backend/
-└── jandi_band_frontend/
+├── jandi_band_frontend/
+└── jandi_band_py/
 ```
 
 이하 명령은 백엔드 저장소 루트에서 실행한다.
@@ -99,9 +101,10 @@ docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
 | 프론트엔드 | http://localhost:3000 → Vite 컨테이너 내부 5173 |
 | 백엔드 API | http://localhost:8080/api |
 | Swagger | http://localhost:8080/swagger-ui.html |
-| MySQL | Docker 내부 `mysql:3306`, DB `rhythmeet_local` |
+| FastAPI / 문서 | http://localhost:8000 / http://localhost:8000/docs |
+| MySQL | `localhost:3306`, DB `rhythmeet_local` (컨테이너 간 접속은 `mysql:3306`) |
 
-호스트의 3000·8080 포트만 localhost에 열고 MySQL 포트는 외부에 공개하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름을 사용한다.
+호스트의 3000·3306·8080·8000 포트는 localhost에만 연다. MySQL 로컬 계정은 `rhythmeet_local` / `local-db-only`이며 운영에 사용하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름을 사용한다.
 
 MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`과 `002_mock_data.sql`을 순서대로 실행한다. 운영과 같은 27개 테이블 구조와 가상 데이터 102건을 넣는다. 이후 재시작에서는 데이터를 유지한다. 구성과 수동 가져오기 방법은 [로컬 개발 DB](docs/local-database.md)를 참고한다.
 
@@ -139,6 +142,20 @@ docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
 
 실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 실제 카카오 로그인 완료 여부는 앱 설정·키를 준비한 뒤 별도로 검증해야 한다.
 
+### 6. FastAPI 시간표 수집과 Spring 저장
+
+FastAPI는 에브리타임 공유 URL을 받아 `Mon`부터 `Sun`까지 30분 단위의 **비어 있는 시간**을 반환한다. 기본 컨테이너는 실제 에브리타임 서버를 호출한다. 조회에는 본인이 테스트할 수 있는 공개 공유 URL을 사용한다.
+
+```powershell
+curl.exe --get http://localhost:8000/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
+# 같은 API를 Vite 프록시로 호출
+curl.exe --get http://localhost:3000/scraper/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
+```
+
+응답의 `data.timetableData`를 로그인한 사용자의 `POST /api/users/me/timetables`에 `{"name":"시간표 이름","timetableData":...}` 형태로 보내면 개인 시간표로 저장한다. 저장된 ID는 `POST /api/teams/{teamId}/members/me/timetable`의 `userTimetableId`로 제출한다. 수집은 FastAPI가, 저장·조회와 권한 검사는 Spring·MySQL이 담당한다.
+
+**현재 프론트의 시간표 클라이언트는 운영 주소가 고정되어 있다.** 로컬 포트 설정만으로 화면의 에브리타임 버튼이 로컬 FastAPI를 호출하지는 않는다. 프론트 소스를 유지한 이 구성에서는 위 API로 수집·저장을 확인한다. 화면까지 로컬에 연결하려면 프론트 담당자가 시간표 클라이언트의 주소를 로컬 설정으로 바꿔야 한다.
+
 ### 로그·재빌드·종료
 
 ```powershell
@@ -146,7 +163,7 @@ docker compose --env-file local/.env -f local/compose.yaml ps
 docker compose --env-file local/.env -f local/compose.yaml logs --tail 100 backend
 ```
 
-백엔드 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 호스트에서 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다.
+Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 호스트에서 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다. FastAPI의 `app.py`·`service/`도 연결되어 코드 변경 시 Uvicorn이 재시작한다. Python 의존성을 바꾸면 `up --build`로 다시 빌드한다.
 
 ```powershell
 docker build --target runtime -t rhythmeet-backend:local .
@@ -170,7 +187,7 @@ docker compose --env-file local/.env -f local/compose.yaml down
 ### 지원 범위
 
 - 카카오 모의 로그인은 실제 카카오 동의 화면·본인 확인·지도·공유까지 대체하지 않는다. 실제 서비스 인증에는 `kakao` 모드가 필요하다.
-- 에브리타임 시간표 수집은 별도 FastAPI 기능이다. 현재 프론트 클라이언트에 운영 API 주소가 고정되어 있어 이 3개 컨테이너 구성으로는 로컬 테스트를 지원하지 않는다.
+- 에브리타임 공유 시간표의 수집 API·Spring 저장·MySQL 조회는 로컬에서 확인할 수 있다. 화면의 시간표 버튼은 프론트 주소 설정을 별도로 바꿔야 한다. 실제 에브리타임 공개 여부·외부 응답은 사용한 공유 URL에 따라 확인한다.
 - 프론트 개발 서버 실행은 `npm run build`의 타입 검사·배포 빌드를 대신하지 않는다.
 
 ---

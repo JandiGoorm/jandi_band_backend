@@ -12,6 +12,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ../database/local/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
       - ../database/local/002_mock_data.sql:/docker-entrypoint-initdb.d/002_mock_data.sql:ro
+    ports: ["127.0.0.1:3306:3306"]
     healthcheck:
       test: [CMD, mysqladmin, ping, -h, localhost, --silent]
       interval: 3s
@@ -37,6 +38,21 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+  band-py:
+    image: jandi-band-py:local
+    build:
+      context: ../../jandi_band_py
+      target: runtime
+    command: [uvicorn, app:app, --host, 0.0.0.0, --port, '8000', --reload]
+    volumes:
+      - ../../jandi_band_py/app.py:/app/app.py:ro
+      - ../../jandi_band_py/service:/app/service:ro
+    ports: ["127.0.0.1:8000:8000"]
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://localhost:8000/health']
+      interval: 3s
+      timeout: 3s
+      retries: 30
   frontend:
     image: rhythmeet-local-frontend:dev
     build:
