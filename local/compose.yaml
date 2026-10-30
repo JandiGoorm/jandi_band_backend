@@ -58,13 +58,9 @@ services:
     build:
       context: ../../jandi_band_frontend
       dockerfile: ../jandi_band_backend/local/Dockerfile.frontend
-    environment:
-      VITE_API_DOMAIN: http://localhost:3000/api
-      VITE_FRONT_URL: http://localhost:3000
-      VITE_KAKAO_REDIRECT_URI: http://localhost:3000/callback
-      VITE_KAKAO_CLIENT_ID: ${KAKAO_REST_API_KEY:-00000000000000000000000000000000}
-      VITE_KAKAO_JAVASCRIPT_KEY: ${KAKAO_JAVASCRIPT_KEY:-00000000000000000000000000000000}
-      VITE_KAKAOMAP_APP_KEY: ${KAKAOMAP_APP_KEY:-00000000000000000000000000000000}
+    env_file:
+      - path: frontend.env
+        format: raw
     volumes:
       - ../../jandi_band_frontend:/app
       - frontend-node-modules:/app/node_modules

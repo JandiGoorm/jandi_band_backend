@@ -79,21 +79,24 @@ cd jandi_band_backend
 
 이하 명령은 백엔드 저장소 루트에서 실행한다.
 
-### 2. 개인 환경 파일 준비
+### 2. 백엔드·프론트 환경 파일 준비
 
 ```powershell
 Copy-Item local/.env.example local/.env
+Copy-Item local/frontend.env.example local/frontend.env
 ```
 
 **OCI 개발 버킷의 접속 정보 7개는 저장소 관리자에게 별도로 받아야 한다.** 전달받은 `IMAGE_STORAGE_*` 값을 `local/.env`에 넣는다. 운영 버킷 자격증명을 사용하지 않는다. 이 파일은 Git 추적 대상이 아니며, 실제 값은 README·공개 저장소·Notion에 기록하지 않는다.
 
 기본 `LOCAL_AUTH_MODE=mock`에서는 실제 카카오 키가 필요 없다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
 
+`local/.env`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`local/frontend.env`에서 별도로 관리**한다. Compose가 각 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 예시의 카카오 키는 목 로그인용 자리표시자다. 실제 로그인·지도·공유를 개발할 때는 프론트 담당자에게 키와 localhost 도메인 설정을 확인한다. 운영 프론트의 Netlify 환경변수와 운영 백엔드 설정은 별도로 유지한다.
+
 ### 3. 이미지 빌드와 실행
 
 ```powershell
 docker build --target runtime -t rhythmeet-backend:local .
-docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+docker compose -f local/compose.yaml up --build -d --wait
 ```
 
 | 대상 | 접속 주소 |
@@ -129,16 +132,16 @@ MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`
 
 1. 저장소 관리자에게 로컬에서 사용할 카카오 앱의 키와 설정을 확인한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
 2. 해당 REST API 키의 리다이렉트 URI에 `http://localhost:3000/callback`을 등록한다. 기존 운영 콜백은 유지한다.
-3. `local/.env`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다.
+3. `local/.env`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. `local/frontend.env`의 `VITE_KAKAO_CLIENT_ID`에도 같은 REST API 키를 넣는다.
 4. `KAKAO_REDIRECT_URL=http://localhost:3000/callback`을 유지한다. 프론트 인가 요청과 백엔드 토큰 교환의 콜백 주소가 일치해야 한다.
 5. 회원탈퇴까지 개발하려면 같은 앱의 `KAKAO_ADMIN_KEY`를 별도로 받는다. 지도·장소 검색·카카오 공유는 각각 필요한 키·웹 도메인 등록이 추가로 필요하다.
 6. 아래 명령으로 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
 
 ```powershell
-docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+docker compose -f local/compose.yaml up --build -d --wait
 ```
 
-환경 파일을 바꾸면 위 `up` 명령으로 프론트와 백엔드 컨테이너를 재생성한다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 기존 백엔드의 토큰 교환 방식으로 실제 카카오 서버를 호출한다.
+환경 파일을 바꾸면 위 `up` 명령으로 해당 프론트 또는 백엔드 컨테이너를 재생성한다. 프론트의 `VITE_KAKAO_REDIRECT_URI`와 백엔드의 `KAKAO_REDIRECT_URL`도 같은 콜백 주소를 사용한다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 기존 백엔드의 토큰 교환 방식으로 실제 카카오 서버를 호출한다.
 
 실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 실제 카카오 로그인 완료 여부는 앱 설정·키를 준비한 뒤 별도로 검증해야 한다.
 
@@ -159,27 +162,27 @@ curl.exe --get http://localhost:3000/scraper/timetable --data-urlencode "url=htt
 ### 로그·재빌드·종료
 
 ```powershell
-docker compose --env-file local/.env -f local/compose.yaml ps
-docker compose --env-file local/.env -f local/compose.yaml logs --tail 100 backend
+docker compose -f local/compose.yaml ps
+docker compose -f local/compose.yaml logs --tail 100 backend
 ```
 
 Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 호스트에서 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다. FastAPI의 `app.py`·`service/`도 연결되어 코드 변경 시 Uvicorn이 재시작한다. Python 의존성을 바꾸면 `up --build`로 다시 빌드한다.
 
 ```powershell
 docker build --target runtime -t rhythmeet-backend:local .
-docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+docker compose -f local/compose.yaml up --build -d --wait
 ```
 
 프론트 의존성을 바꾼 경우에는 아래 명령으로 컨테이너의 의존성을 다시 설치한다.
 
 ```powershell
-docker compose --env-file local/.env -f local/compose.yaml exec frontend npm ci --legacy-peer-deps
+docker compose -f local/compose.yaml exec frontend npm ci --legacy-peer-deps
 ```
 
 컨테이너를 종료해도 MySQL 데이터 볼륨은 유지된다.
 
 ```powershell
-docker compose --env-file local/.env -f local/compose.yaml down
+docker compose -f local/compose.yaml down
 ```
 
 **로컬 DB를 초기화하고 목데이터를 다시 넣을 때만** `down --volumes`를 쓴다. 이 명령은 이 Compose 프로젝트의 로컬 DB 데이터를 삭제한다. OCI 버킷 객체는 별도 저장소이므로 DB 초기화로 지워지지 않는다. 개발 중 업로드한 객체는 앱에서 삭제하거나 관리자의 정리 절차를 따른다.
