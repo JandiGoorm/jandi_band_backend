@@ -1,8 +1,0 @@
-FROM rhythmeet-backend:local
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends python3 && rm -rf /var/lib/apt/lists/*
-COPY local/oauth_mock.py /app/local-oauth.py
-COPY local/start-backend.sh /app/local-start.sh
-RUN sed -i 's/\r$//' /app/local-start.sh && chmod 755 /app/local-start.sh
-USER app
-ENTRYPOINT ["/app/local-start.sh"]

@@ -89,14 +89,13 @@ Copy-Item ../jandi_band_py/.env.example ../jandi_band_py/.env
 
 **OCI 개발 버킷의 접속 정보 7개는 저장소 관리자에게 별도로 받아야 한다.** 전달받은 `IMAGE_STORAGE_*` 값을 `.env.local`에 넣는다. 운영 버킷 자격증명을 사용하지 않는다. 이 파일은 Git 추적 대상이 아니며, 실제 값은 README·공개 저장소·Notion에 기록하지 않는다.
 
-기본 `LOCAL_AUTH_MODE=mock`에서는 실제 카카오 키가 필요 없다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
+카카오 로그인은 운영과 같은 카카오 앱의 키를 사용한다. 관리자에게 받은 `KAKAO_REST_API_KEY`와 `KAKAO_ADMIN_KEY`를 백엔드 `.env.local`에 넣는다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
 
-`.env.local`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. FastAPI 설정은 `../jandi_band_py/.env`에서 관리한다. Spring의 공통 properties는 이 저장소의 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 예시의 카카오 키는 목 로그인용 자리표시자다. 실제 로그인·지도·공유를 개발할 때는 프론트 담당자에게 키와 localhost 도메인 설정을 확인한다. 운영 프론트의 Netlify 환경변수와 운영 백엔드 설정은 별도로 유지한다.
+`.env.local`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. 프론트의 `VITE_KAKAO_CLIENT_ID`에는 백엔드의 `KAKAO_REST_API_KEY`와 같은 값을 넣는다. FastAPI 설정은 `../jandi_band_py/.env`에서 관리한다. Spring의 공통 properties는 이 저장소의 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 지도·공유 기능의 JavaScript 키와 localhost 도메인 설정도 프론트 담당자에게 확인한다. `KAKAO_ADMIN_KEY`와 OCI·DB 자격증명은 프론트 환경 파일에 넣지 않는다.
 
 ### 3. 이미지 빌드와 실행
 
 ```powershell
-docker build --target runtime -t rhythmeet-backend:local .
 docker compose -f local/compose.yaml up --build -d --wait
 ```
 
@@ -112,41 +111,24 @@ docker compose -f local/compose.yaml up --build -d --wait
 
 MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`과 `002_mock_data.sql`을 순서대로 실행한다. 운영과 같은 27개 테이블 구조와 가상 데이터 102건을 넣는다. 이후 재시작에서는 데이터를 유지한다. 구성과 수동 가져오기 방법은 [로컬 개발 DB](docs/local-database.md)를 참고한다.
 
-### 4. 기본 로그인은 모의 카카오 인증
+### 4. 카카오 로그인
 
-이 구성의 기본값은 **실제 카카오계정·카카오톡 로그인을 하지 않는 목(mock) 인증**이다. 카카오 토큰 발급·프로필 응답만 백엔드 컨테이너 안의 로컬 제공자로 대체한다. Spring API·JWT·MySQL과 OCI 개발 버킷의 업로드·삭제는 실제로 동작한다. 목 인증 제공자는 운영 이미지에 포함되지 않는다.
+로컬에서도 실제 카카오 계정으로 로그인한다. 운영과 같은 카카오 앱을 사용하고, 로그인 후 회원 정보와 토큰은 로컬 MySQL에 저장한다. [카카오 설정 안내](https://developers.kakao.com/docs/ko/kakaologin/prerequisite)를 참고한다.
 
-프론트 로그인 화면의 카카오 버튼 대신 다음 주소로 접속한다.
-
-| 계정 | 접속 주소 |
-| --- | --- |
-| 동아리 대표·보컬 | http://localhost:3000/callback?code=image-test-browser-dev-owner |
-| 일반 멤버·기타 | http://localhost:3000/callback?code=image-test-browser-dev-guitar |
-| 관리자 | http://localhost:3000/callback?code=image-test-browser-dev-admin |
-| 가입 미완료 계정 | http://localhost:3000/callback?code=image-test-browser-dev-new |
-
-기본 동아리·팀 ID는 각각 `1`이다. 가입 미완료 계정으로는 회원가입 화면을 확인할 수 있다. DB에 넣은 사진은 자체 SVG 표시용 이미지이며, 실제 파일 업로드는 관리자가 제공한 개발 버킷을 사용한다.
-
-### 5. 실제 카카오 로그인으로 전환할 수 있나?
-
-가능하다. 카카오는 localhost 리다이렉트 URI를 지원한다. [카카오 공식 FAQ](https://developers.kakao.com/docs/ko/kakaologin/faq)와 [설정 안내](https://developers.kakao.com/docs/ko/kakaologin/prerequisite)를 참고한다.
-
-1. 저장소 관리자에게 로컬에서 사용할 카카오 앱의 키와 설정을 확인한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
-2. 해당 REST API 키의 리다이렉트 URI에 `http://localhost:3000/callback`을 등록한다. 기존 운영 콜백은 유지한다.
-3. `.env.local`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. `../jandi_band_frontend/.env`의 `VITE_KAKAO_CLIENT_ID`에도 같은 REST API 키를 넣는다.
-4. `KAKAO_REDIRECT_URL=http://localhost:3000/callback`을 유지한다. 프론트 인가 요청과 백엔드 토큰 교환의 콜백 주소가 일치해야 한다.
-5. 회원탈퇴까지 개발하려면 같은 앱의 `KAKAO_ADMIN_KEY`를 별도로 받는다. 지도·장소 검색·카카오 공유는 각각 필요한 키·웹 도메인 등록이 추가로 필요하다.
-6. 아래 명령으로 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
+1. 해당 카카오 앱의 REST API 키에 `http://localhost:3000/callback`을 리다이렉트 URI로 등록한다. 기존 운영 콜백은 유지한다.
+2. 백엔드 `.env.local`의 `KAKAO_REST_API_KEY`와 프론트 `.env`의 `VITE_KAKAO_CLIENT_ID`에 같은 REST API 키를 넣는다. `KAKAO_ADMIN_KEY`는 백엔드에만 넣는다.
+3. 프론트 `.env`의 `VITE_KAKAO_REDIRECT_URI=http://localhost:3000/callback`을 유지한다. Compose는 백엔드의 토큰 교환 콜백도 같은 주소로 설정한다.
+4. 아래 명령으로 컨테이너를 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
 
 ```powershell
 docker compose -f local/compose.yaml up --build -d --wait
 ```
 
-환경 파일을 바꾸면 위 `up` 명령으로 해당 프론트 또는 백엔드 컨테이너를 재생성한다. 프론트의 `VITE_KAKAO_REDIRECT_URI`와 백엔드의 `KAKAO_REDIRECT_URL`도 같은 콜백 주소를 사용한다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 기존 백엔드의 토큰 교환 방식으로 실제 카카오 서버를 호출한다.
+실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 기본 목데이터의 동아리·팀 ID는 각각 `1`이다. SQL의 사진은 자체 SVG 표시용 이미지이며, 실제 업로드에는 개발 버킷을 사용한다.
 
-실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 실제 카카오 로그인 완료 여부는 앱 설정·키를 준비한 뒤 별도로 검증해야 한다.
+같은 카카오 앱을 공유하므로 로컬 회원탈퇴의 카카오 연결 끊기는 운영에서 사용하는 카카오 연결에도 영향을 준다. 실제 계정으로 회원탈퇴를 시험할 때는 이 영향을 확인한다.
 
-### 6. FastAPI 시간표 수집과 Spring 저장
+### 5. FastAPI 시간표 수집과 Spring 저장
 
 FastAPI는 에브리타임 공유 URL을 받아 `Mon`부터 `Sun`까지 30분 단위의 **비어 있는 시간**을 반환한다. 기본 컨테이너는 실제 에브리타임 서버를 호출한다. 조회에는 본인이 테스트할 수 있는 공개 공유 URL을 사용한다.
 
@@ -170,7 +152,6 @@ docker compose -f local/compose.yaml logs --tail 100 backend
 Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 호스트에서 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다. FastAPI의 `app.py`·`service/`도 연결되어 코드 변경 시 Uvicorn이 재시작한다. Python 의존성을 바꾸면 `up --build`로 다시 빌드한다.
 
 ```powershell
-docker build --target runtime -t rhythmeet-backend:local .
 docker compose -f local/compose.yaml up --build -d --wait
 ```
 
@@ -190,7 +171,7 @@ docker compose -f local/compose.yaml down
 
 ### 지원 범위
 
-- 카카오 모의 로그인은 실제 카카오 동의 화면·본인 확인·지도·공유까지 대체하지 않는다. 실제 서비스 인증에는 `kakao` 모드가 필요하다.
+- 카카오 로그인에는 관리자에게 받은 키와 localhost 콜백 등록이 필요하다. 지도·공유 기능은 같은 카카오 앱의 JavaScript 키와 웹 도메인 설정도 확인한다.
 - 에브리타임 공유 시간표의 수집 API·Spring 저장·MySQL 조회는 로컬에서 확인할 수 있다. 화면의 시간표 버튼은 프론트 주소 설정을 별도로 바꿔야 한다. 실제 에브리타임 공개 여부·외부 응답은 사용한 공유 URL에 따라 확인한다.
 - 프론트 개발 서버 실행은 `npm run build`의 타입 검사·배포 빌드를 대신하지 않는다.
 

@@ -19,10 +19,10 @@ services:
       timeout: 3s
       retries: 40
   backend:
-    image: rhythmeet-local-backend:dev
+    image: rhythmeet-backend:local
     build:
       context: ..
-      dockerfile: local/Dockerfile.backend
+      target: runtime
     init: true
     env_file:
       - path: ../.env.local
@@ -32,6 +32,13 @@ services:
       DB_USERNAME: rhythmeet_local
       DB_PASSWORD: local-db-only
       JWT_SECRET: LOCAL_DEVELOPMENT_ONLY_NOT_FOR_DEPLOYMENTS_32_BYTES
+      JAVA_TOOL_OPTIONS: >-
+        -Xmx512m
+        -Dspring.jpa.hibernate.ddl-auto=validate
+        -Dspring.sql.init.mode=never
+        -Dinvite.club.link.prefix=http://localhost:3000/invite/club/accept
+        -Dinvite.team.link.prefix=http://localhost:3000/invite/team/accept
+        -Dkakao.redirect-url=http://localhost:3000/callback
     volumes:
       - ../config:/app/config:ro
     ports: ["127.0.0.1:8080:8080"]

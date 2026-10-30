@@ -1,7 +1,8 @@
 # 변경 이력
 
 ## 2026-10-31
-- 로컬 설정을 각 저장소로 분리했다. Spring은 루트 `.env.local`·`.env.local.example`과 `config/`의 properties, 프론트는 해당 저장소 루트 `.env.local`·`.env.example`, FastAPI는 해당 저장소 루트 `.env`를 사용한다. Compose가 각 파일을 해당 컨테이너에만 주입하며 프론트 소스와 운영 환경은 변경하지 않았다.
+- 로컬 설정을 각 저장소로 분리했다. Spring은 루트 `.env.local`·`.env.local.example`과 `config/`의 properties, 프론트는 해당 저장소 루트 `.env`·`.env.example`, FastAPI는 해당 저장소 루트 `.env`를 사용한다. Compose가 각 파일을 해당 컨테이너에만 주입하며 프론트 소스와 운영 환경은 변경하지 않았다.
+- 로컬 카카오 로그인에 운영과 같은 앱의 키를 사용하도록 구성했다. 백엔드는 기존 런타임 이미지로 실행하며 MySQL과 이미지 버킷은 개발용 자원을 사용한다. localhost 콜백 등록과 프론트·백엔드의 키 설정 절차를 README에 정리했다.
 - Docker에서 프론트 환경 파일만 변경했을 때 지도 HTML·공유 모듈에 반영되고 백엔드 컨테이너와 환경변수는 유지됨을 확인했다. 백엔드에 프론트 변수가 없고 프론트에 OCI·DB·JWT 값이 전달되지 않음을 검증했다. 원래 프론트 값을 복구한 뒤 로컬 기능 HTTP 요청 37건을 통과했다.
 
 ## 2026-10-30
