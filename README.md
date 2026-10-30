@@ -57,6 +57,8 @@ jandi_band_backend/
 
 ## 네이티브 환경에서 실행
 
+로컬 MySQL의 스키마와 목데이터는 [로컬 개발 DB](docs/local-database.md)를 참고하세요.
+
 ### 사전 요구사항
 
 - Java 25 LTS
