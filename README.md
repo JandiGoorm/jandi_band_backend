@@ -55,26 +55,24 @@ jandi_band_backend/
 
 ---
 
-## 로컬 개발: 프론트엔드·Spring·FastAPI·MySQL을 Docker로 실행
+## 로컬 개발: 프론트엔드·Spring·MySQL을 Docker로 실행
 
-Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 호스트에 Java·Node.js·Python·MySQL을 따로 설치할 필요는 없다. 프론트 컨테이너는 원래의 `npm run dev`로 Vite 개발 서버를 실행한다. 로컬 파일 변경은 핫리로드로 반영한다. Vite는 `/api` 요청을 Spring으로, `/scraper` 요청을 접두사 제거 후 FastAPI로 전달한다. Redis는 필요 없다.
+Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 프론트·Spring·MySQL 세 컨테이너를 실행하며, 시간표 수집은 배포된 원격 스크래퍼를 사용한다. 호스트에 Java·Node.js·Python·MySQL을 따로 설치할 필요는 없다. 프론트는 기존 Vite 개발 서버와 핫리로드를 사용하고, `/api` 요청은 로컬 Spring으로 전달한다.
 
 ### 1. 저장소 준비
 
-세 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
+백엔드와 프론트 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
 
 ```powershell
-git clone --branch dev https://github.com/JandiGoorm/jandi_band_backend.git
-git clone https://github.com/JandiGoorm/jandi_band_frontend.git
-git clone --branch dev https://github.com/JandiGoorm/jandi_band_py.git
+git clone --branch develop https://github.com/JandiGoorm/jandi_band_backend.git
+git clone --branch develop https://github.com/JandiGoorm/jandi_band_frontend.git
 cd jandi_band_backend
 ```
 
 ```text
 개발 폴더/
 ├── jandi_band_backend/
-├── jandi_band_frontend/
-└── jandi_band_py/
+└── jandi_band_frontend/
 ```
 
 이하 명령은 백엔드 저장소 루트에서 실행한다.
@@ -84,14 +82,13 @@ cd jandi_band_backend
 ```powershell
 Copy-Item .env.local.example .env.local
 Copy-Item ../jandi_band_frontend/.env.example ../jandi_band_frontend/.env
-Copy-Item ../jandi_band_py/.env.example ../jandi_band_py/.env
 ```
 
 **OCI 개발 버킷의 접속 정보 7개는 저장소 관리자에게 별도로 받아야 한다.** 전달받은 `IMAGE_STORAGE_*` 값을 `.env.local`에 넣는다. 운영 버킷 자격증명을 사용하지 않는다. 이 파일은 Git 추적 대상이 아니며, 실제 값은 README·공개 저장소·Notion에 기록하지 않는다.
 
 카카오 로그인은 운영과 같은 카카오 앱의 키를 사용한다. 관리자에게 받은 `KAKAO_REST_API_KEY`와 `KAKAO_ADMIN_KEY`를 백엔드 `.env.local`에 넣는다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
 
-`.env.local`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. 프론트의 `VITE_KAKAO_CLIENT_ID`에는 백엔드의 `KAKAO_REST_API_KEY`와 같은 값을 넣는다. FastAPI 설정은 `../jandi_band_py/.env`에서 관리한다. Spring의 공통 properties는 이 저장소의 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 지도·공유 기능의 JavaScript 키와 localhost 도메인 설정도 프론트 담당자에게 확인한다. `KAKAO_ADMIN_KEY`와 OCI·DB 자격증명은 프론트 환경 파일에 넣지 않는다.
+`.env.local`는 Spring 백엔드 전용이다. 프론트의 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. `VITE_KAKAO_CLIENT_ID`에는 백엔드의 `KAKAO_REST_API_KEY`와 같은 값을 넣는다. Spring의 공통 properties는 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입하며 실제 환경 파일은 Git에서 제외한다. 지도·공유의 JavaScript 키와 localhost 도메인 설정은 관리자에게 확인한다. `KAKAO_ADMIN_KEY`와 OCI·DB 자격증명은 프론트에 넣지 않는다.
 
 ### 3. 이미지 빌드와 실행
 
@@ -104,10 +101,10 @@ docker compose -f local/compose.yaml up --build -d --wait
 | 프론트엔드 | http://localhost:3000 → Vite 컨테이너 내부 5173 |
 | 백엔드 API | http://localhost:8080/api |
 | Swagger | http://localhost:8080/swagger-ui.html |
-| FastAPI / 문서 | http://localhost:8000 / http://localhost:8000/docs |
+| 원격 스크래퍼 / 문서 | https://rhythmeet-py.yeonjae.kr / https://rhythmeet-py.yeonjae.kr/docs |
 | MySQL | `localhost:3306`, DB `rhythmeet_local` (컨테이너 간 접속은 `mysql:3306`) |
 
-호스트의 3000·3306·8080·8000 포트는 localhost에만 연다. MySQL 로컬 계정은 `rhythmeet_local` / `local-db-only`이며 운영에 사용하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름을 사용한다.
+로컬의 3000·3306·8080 포트는 localhost에만 연다. MySQL 로컬 계정은 `rhythmeet_local` / `local-db-only`이며 운영에 사용하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름을 사용한다.
 
 MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`과 `002_mock_data.sql`을 순서대로 실행한다. 운영과 같은 27개 테이블 구조와 가상 데이터 102건을 넣는다. 이후 재시작에서는 데이터를 유지한다. 구성과 수동 가져오기 방법은 [로컬 개발 DB](docs/local-database.md)를 참고한다.
 
@@ -128,19 +125,17 @@ docker compose -f local/compose.yaml up --build -d --wait
 
 같은 카카오 앱을 공유하므로 로컬 회원탈퇴의 카카오 연결 끊기는 운영에서 사용하는 카카오 연결에도 영향을 준다. 실제 계정으로 회원탈퇴를 시험할 때는 이 영향을 확인한다.
 
-### 5. FastAPI 시간표 수집과 Spring 저장
+### 5. 원격 스크래퍼와 로컬 Spring 저장
 
-FastAPI는 에브리타임 공유 URL을 받아 `Mon`부터 `Sun`까지 30분 단위의 **비어 있는 시간**을 반환한다. 기본 컨테이너는 실제 에브리타임 서버를 호출한다. 조회에는 본인이 테스트할 수 있는 공개 공유 URL을 사용한다.
+시간표 수집은 `https://rhythmeet-py.yeonjae.kr`에 배포된 스크래퍼를 사용한다. `jandi_band_py` 저장소·환경 파일·로컬 컨테이너는 필요 없다. 본인이 테스트할 수 있는 에브리타임 공유 URL을 보내면 `Mon`부터 `Sun`까지 30분 단위의 **비어 있는 시간**을 반환한다. 요청 한도는 운영과 공유한다.
 
 ```powershell
-curl.exe --get http://localhost:8000/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
-# 같은 API를 Vite 프록시로 호출
-curl.exe --get http://localhost:3000/scraper/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
+curl.exe --get https://rhythmeet-py.yeonjae.kr/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
 ```
 
-응답의 `data.timetableData`를 로그인한 사용자의 `POST /api/users/me/timetables`에 `{"name":"시간표 이름","timetableData":...}` 형태로 보내면 개인 시간표로 저장한다. 저장된 ID는 `POST /api/teams/{teamId}/members/me/timetable`의 `userTimetableId`로 제출한다. 수집은 FastAPI가, 저장·조회와 권한 검사는 Spring·MySQL이 담당한다.
+응답의 `data.timetableData`를 로컬 Spring의 `POST /api/users/me/timetables`에 `{"name":"시간표 이름","timetableData":...}` 형태로 보내면 로컬 MySQL에 저장한다. 저장된 ID는 `POST /api/teams/{teamId}/members/me/timetable`의 `userTimetableId`로 제출한다.
 
-**현재 프론트의 시간표 클라이언트는 운영 주소가 고정되어 있다.** 로컬 포트 설정만으로 화면의 에브리타임 버튼이 로컬 FastAPI를 호출하지는 않는다. 프론트 소스를 유지한 이 구성에서는 위 API로 수집·저장을 확인한다. 화면까지 로컬에 연결하려면 프론트 담당자가 시간표 클라이언트의 주소를 로컬 설정으로 바꿔야 한다.
+프론트는 기존 `https://rhythmeet-be.yeonjae.kr/scraper/timetable` 주소로 원격 스크래퍼를 호출한다. 일반 API와 시간표 저장은 프론트 `.env`의 `VITE_API_DOMAIN=http://localhost:3000/api`를 통해 로컬 Spring을 사용한다.
 
 ### 로그·재빌드·종료
 
@@ -149,7 +144,7 @@ docker compose -f local/compose.yaml ps
 docker compose -f local/compose.yaml logs --tail 100 backend
 ```
 
-Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 호스트에서 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다. FastAPI의 `app.py`·`service/`도 연결되어 코드 변경 시 Uvicorn이 재시작한다. Python 의존성을 바꾸면 `up --build`로 다시 빌드한다.
+Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다.
 
 ```powershell
 docker compose -f local/compose.yaml up --build -d --wait
@@ -172,7 +167,7 @@ docker compose -f local/compose.yaml down
 ### 지원 범위
 
 - 카카오 로그인에는 관리자에게 받은 키와 localhost 콜백 등록이 필요하다. 지도·공유 기능은 같은 카카오 앱의 JavaScript 키와 웹 도메인 설정도 확인한다.
-- 에브리타임 공유 시간표의 수집 API·Spring 저장·MySQL 조회는 로컬에서 확인할 수 있다. 화면의 시간표 버튼은 프론트 주소 설정을 별도로 바꿔야 한다. 실제 에브리타임 공개 여부·외부 응답은 사용한 공유 URL에 따라 확인한다.
+- 시간표 조회는 원격 스크래퍼를 사용하므로 네트워크 연결이 필요하다. 실제 에브리타임 공개 여부·외부 응답은 사용한 공유 URL에 따라 확인한다.
 - 프론트 개발 서버 실행은 `npm run build`의 타입 검사·배포 빌드를 대신하지 않는다.
 
 ---
