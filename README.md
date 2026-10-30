@@ -127,9 +127,9 @@ MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`
 
 가능하다. 카카오는 localhost 리다이렉트 URI를 지원한다. [카카오 공식 FAQ](https://developers.kakao.com/docs/ko/kakaologin/faq)와 [설정 안내](https://developers.kakao.com/docs/ko/kakaologin/prerequisite)를 참고한다.
 
-1. 저장소 관리자와 개발용 카카오 앱 또는 개발용 키를 준비한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
+1. 저장소 관리자에게 로컬에서 사용할 카카오 앱의 키와 설정을 확인한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
 2. 해당 REST API 키의 리다이렉트 URI에 `http://localhost:3000/callback`을 등록한다. 기존 운영 콜백은 유지한다.
-3. `local/.env`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. 클라이언트 시크릿이 활성화되어 있으면 `KAKAO_CLIENT_SECRET`도 넣는다. 비밀값은 백엔드에만 주입한다.
+3. `local/.env`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다.
 4. `KAKAO_REDIRECT_URL=http://localhost:3000/callback`을 유지한다. 프론트 인가 요청과 백엔드 토큰 교환의 콜백 주소가 일치해야 한다.
 5. 회원탈퇴까지 개발하려면 같은 앱의 `KAKAO_ADMIN_KEY`를 별도로 받는다. 지도·장소 검색·카카오 공유는 각각 필요한 키·웹 도메인 등록이 추가로 필요하다.
 6. 아래 명령으로 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
@@ -138,7 +138,7 @@ MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`
 docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
 ```
 
-환경 파일을 바꾸면 위 `up` 명령으로 프론트와 백엔드 컨테이너를 재생성한다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 실제 카카오 서버를 호출한다. 새 REST API 키는 클라이언트 시크릿이 활성화되어 생성되므로, 시크릿을 전달할 수 있게 설정한다. 운영 앱의 보안 기능을 끌 필요는 없다.
+환경 파일을 바꾸면 위 `up` 명령으로 프론트와 백엔드 컨테이너를 재생성한다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 기존 백엔드의 토큰 교환 방식으로 실제 카카오 서버를 호출한다.
 
 실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 실제 카카오 로그인 완료 여부는 앱 설정·키를 준비한 뒤 별도로 검증해야 한다.
 
