@@ -62,7 +62,7 @@ services:
       context: ../../jandi_band_frontend
       dockerfile: ../jandi_band_backend/local/Dockerfile.frontend
     env_file:
-      - path: ../../jandi_band_frontend/.env.local
+      - path: ../../jandi_band_frontend/.env
         format: raw
     volumes:
       - ../../jandi_band_frontend:/app

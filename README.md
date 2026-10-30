@@ -83,7 +83,7 @@ cd jandi_band_backend
 
 ```powershell
 Copy-Item .env.local.example .env.local
-Copy-Item ../jandi_band_frontend/.env.example ../jandi_band_frontend/.env.local
+Copy-Item ../jandi_band_frontend/.env.example ../jandi_band_frontend/.env
 Copy-Item ../jandi_band_py/.env.example ../jandi_band_py/.env
 ```
 
@@ -91,7 +91,7 @@ Copy-Item ../jandi_band_py/.env.example ../jandi_band_py/.env
 
 기본 `LOCAL_AUTH_MODE=mock`에서는 실제 카카오 키가 필요 없다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
 
-`.env.local`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`../jandi_band_frontend/.env.local`에서 별도로 관리**한다. FastAPI 설정은 `../jandi_band_py/.env`에서 관리한다. Spring의 공통 properties는 이 저장소의 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 예시의 카카오 키는 목 로그인용 자리표시자다. 실제 로그인·지도·공유를 개발할 때는 프론트 담당자에게 키와 localhost 도메인 설정을 확인한다. 운영 프론트의 Netlify 환경변수와 운영 백엔드 설정은 별도로 유지한다.
+`.env.local`는 Spring 백엔드 전용이다. 프론트의 주소와 `VITE_KAKAO_JAVASCRIPT_KEY`·`VITE_KAKAOMAP_APP_KEY` 등 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. FastAPI 설정은 `../jandi_band_py/.env`에서 관리한다. Spring의 공통 properties는 이 저장소의 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입한다. 프론트 환경 파일도 Git에서 제외되며 이미지에 복사하지 않는다. 예시의 카카오 키는 목 로그인용 자리표시자다. 실제 로그인·지도·공유를 개발할 때는 프론트 담당자에게 키와 localhost 도메인 설정을 확인한다. 운영 프론트의 Netlify 환경변수와 운영 백엔드 설정은 별도로 유지한다.
 
 ### 3. 이미지 빌드와 실행
 
@@ -133,7 +133,7 @@ MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`
 
 1. 저장소 관리자에게 로컬에서 사용할 카카오 앱의 키와 설정을 확인한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
 2. 해당 REST API 키의 리다이렉트 URI에 `http://localhost:3000/callback`을 등록한다. 기존 운영 콜백은 유지한다.
-3. `.env.local`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. `../jandi_band_frontend/.env.local`의 `VITE_KAKAO_CLIENT_ID`에도 같은 REST API 키를 넣는다.
+3. `.env.local`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. `../jandi_band_frontend/.env`의 `VITE_KAKAO_CLIENT_ID`에도 같은 REST API 키를 넣는다.
 4. `KAKAO_REDIRECT_URL=http://localhost:3000/callback`을 유지한다. 프론트 인가 요청과 백엔드 토큰 교환의 콜백 주소가 일치해야 한다.
 5. 회원탈퇴까지 개발하려면 같은 앱의 `KAKAO_ADMIN_KEY`를 별도로 받는다. 지도·장소 검색·카카오 공유는 각각 필요한 키·웹 도메인 등록이 추가로 필요하다.
 6. 아래 명령으로 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
