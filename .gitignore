@@ -110,6 +110,7 @@ jenkinslog.txt
 
 .env.*
 !.env.example
+!.env.local.example
 !config/*.properties
 *.pem
 *.key

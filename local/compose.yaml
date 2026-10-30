@@ -25,7 +25,7 @@ services:
       dockerfile: local/Dockerfile.backend
     init: true
     env_file:
-      - path: .env
+      - path: ../.env.local
         format: raw
     environment:
       DB_URL: jdbc:mysql://mysql:3306/rhythmeet_local?allowPublicKeyRetrieval=true&useSSL=false
@@ -44,6 +44,9 @@ services:
       context: ../../jandi_band_py
       target: runtime
     command: [uvicorn, app:app, --host, 0.0.0.0, --port, '8000', --reload]
+    env_file:
+      - path: ../../jandi_band_py/.env
+        format: raw
     volumes:
       - ../../jandi_band_py/app.py:/app/app.py:ro
       - ../../jandi_band_py/service:/app/service:ro
@@ -59,7 +62,7 @@ services:
       context: ../../jandi_band_frontend
       dockerfile: ../jandi_band_backend/local/Dockerfile.frontend
     env_file:
-      - path: frontend.env
+      - path: ../../jandi_band_frontend/.env.local
         format: raw
     volumes:
       - ../../jandi_band_frontend:/app
