@@ -55,60 +55,117 @@ jandi_band_backend/
 
 ---
 
-## 네이티브 환경에서 실행
+## 로컬 개발: 프론트엔드·백엔드·MySQL을 Docker로 실행
 
-로컬 MySQL의 스키마와 목데이터는 [로컬 개발 DB](docs/local-database.md)를 참고하세요.
+Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 호스트에 Java·Node.js·MySQL을 따로 설치할 필요는 없다. 프론트엔드 소스는 수정하지 않고 빌드하며, 프론트 컨테이너의 Nginx가 `/api`를 Spring 백엔드에 전달한다. Redis는 필요 없다.
 
-### 사전 요구사항
+### 1. 저장소 준비
 
-- Java 25 LTS
-- MySQL 26.10 (OCI 관리형)
+두 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
 
-### 실행 방법
-
-```bash
-# 1. 환경변수 설정
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 파일에 DB, Object Storage 정보 입력
-
-# 2. 빌드
-./gradlew clean build -x test
-
-# 3. 실행
-./gradlew bootRun
-
-# 또는 JAR 직접 실행
-java -jar build/libs/band_backend-0.0.1-SNAPSHOT.jar
+```powershell
+git clone --branch dev https://github.com/JandiGoorm/jandi_band_backend.git
+git clone https://github.com/JandiGoorm/jandi_band_frontend.git
+cd jandi_band_backend
 ```
 
-**접속 URL**
-- API 서버: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
-
----
-
-## 네이티브 환경에서 테스트
-
-```bash
-# 전체 테스트 실행
-./gradlew test
-
-# 특정 테스트 클래스 실행
-./gradlew test --tests "com.jandi.band_backend.club.service.ClubServiceTest"
-
-# 특정 테스트 메서드 실행
-./gradlew test --tests "com.jandi.band_backend.club.service.ClubServiceTest.createClub_Success"
-
-# 테스트 + 상세 로그
-./gradlew test --info
-
-# 커버리지 리포트 생성
-./gradlew test jacocoTestReport
-# 리포트 위치: build/reports/jacoco/test/html/index.html
-
-# 빌드 캐시 무시하고 재실행
-./gradlew clean test
+```text
+개발 폴더/
+├── jandi_band_backend/
+└── jandi_band_frontend/
 ```
+
+이하 명령은 백엔드 저장소 루트에서 실행한다.
+
+### 2. 개인 환경 파일 준비
+
+```powershell
+Copy-Item local/.env.example local/.env
+```
+
+**OCI 개발 버킷의 접속 정보 7개는 저장소 관리자에게 별도로 받아야 한다.** 전달받은 `IMAGE_STORAGE_*` 값을 `local/.env`에 넣는다. 운영 버킷 자격증명을 사용하지 않는다. 이 파일은 Git 추적 대상이 아니며, 실제 값은 README·공개 저장소·Notion에 기록하지 않는다.
+
+기본 `LOCAL_AUTH_MODE=mock`에서는 실제 카카오 키가 필요 없다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 빌드에 전달하지 않는다.
+
+### 3. 이미지 빌드와 실행
+
+```powershell
+docker build --target runtime -t rhythmeet-backend:local .
+docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+```
+
+| 대상 | 접속 주소 |
+| --- | --- |
+| 프론트엔드 | http://localhost:19090 |
+| 백엔드 API | http://localhost:19091/api |
+| Swagger | http://localhost:19091/swagger-ui.html |
+| MySQL | Docker 내부 `mysql:3306`, DB `rhythmeet_local` |
+
+호스트의 19090·19091 포트만 localhost에 열고 MySQL 포트는 외부에 공개하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름으로 빌드된다.
+
+MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`과 `002_mock_data.sql`을 순서대로 실행한다. 운영과 같은 27개 테이블 구조와 가상 데이터 102건을 넣는다. 이후 재시작에서는 데이터를 유지한다. 구성과 수동 가져오기 방법은 [로컬 개발 DB](docs/local-database.md)를 참고한다.
+
+### 4. 기본 로그인은 모의 카카오 인증
+
+이 구성의 기본값은 **실제 카카오계정·카카오톡 로그인을 하지 않는 목(mock) 인증**이다. 카카오 토큰 발급·프로필 응답만 백엔드 컨테이너 안의 로컬 제공자로 대체한다. Spring API·JWT·MySQL과 OCI 개발 버킷의 업로드·삭제는 실제로 동작한다. 목 인증 제공자는 운영 이미지에 포함되지 않는다.
+
+프론트 로그인 화면의 카카오 버튼 대신 다음 주소로 접속한다.
+
+| 계정 | 접속 주소 |
+| --- | --- |
+| 동아리 대표·보컬 | http://localhost:19090/callback?code=image-test-browser-dev-owner |
+| 일반 멤버·기타 | http://localhost:19090/callback?code=image-test-browser-dev-guitar |
+| 관리자 | http://localhost:19090/callback?code=image-test-browser-dev-admin |
+| 가입 미완료 계정 | http://localhost:19090/callback?code=image-test-browser-dev-new |
+
+기본 동아리·팀 ID는 각각 `1`이다. 가입 미완료 계정으로는 회원가입 화면을 확인할 수 있다. DB에 넣은 사진은 자체 SVG 표시용 이미지이며, 실제 파일 업로드는 관리자가 제공한 개발 버킷을 사용한다.
+
+### 5. 실제 카카오 로그인으로 전환할 수 있나?
+
+가능하다. 카카오는 localhost 리다이렉트 URI를 지원한다. [카카오 공식 FAQ](https://developers.kakao.com/docs/ko/kakaologin/faq)와 [설정 안내](https://developers.kakao.com/docs/ko/kakaologin/prerequisite)를 참고한다.
+
+1. 저장소 관리자와 개발용 카카오 앱 또는 개발용 키를 준비한다. 카카오 로그인 활성화와 프로필 동의항목도 확인한다.
+2. 해당 REST API 키의 리다이렉트 URI에 `http://localhost:19090/callback`을 등록한다. 기존 운영 콜백은 유지한다.
+3. `local/.env`에서 `LOCAL_AUTH_MODE=kakao`로 바꾸고 같은 앱의 `KAKAO_REST_API_KEY`를 넣는다. 클라이언트 시크릿이 활성화되어 있으면 `KAKAO_CLIENT_SECRET`도 넣는다. 비밀값은 백엔드에만 주입한다.
+4. `KAKAO_REDIRECT_URL=http://localhost:19090/callback`을 유지한다. 프론트 인가 요청과 백엔드 토큰 교환의 콜백 주소가 일치해야 한다.
+5. 회원탈퇴까지 개발하려면 같은 앱의 `KAKAO_ADMIN_KEY`를 별도로 받는다. 지도·장소 검색·카카오 공유는 각각 필요한 키·웹 도메인 등록이 추가로 필요하다.
+6. 아래 명령으로 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
+
+```powershell
+docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+```
+
+프론트 키는 빌드 시 반영되므로 환경 파일만 바꾸고 컨테이너를 재시작하는 것으로는 부족하다. `kakao` 모드는 로컬 목 제공자를 실행하지 않고 실제 카카오 서버를 호출한다. 새 REST API 키는 클라이언트 시크릿이 활성화되어 생성되므로, 시크릿을 전달할 수 있게 설정한다. 운영 앱의 보안 기능을 끌 필요는 없다.
+
+실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 실제 카카오 로그인 완료 여부는 앱 설정·키를 준비한 뒤 별도로 검증해야 한다.
+
+### 로그·재빌드·종료
+
+```powershell
+docker compose --env-file local/.env -f local/compose.yaml ps
+docker compose --env-file local/.env -f local/compose.yaml logs --tail 100 backend
+```
+
+백엔드 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 변경도 빌드할 때 반영되는 구성으로, 파일 저장만으로 자동 갱신되지는 않는다.
+
+```powershell
+docker build --target runtime -t rhythmeet-backend:local .
+docker compose --env-file local/.env -f local/compose.yaml up --build -d --wait
+```
+
+컨테이너를 종료해도 MySQL 데이터 볼륨은 유지된다.
+
+```powershell
+docker compose --env-file local/.env -f local/compose.yaml down
+```
+
+**로컬 DB를 초기화하고 목데이터를 다시 넣을 때만** `down --volumes`를 쓴다. 이 명령은 이 Compose 프로젝트의 로컬 DB 데이터를 삭제한다. OCI 버킷 객체는 별도 저장소이므로 DB 초기화로 지워지지 않는다. 개발 중 업로드한 객체는 앱에서 삭제하거나 관리자의 정리 절차를 따른다.
+
+### 지원 범위
+
+- 카카오 모의 로그인은 실제 카카오 동의 화면·본인 확인·지도·공유까지 대체하지 않는다. 실제 서비스 인증에는 `kakao` 모드가 필요하다.
+- 에브리타임 시간표 수집은 별도 FastAPI 기능이다. 현재 프론트 클라이언트에 운영 API 주소가 고정되어 있어 이 3개 컨테이너 구성으로는 로컬 테스트를 지원하지 않는다.
+- 로컬 프론트 이미지는 `npx vite build`로 화면을 빌드한다. 프론트의 기존 `npm run build` 타입 검사 문제를 이 구성에서 수정하지 않는다. 프론트 코드 품질 검사를 대체하는 절차는 아니다.
 
 ---
 
@@ -123,7 +180,7 @@ docker build --target runtime -t jandi-band:local .
 
 ## CI/CD와 운영 설정
 
-이 저장소의 GitHub Actions가 `main`과 `dev`를 각각 운영·개발 환경에 배포한다.
+이 저장소의 GitHub Actions는 PR을 검증하고, `main` 변경만 운영 환경에 배포한다. `dev` 전용 서버는 없다.
 Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
 환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
 

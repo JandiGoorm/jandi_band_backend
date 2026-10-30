@@ -18,6 +18,7 @@ jwt.refresh-token-validity=604800000
 jwt.refresh-token-reissue-threshold=8640000
 #Kakao
 kakao.rest-api-key=
+kakao.client-secret=
 kakao.redirect-url=http://localhost:8080/api/auth/login
 kakao.logout-url=https://kauth.kakao.com/oauth/logout
 kakao.token-url=https://kauth.kakao.com/oauth/token

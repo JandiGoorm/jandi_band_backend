@@ -1,0 +1,56 @@
+name: rhythmeet-local
+services:
+  mysql:
+    image: mysql:innovation@sha256:f51c9c01c16b0eb5d81bb70ab7e7fcb3b96abc6a54114be3a94e8e569cae7815
+    command: [--skip-log-bin]
+    environment:
+      MYSQL_ROOT_PASSWORD: local-root-only
+      MYSQL_DATABASE: rhythmeet_local
+      MYSQL_USER: rhythmeet_local
+      MYSQL_PASSWORD: local-db-only
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../database/local/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ../database/local/002_mock_data.sql:/docker-entrypoint-initdb.d/002_mock_data.sql:ro
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, localhost, --silent]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  backend:
+    image: rhythmeet-local-backend:dev
+    build:
+      context: ..
+      dockerfile: local/Dockerfile.backend
+    init: true
+    env_file:
+      - path: .env
+        format: raw
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/rhythmeet_local?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: rhythmeet_local
+      DB_PASSWORD: local-db-only
+      JWT_SECRET: LOCAL_DEVELOPMENT_ONLY_NOT_FOR_DEPLOYMENTS_32_BYTES
+    volumes:
+      - ../config:/app/config:ro
+    ports: ["127.0.0.1:19091:8080"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+  frontend:
+    image: rhythmeet-local-frontend:dev
+    build:
+      context: ../../jandi_band_frontend
+      dockerfile: ../jandi_band_backend/local/Dockerfile.frontend
+      args:
+        KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-00000000000000000000000000000000}
+        KAKAO_JAVASCRIPT_KEY: ${KAKAO_JAVASCRIPT_KEY:-00000000000000000000000000000000}
+        KAKAOMAP_APP_KEY: ${KAKAOMAP_APP_KEY:-00000000000000000000000000000000}
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: ["127.0.0.1:19090:80"]
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  mysql-data:

@@ -20,6 +20,9 @@ public class KaKaoTokenService {
     @Value("${kakao.rest-api-key}")
     private String kakaoRestApiKey;
 
+    @Value("${kakao.client-secret:}")
+    private String kakaoClientSecret;
+
     @Value("${kakao.redirect-url}")
     private String kakaoRedirectUri;
 
@@ -56,6 +59,9 @@ public class KaKaoTokenService {
         params.add("client_id", kakaoRestApiKey);
         params.add("redirect_uri", kakaoRedirectUri);
         params.add("code", code);
+        if (kakaoClientSecret != null && !kakaoClientSecret.isBlank()) {
+            params.add("client_secret", kakaoClientSecret);
+        }
 
         // 요청 전송
         RestTemplate restTemplate = new RestTemplate();

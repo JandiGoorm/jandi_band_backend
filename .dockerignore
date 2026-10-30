@@ -10,6 +10,9 @@ HELP.md
 .DS_Store
 .env
 .env.*
+**/.env
+**/.env.*
+**/*.env
 **/application.properties
 **/application-*.properties
 !src/test/resources/application-test.properties
