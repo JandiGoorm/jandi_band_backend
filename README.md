@@ -55,58 +55,120 @@ jandi_band_backend/
 
 ---
 
-## 네이티브 환경에서 실행
+## 로컬 개발: 프론트엔드·Spring·MySQL을 Docker로 실행
 
-### 사전 요구사항
+Docker Desktop(Linux 컨테이너)과 Docker Compose v2를 사용한다. 프론트·Spring·MySQL 세 컨테이너를 실행하며, 시간표 수집은 배포된 원격 스크래퍼를 사용한다. 호스트에 Java·Node.js·Python·MySQL을 따로 설치할 필요는 없다. 프론트는 기존 Vite 개발 서버와 핫리로드를 사용하고, `/api` 요청은 로컬 Spring으로 전달한다.
 
-- Java 25 LTS
-- MySQL 26.10 (OCI 관리형)
+### 1. 저장소 준비
 
-### 실행 방법
+백엔드와 프론트 저장소를 같은 부모 폴더에 둔다. 이미 클론했다면 이 단계는 건너뛴다.
 
-```bash
-# 1. 환경변수 설정
-cp src/main/resources/application.properties.example src/main/resources/application.properties
-# application.properties 파일에 DB, Object Storage 정보 입력
-
-# 2. 빌드
-./gradlew clean build -x test
-
-# 3. 실행
-./gradlew bootRun
-
-# 또는 JAR 직접 실행
-java -jar build/libs/band_backend-0.0.1-SNAPSHOT.jar
+```powershell
+git clone --branch develop https://github.com/JandiGoorm/jandi_band_backend.git
+git clone --branch develop https://github.com/JandiGoorm/jandi_band_frontend.git
+cd jandi_band_backend
 ```
 
-**접속 URL**
-- API 서버: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
-
----
-
-## 네이티브 환경에서 테스트
-
-```bash
-# 전체 테스트 실행
-./gradlew test
-
-# 특정 테스트 클래스 실행
-./gradlew test --tests "com.jandi.band_backend.club.service.ClubServiceTest"
-
-# 특정 테스트 메서드 실행
-./gradlew test --tests "com.jandi.band_backend.club.service.ClubServiceTest.createClub_Success"
-
-# 테스트 + 상세 로그
-./gradlew test --info
-
-# 커버리지 리포트 생성
-./gradlew test jacocoTestReport
-# 리포트 위치: build/reports/jacoco/test/html/index.html
-
-# 빌드 캐시 무시하고 재실행
-./gradlew clean test
+```text
+개발 폴더/
+├── jandi_band_backend/
+└── jandi_band_frontend/
 ```
+
+이하 명령은 백엔드 저장소 루트에서 실행한다.
+
+### 2. 백엔드·프론트 환경 파일 준비
+
+```powershell
+Copy-Item .env.local.example .env.local
+Copy-Item ../jandi_band_frontend/.env.example ../jandi_band_frontend/.env
+```
+
+**OCI 개발 버킷의 접속 정보 7개는 저장소 관리자에게 별도로 받아야 한다.** 전달받은 `IMAGE_STORAGE_*` 값을 `.env.local`에 넣는다. 운영 버킷 자격증명을 사용하지 않는다. 이 파일은 Git 추적 대상이 아니며, 실제 값은 README·공개 저장소·Notion에 기록하지 않는다.
+
+카카오 로그인은 운영과 같은 카카오 앱의 키를 사용한다. 관리자에게 받은 `KAKAO_REST_API_KEY`와 `KAKAO_ADMIN_KEY`를 백엔드 `.env.local`에 넣는다. MySQL 계정과 JWT 키는 Compose에 명시된 로컬 전용 데모 값을 쓴다. OCI 자격증명은 백엔드 실행 시에만 주입하며 프론트 컨테이너에 전달하지 않는다.
+
+`.env.local`는 Spring 백엔드 전용이다. 프론트의 `VITE_*` 설정은 **`../jandi_band_frontend/.env`에서 별도로 관리**한다. `VITE_KAKAO_CLIENT_ID`에는 백엔드의 `KAKAO_REST_API_KEY`와 같은 값을 넣는다. Spring의 공통 properties는 `config/`에 둔다. Compose가 각 환경 파일을 해당 컨테이너에만 주입하며 실제 환경 파일은 Git에서 제외한다. 지도·공유의 JavaScript 키와 localhost 도메인 설정은 관리자에게 확인한다. `KAKAO_ADMIN_KEY`와 OCI·DB 자격증명은 프론트에 넣지 않는다.
+
+### 3. 이미지 빌드와 실행
+
+```powershell
+docker compose -f local/compose.yaml up --build -d --wait
+```
+
+| 대상 | 접속 주소 |
+| --- | --- |
+| 프론트엔드 | http://localhost:3000 → Vite 컨테이너 내부 5173 |
+| 백엔드 API | http://localhost:8080/api |
+| Swagger | http://localhost:8080/swagger-ui.html |
+| 원격 스크래퍼 / 문서 | https://rhythmeet-py.yeonjae.kr / https://rhythmeet-py.yeonjae.kr/docs |
+| MySQL | `localhost:3306`, DB `rhythmeet_local` (컨테이너 간 접속은 `mysql:3306`) |
+
+로컬의 3000·3306·8080 포트는 localhost에만 연다. MySQL 로컬 계정은 `rhythmeet_local` / `local-db-only`이며 운영에 사용하지 않는다. **브라우저에서는 `localhost`를 사용한다.** 프론트 API·콜백 주소도 이 호스트 이름을 사용한다.
+
+MySQL 데이터 볼륨이 처음 만들어지면 `database/local/001_schema.sql`과 `002_mock_data.sql`을 순서대로 실행한다. 운영과 같은 27개 테이블 구조와 가상 데이터 102건을 넣는다. 이후 재시작에서는 데이터를 유지한다. 구성과 수동 가져오기 방법은 [로컬 개발 DB](docs/local-database.md)를 참고한다.
+
+### 4. 카카오 로그인
+
+로컬에서도 실제 카카오 계정으로 로그인한다. 운영과 같은 카카오 앱을 사용하고, 로그인 후 회원 정보와 토큰은 로컬 MySQL에 저장한다. [카카오 설정 안내](https://developers.kakao.com/docs/ko/kakaologin/prerequisite)를 참고한다.
+
+1. 해당 카카오 앱의 REST API 키에 `http://localhost:3000/callback`을 리다이렉트 URI로 등록한다. 기존 운영 콜백은 유지한다.
+2. 백엔드 `.env.local`의 `KAKAO_REST_API_KEY`와 프론트 `.env`의 `VITE_KAKAO_CLIENT_ID`에 같은 REST API 키를 넣는다. `KAKAO_ADMIN_KEY`는 백엔드에만 넣는다.
+3. 프론트 `.env`의 `VITE_KAKAO_REDIRECT_URI=http://localhost:3000/callback`을 유지한다. Compose는 백엔드의 토큰 교환 콜백도 같은 주소로 설정한다.
+4. 아래 명령으로 컨테이너를 재생성한 뒤 프론트의 **카카오 계정으로 계속하기** 버튼으로 로그인한다.
+
+```powershell
+docker compose -f local/compose.yaml up --build -d --wait
+```
+
+실제 로그인으로 생성한 로컬 회원은 목데이터의 가상 회원과 별개다. 목데이터 계정으로 실제 카카오 로그인을 할 수는 없다. 실제 계정의 로컬 동아리·팀은 새로 만들거나 로컬 DB에서 권한을 준비한다. 기본 목데이터의 동아리·팀 ID는 각각 `1`이다. SQL의 사진은 자체 SVG 표시용 이미지이며, 실제 업로드에는 개발 버킷을 사용한다.
+
+같은 카카오 앱을 공유하므로 로컬 회원탈퇴의 카카오 연결 끊기는 운영에서 사용하는 카카오 연결에도 영향을 준다. 실제 계정으로 회원탈퇴를 시험할 때는 이 영향을 확인한다.
+
+### 5. 원격 스크래퍼와 로컬 Spring 저장
+
+시간표 수집은 `https://rhythmeet-py.yeonjae.kr`에 배포된 스크래퍼를 사용한다. `jandi_band_py` 저장소·환경 파일·로컬 컨테이너는 필요 없다. 본인이 테스트할 수 있는 에브리타임 공유 URL을 보내면 `Mon`부터 `Sun`까지 30분 단위의 **비어 있는 시간**을 반환한다. 요청 한도는 운영과 공유한다.
+
+```powershell
+curl.exe --get https://rhythmeet-py.yeonjae.kr/timetable --data-urlencode "url=https://everytime.kr/@공유식별자"
+```
+
+응답의 `data.timetableData`를 로컬 Spring의 `POST /api/users/me/timetables`에 `{"name":"시간표 이름","timetableData":...}` 형태로 보내면 로컬 MySQL에 저장한다. 저장된 ID는 `POST /api/teams/{teamId}/members/me/timetable`의 `userTimetableId`로 제출한다.
+
+프론트는 기존 `https://rhythmeet-be.yeonjae.kr/scraper/timetable` 주소로 원격 스크래퍼를 호출한다. 일반 API와 시간표 저장은 프론트 `.env`의 `VITE_API_DOMAIN=http://localhost:3000/api`를 통해 로컬 Spring을 사용한다.
+
+### 로그·재빌드·종료
+
+```powershell
+docker compose -f local/compose.yaml ps
+docker compose -f local/compose.yaml logs --tail 100 backend
+```
+
+Spring 코드를 바꾸면 런타임 이미지와 로컬 서비스를 다시 빌드한다. 프론트 소스는 로컬 폴더를 연결하며, 수정한 내용은 Vite가 자동으로 반영한다. Linux용 `node_modules`는 별도 Docker 볼륨에 둔다.
+
+```powershell
+docker compose -f local/compose.yaml up --build -d --wait
+```
+
+프론트 의존성을 바꾼 경우에는 아래 명령으로 컨테이너의 의존성을 다시 설치한다.
+
+```powershell
+docker compose -f local/compose.yaml exec frontend npm ci --legacy-peer-deps
+```
+
+컨테이너를 종료해도 MySQL 데이터 볼륨은 유지된다.
+
+```powershell
+docker compose -f local/compose.yaml down
+```
+
+**로컬 DB를 초기화하고 목데이터를 다시 넣을 때만** `down --volumes`를 쓴다. 이 명령은 이 Compose 프로젝트의 로컬 DB 데이터를 삭제한다. OCI 버킷 객체는 별도 저장소이므로 DB 초기화로 지워지지 않는다. 개발 중 업로드한 객체는 앱에서 삭제하거나 관리자의 정리 절차를 따른다.
+
+### 지원 범위
+
+- 카카오 로그인에는 관리자에게 받은 키와 localhost 콜백 등록이 필요하다. 지도·공유 기능은 같은 카카오 앱의 JavaScript 키와 웹 도메인 설정도 확인한다.
+- 시간표 조회는 원격 스크래퍼를 사용하므로 네트워크 연결이 필요하다. 실제 에브리타임 공개 여부·외부 응답은 사용한 공유 URL에 따라 확인한다.
+- 프론트 개발 서버 실행은 `npm run build`의 타입 검사·배포 빌드를 대신하지 않는다.
 
 ---
 
@@ -121,7 +183,7 @@ docker build --target runtime -t jandi-band:local .
 
 ## CI/CD와 운영 설정
 
-이 저장소의 GitHub Actions가 `main`과 `dev`를 각각 운영·개발 환경에 배포한다.
+이 저장소의 GitHub Actions는 PR을 검증하고, `main` 변경만 운영 환경에 배포한다. `dev` 전용 서버는 없다.
 Compose와 공개 설정은 이 저장소에서 관리하고, 실제 `.env`는 서버에서 수동 관리한다.
 환경별 주소, GitHub Secrets/Variables, 서버 경로와 복구 절차는 [배포 문서](docs/deployment.md)를 참고한다.
 

@@ -1,0 +1,71 @@
+name: rhythmeet-local
+services:
+  mysql:
+    image: mysql:innovation@sha256:f51c9c01c16b0eb5d81bb70ab7e7fcb3b96abc6a54114be3a94e8e569cae7815
+    command: [--skip-log-bin]
+    environment:
+      MYSQL_ROOT_PASSWORD: local-root-only
+      MYSQL_DATABASE: rhythmeet_local
+      MYSQL_USER: rhythmeet_local
+      MYSQL_PASSWORD: local-db-only
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../database/local/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ../database/local/002_mock_data.sql:/docker-entrypoint-initdb.d/002_mock_data.sql:ro
+    ports: ["127.0.0.1:3306:3306"]
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, localhost, --silent]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+  backend:
+    image: rhythmeet-backend:local
+    build:
+      context: ..
+      target: runtime
+    init: true
+    env_file:
+      - path: ../.env.local
+        format: raw
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/rhythmeet_local?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: rhythmeet_local
+      DB_PASSWORD: local-db-only
+      JWT_SECRET: LOCAL_DEVELOPMENT_ONLY_NOT_FOR_DEPLOYMENTS_32_BYTES
+      JAVA_TOOL_OPTIONS: >-
+        -Xmx512m
+        -Dspring.jpa.hibernate.ddl-auto=validate
+        -Dspring.sql.init.mode=never
+        -Dinvite.club.link.prefix=http://localhost:3000/invite/club/accept
+        -Dinvite.team.link.prefix=http://localhost:3000/invite/team/accept
+        -Dkakao.redirect-url=http://localhost:3000/callback
+    volumes:
+      - ../config:/app/config:ro
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+  frontend:
+    image: rhythmeet-local-frontend:dev
+    build:
+      context: ../../jandi_band_frontend
+      dockerfile: ../jandi_band_backend/local/Dockerfile.frontend
+    env_file:
+      - path: ../../jandi_band_frontend/.env
+        format: raw
+    volumes:
+      - ../../jandi_band_frontend:/app
+      - frontend-node-modules:/app/node_modules
+      - ./vite.config.mjs:/opt/vite.local.config.mjs:ro
+    ports: ["127.0.0.1:3000:5173"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  mysql-data:
+  frontend-node-modules:
