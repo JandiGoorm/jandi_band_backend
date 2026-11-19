@@ -63,7 +63,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Connect to OCI through Tailscale
-        uses: tailscale/github-action@99a8333667fff04fdd6cffb46dfd409f8329a7bf # v4.3.0
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
         with:
           oauth-client-id: ${{ vars.TS_NGINX_CLIENT_ID }}
           audience: ${{ vars.TS_NGINX_AUDIENCE }}
@@ -88,7 +88,7 @@ jobs:
           bash scripts/oci-ssh.sh "python3 - $IMAGE" < gateway/deploy.py
           echo "$IMAGE" > "$RUNNER_TEMP/gateway-healthy.txt"
           echo "digest=${IMAGE##*:}" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: healthy-${{ steps.deployed.outputs.digest }}
           path: ${{ runner.temp }}/gateway-healthy.txt
