@@ -86,7 +86,7 @@ dependencies {
     implementation 'com.twelvemonkeys.imageio:imageio-webp:3.15.3'
 
     // Swagger/OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0'
 }
 
 tasks.named('test') {
