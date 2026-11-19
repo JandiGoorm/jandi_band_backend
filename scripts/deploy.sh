@@ -23,11 +23,18 @@ flock -w 300 9
 previous=$(readlink -f "$root/current" || true)
 legacy=""
 changed=false
+wait_timeout=180
+startup_override=()
+if [[ "$app" == jandi-band ]]; then
+    wait_timeout=300
+    # 이전 릴리스를 복구할 때도 현재 기동 유예 시간을 적용한다.
+    startup_override=(-f "$release/compose.override.yaml")
+fi
 
 compose() {
     local directory=$1
     shift
-    docker compose --env-file "$directory/deployment.env" -f "$directory/compose.yaml" "$@"
+    docker compose --env-file "$directory/deployment.env" -f "$directory/compose.yaml" "${startup_override[@]}" "$@"
 }
 reload_gateway() {
     docker exec nginx-gateway nginx -t
@@ -50,7 +57,7 @@ failed() {
         elif [[ -n "$legacy" ]]; then
             docker start "$container" >/dev/null
         elif [[ -n "$previous" && -f "$previous/compose.yaml" ]]; then
-            compose "$previous" up -d --no-deps --pull never --wait --wait-timeout 180 app
+            compose "$previous" up -d --no-deps --pull never --wait --wait-timeout "$wait_timeout" app
         else
             compose "$release" rm -s -f app
         fi
@@ -94,7 +101,7 @@ if docker container inspect "$container" >/dev/null 2>&1; then
     fi
 fi
 changed=true
-compose "$release" up -d --no-deps --pull never --wait --wait-timeout 180 app
+compose "$release" up -d --no-deps --pull never --wait --wait-timeout "$wait_timeout" app
 test "$(docker inspect "$container" --format '{{.Config.Image}}')" = "$image"
 if [[ "$app" == jandi-band-py ]]; then
     status=$(docker exec "$container" curl -sS -o /dev/null -w '%{http_code}' 'http://localhost:8000/timetable?url=https://example.com')

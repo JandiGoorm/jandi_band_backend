@@ -56,7 +56,7 @@ USER app
 EXPOSE 8080
 
 # 컨테이너 상태 모니터링
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # 컨테이너 실행 시, 외부(/app/config/application.properties)에 있는 설정 파일을 사용하도록 지정

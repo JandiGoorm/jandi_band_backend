@@ -121,7 +121,7 @@ jobs:
   deploy:
     needs: [publish, scan-published]
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment:
       name: production
       url: https://rhythmeet-be.yeonjae.kr/actuator/health

@@ -28,7 +28,6 @@ services:
       test: [CMD, curl, -fsS, 'http://localhost:8080/actuator/health']
       interval: 10s
       timeout: 5s
-      start_period: 60s
       retries: 12
 
 networks:

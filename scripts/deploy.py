@@ -36,7 +36,7 @@ def main():
 
     payload = io.BytesIO()
     with tarfile.open(fileobj=payload, mode="w:gz") as archive:
-        files = [Path("compose.yaml"), Path("scripts/deploy.sh")]
+        files = [Path("compose.yaml"), Path("compose.override.yaml"), Path("scripts/deploy.sh")]
         files.extend(sorted(Path("config").glob("*.properties")))
         for path in files:
             if path.is_symlink():
@@ -73,7 +73,7 @@ def main():
             "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
             "-o", "StrictHostKeyChecking=yes",
             "-o", f"UserKnownHostsFile={known_hosts}", f"{user}@{host}", command,
-        ], input=payload.getvalue(), check=True, timeout=720)
+        ], input=payload.getvalue(), check=True, timeout=1200)
 
 
 if __name__ == "__main__":
