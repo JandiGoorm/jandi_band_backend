@@ -59,6 +59,27 @@ def resources(pid, cid):
     return data
 
 
+def peers(container):
+    listing = subprocess.check_output(
+        ["docker", "ps", "--no-trunc", "--format", "{{.ID}} {{.Names}}"], text=True, timeout=5)
+    ids = [cid for cid, name in (line.split() for line in listing.splitlines()) if name != container]
+    if not ids:
+        return []
+    listing = subprocess.run(["docker", "inspect", "--format", "{{.Id}} {{.Name}} {{.State.Pid}}", *ids],
+                             capture_output=True, text=True, timeout=5)
+    return [line.split() for line in listing.stdout.splitlines() if line.strip()]
+
+
+def sample_peers(folder, containers):
+    with (folder / "peers.jsonl").open("a") as output:
+        for cid, name, pid in containers:
+            try:
+                data = resources(pid, cid)
+            except (OSError, ValueError, KeyError):
+                continue
+            print(json.dumps(dict(time=utc(), id=cid, name=name.lstrip("/"), pid=int(pid), **data)), file=output)
+
+
 def save_logs(folder):
     record = json.loads((folder / "container.json").read_text())
     temporary = folder / "container.log.partial"
@@ -112,6 +133,8 @@ def observe(folder, container, expected, command):
         print(f"Startup diagnostics unavailable: {error}", file=sys.stderr)
         return subprocess.call(command)
     previous = old["id"] if old else None
+    peer_list = []
+    refresh_at = 0
     process = subprocess.Popen(command)
     while True:
         done = process.poll() is not None
@@ -125,6 +148,14 @@ def observe(folder, container, expected, command):
         except (OSError, subprocess.SubprocessError, ValueError, KeyError) as error:
             print(f"Startup diagnostics incomplete: {error}", file=sys.stderr)
             found = False
+        if found:
+            try:
+                if time.monotonic() >= refresh_at:
+                    peer_list = peers(container)
+                    refresh_at = time.monotonic() + 15
+                sample_peers(folder, peer_list)
+            except (OSError, subprocess.SubprocessError, ValueError) as error:
+                print(f"Peer sampling incomplete: {error}", file=sys.stderr)
         if done:
             return process.returncode
         try:

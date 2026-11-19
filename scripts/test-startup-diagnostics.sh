@@ -13,6 +13,10 @@ export MODE=failed
 trap cleanup EXIT
 cat >"$temp/compose.yaml" <<'YAML'
 services:
+  peer:
+    image: ${TEST_IMAGE:?}
+    container_name: ${TEST_CONTAINER:?}-peer
+    entrypoint: [sleep, "120"]
   app:
     image: ${TEST_IMAGE:?}
     container_name: ${TEST_CONTAINER:?}
@@ -25,15 +29,17 @@ services:
       timeout: 1s
       retries: 4
 YAML
+"${compose[@]}" up -d --pull never peer
 run() {
     python3 scripts/record_startup.py "$temp/diagnostics/release.test0001/$1" "$TEST_CONTAINER" "$TEST_IMAGE" \
-        "${compose[@]}" up -d --pull never --wait --wait-timeout 30
+        "${compose[@]}" up -d --pull never --wait --wait-timeout 30 app
 }
 if run candidate; then exit 1; fi
 export MODE=restored
 run rollback
 python3 - "$temp/diagnostics/release.test0001" <<'PY'
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -49,6 +55,8 @@ for role, marker, success in [("candidate", "failed-startup", False), ("rollback
     rows = [json.loads(line) for line in (folder / "samples.jsonl").read_text().splitlines()]
     assert all(row["id"] == ids[-1] for row in rows)
     assert any(row.get("cpu_usage_us", 0) > 0 and row["memory_bytes"] > 0 and row["swap_bytes"] >= 0 for row in rows)
+    peers = [json.loads(line) for line in (folder / "peers.jsonl").read_text().splitlines()]
+    assert any(p["name"] == os.environ["TEST_CONTAINER"] + "-peer" and p["memory_bytes"] > 0 for p in peers)
 assert ids[0] != ids[1]
 assert subprocess.run(["docker", "container", "inspect", ids[0]], capture_output=True).returncode != 0
 print("Failed container removed; its logs and cgroup samples are readable alongside the restored container's records.")
