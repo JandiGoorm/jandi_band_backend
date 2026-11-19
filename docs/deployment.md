@@ -11,6 +11,8 @@
 4. 서버의 `/opt/jandi-band/production/.env`와 저장소의 Compose·properties 결합.
 5. 새 컨테이너의 정상 상태 확인 후 Nginx 재연결. 실패하면 이전 release 복구.
 
+운영 이미지 빌드 시 APT는 Azure의 Ubuntu HTTPS 미러를 먼저 사용하고, 파일을 받을 수 없으면 kernel.org 미러에서 다시 시도한다. 일반 패키지와 보안 업데이트 모두 Ubuntu 아카이브 서명을 검증한다.
+
 GitHub `production` 환경의 `OCI_HOST`, `OCI_USER`, `OCI_KNOWN_HOSTS` 변수와
 `OCI_SSH_KEY` 시크릿을 사용한다. 레지스트리는 작업별 `GITHUB_TOKEN`을 사용한다.
 Tailscale OIDC 연결은 `TS_CLIENT_ID`, `TS_AUDIENCE` 변수로 구성한다.
