@@ -9,7 +9,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class JandiBandBackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(JandiBandBackendApplication.class, args);
+        SpringApplication application = new SpringApplication(JandiBandBackendApplication.class);
+        try (StartupDiagnostics diagnostics = new StartupDiagnostics(application)) {
+            application.run(args);
+        }
     }
 
 }

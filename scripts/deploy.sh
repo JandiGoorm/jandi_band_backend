@@ -32,9 +32,18 @@ if [[ "$app" == jandi-band ]]; then
 fi
 
 compose() {
-    local directory=$1
-    shift
-    docker compose --env-file "$directory/deployment.env" -f "$directory/compose.yaml" "${startup_override[@]}" "$@"
+    local directory=$1 role=$2
+    shift 2
+    local -a observer=()
+    if [[ "$app" == jandi-band && -n "$role" ]]; then
+        local expected
+        expected=$(sed -n 's/^APP_IMAGE=//p' "$directory/deployment.env")
+        observer=(python3 "$release/scripts/record_startup.py" "$diagnostics/$role" "$container" "$expected")
+    fi
+    "${observer[@]}" docker compose --env-file "$directory/deployment.env" -f "$directory/compose.yaml" "${startup_override[@]}" "$@"
+}
+up() {
+    compose "$1" "$2" up -d --no-deps --pull never --wait --wait-timeout "$wait_timeout" app
 }
 reload_gateway() {
     docker exec nginx-gateway nginx -t
@@ -49,17 +58,20 @@ failed() {
     trap - ERR
     echo "Deployment failed (exit $code)." >&2
     if [[ "$changed" == true ]]; then
+        if [[ "$app" == jandi-band && -f "$diagnostics/candidate/container.json" ]]; then
+            python3 "$release/scripts/record_startup.py" --save-logs "$diagnostics/candidate" || echo "Could not refresh candidate logs" >&2
+        fi
         if [[ -n "$legacy" ]] && docker container inspect "$legacy" >/dev/null 2>&1; then
-            compose "$release" rm -s -f app
+            compose "$release" "" rm -s -f app
             docker rename "$legacy" "$container"
             docker update --restart unless-stopped "$container" >/dev/null
             docker start "$container" >/dev/null
         elif [[ -n "$legacy" ]]; then
             docker start "$container" >/dev/null
         elif [[ -n "$previous" && -f "$previous/compose.yaml" ]]; then
-            compose "$previous" up -d --no-deps --pull never --wait --wait-timeout "$wait_timeout" app
+            up "$previous" rollback
         else
-            compose "$release" rm -s -f app
+            compose "$release" "" rm -s -f app
         fi
         reload_gateway
         echo "Previous deployment restored; this run remains failed." >&2
@@ -70,6 +82,9 @@ trap cleanup EXIT
 trap failed ERR
 
 if [[ "$app" == jandi-band ]]; then
+    diagnostics="$root/startup-diagnostics/$(basename "$release")"
+    mkdir -p -m 700 "$diagnostics"
+    echo "Spring startup diagnostics: $diagnostics"
     test -s "$root/.env"
     test -s "$root/tls/mysql-truststore.p12"
     chmod 755 "$release/config"
@@ -85,7 +100,7 @@ test "$(docker image inspect "$image" --format '{{.Architecture}}')" = amd64
 test "$(docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$revision"
 printf 'APP_ENV=%s\nAPP_CONTAINER=%s\nAPP_PROFILE=%s\nAPP_IMAGE=%s\nAPP_ENV_FILE=%s/.env\n' \
     "$environment" "$container" "$profile" "$image" "$root" > "$release/deployment.env"
-compose "$release" config --quiet
+compose "$release" "" config --quiet
 
 if docker container inspect "$container" >/dev/null 2>&1; then
     owner=$(docker inspect "$container" --format '{{index .Config.Labels "com.docker.compose.project"}}')
@@ -101,7 +116,7 @@ if docker container inspect "$container" >/dev/null 2>&1; then
     fi
 fi
 changed=true
-compose "$release" up -d --no-deps --pull never --wait --wait-timeout "$wait_timeout" app
+up "$release" candidate
 test "$(docker inspect "$container" --format '{{.Config.Image}}')" = "$image"
 if [[ "$app" == jandi-band-py ]]; then
     status=$(docker exec "$container" curl -sS -o /dev/null -w '%{http_code}' 'http://localhost:8000/timetable?url=https://example.com')

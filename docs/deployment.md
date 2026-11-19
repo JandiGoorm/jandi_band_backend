@@ -13,6 +13,14 @@
 
 Spring 배포와 복구는 각각 최대 300초 동안 `/actuator/health`의 성공 응답을 기다린다. 처음 180초 동안에는 기동 중 실패를 재시도 횟수에서 제외하고, 그 안에 성공하면 즉시 배포를 계속한다. 이전 릴리스를 복구할 때도 배포 중인 릴리스의 `compose.override.yaml`을 적용한다.
 
+### Spring 기동 기록
+
+배포 작업 로그에서 `Spring startup diagnostics` 경로를 확인한다. OCI의 `/opt/jandi-band/production/startup-diagnostics/release.XXXXXXXX/` 아래에 새 컨테이너는 `candidate/`, Compose로 복구한 컨테이너는 `rollback/`으로 나누어 저장한다. 배포 계정만 읽을 수 있고, 다음 배포 때 14일이 지난 기록을 정리한다.
+
+- `container.json`에 컨테이너 ID, 이미지 digest, 커밋, 시작 시각, 종료 코드, OOM 여부와 최근 Docker 헬스체크 결과를 기록한다. `result.json`에는 Compose 종료 코드와 시각을 기록한다.
+- `samples.jsonl`은 기동 중 약 5초마다 해당 컨테이너의 cgroup v2에서 CPU 사용·제한 시간, CPU·메모리·I/O 대기 시간(마이크로초), 메모리·스왑 사용량(바이트), 스왑 입출력(누적 페이지 수)을 읽는다. 같은 ID와 PID의 두 표본 사이 CPU 사용 시간 증가분을 경과 시간으로 나누면 1코어 기준 사용률을 구할 수 있다. 커널이 제공하지 않는 카운터는 `null` 또는 누락으로 표시한다.
+- `container.log`는 Docker 타임스탬프가 있는 표준 출력·오류다. 롤백으로 컨테이너가 사라지기 전에 호스트에 저장한다. `grep 'STARTUP ' container.log`로 Spring 이벤트의 누적 시간, 100ms 이상 걸린 초기화 단계와 빈 이름, 기동 중 5초 간격의 메인 스레드 호출 위치를 확인한다. 중첩 단계의 시간은 서로 겹칠 수 있다. 이 기록 기능이 적용되기 전 이미지의 단계는 기존 애플리케이션 로그에서 확인한다.
+
 운영 이미지 빌드 시 APT는 Azure의 Ubuntu HTTPS 미러를 먼저 사용하고, 파일을 받을 수 없으면 kernel.org 미러에서 다시 시도한다. 일반 패키지와 보안 업데이트 모두 Ubuntu 아카이브 서명을 검증한다.
 
 GitHub `production` 환경의 `OCI_HOST`, `OCI_USER`, `OCI_KNOWN_HOSTS` 변수와
