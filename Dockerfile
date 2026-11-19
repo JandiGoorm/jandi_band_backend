@@ -35,8 +35,15 @@ RUN --mount=type=cache,target=/root/.gradle \
 FROM eclipse-temurin:25-jre-resolute@sha256:480ef64e4540d45b0301e8afb7873bd3fa61ce93c5f66273eb569420718f38e2 AS runtime
 WORKDIR /app
 
-# HEALTHCHECK에 필요한 curl 설치
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# Ubuntu 서명 키와 보안 업데이트 설정을 유지하고 HTTPS 미러만 교체한다.
+RUN printf '%s\tpriority:%s\n' \
+        https://azure.archive.ubuntu.com/ubuntu/ 1 \
+        https://mirrors.edge.kernel.org/ubuntu/ 2 > /etc/apt/ubuntu-mirrors.list \
+    && sed -i -E 's#^URIs: http://(archive|security)\.ubuntu\.com/ubuntu/?$#URIs: mirror+file:/etc/apt/ubuntu-mirrors.list#' /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update --error-on=any \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 RUN useradd --system --uid 10001 --create-home app
 RUN mkdir -p /app/logs && chown app:app /app/logs
 
