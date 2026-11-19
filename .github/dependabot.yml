@@ -4,8 +4,23 @@ updates:
     target-branch: main
     directory: "/"
     schedule:
-      interval: daily
+      interval: quarterly
     groups:
+      spring-platform:
+        patterns: ["org.springframework*", "io.spring*", "org.springdoc:*"]
+        update-types: ["minor", "major"]
+      object-storage:
+        patterns: ["software.amazon.awssdk:*", "com.twelvemonkeys.imageio:*"]
+        update-types: ["minor", "major"]
+      authentication:
+        patterns: ["io.jsonwebtoken:*", "commons-codec:*"]
+        update-types: ["minor", "major"]
+      observability:
+        patterns: ["io.micrometer:*", "io.prometheus:*", "net.logstash.logback:*"]
+        update-types: ["minor", "major"]
+      test-tools:
+        patterns: ["org.junit*", "org.assertj:*", "com.squareup.okhttp3:*", "com.h2database:*"]
+        update-types: ["minor", "major"]
       package-patches:
         patterns: ["*"]
         update-types: ["patch"]
@@ -13,14 +28,26 @@ updates:
     target-branch: main
     directory: "/"
     schedule:
-      interval: daily
+      interval: quarterly
+    groups:
+      runtime-images:
+        patterns: ["*"]
+        update-types: ["minor", "major"]
   - package-ecosystem: "docker-compose"
     target-branch: main
     directory: "/gateway"
     schedule:
-      interval: daily
+      interval: quarterly
+    groups:
+      gateway-images:
+        patterns: ["nginx"]
+        update-types: ["minor", "major"]
   - package-ecosystem: "github-actions"
     target-branch: main
     directory: "/"
     schedule:
-      interval: daily
+      interval: quarterly
+    groups:
+      ci-actions:
+        patterns: ["*"]
+        update-types: ["minor", "major"]
