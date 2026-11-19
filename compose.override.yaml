@@ -1,0 +1,4 @@
+services:
+  app:
+    healthcheck:
+      start_period: 180s
