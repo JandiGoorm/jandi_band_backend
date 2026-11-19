@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # 1. 빌드(Build) 스테이지: 소스 코드를 JAR 파일로 빌드
-FROM eclipse-temurin:25-jdk-resolute AS builder
+FROM eclipse-temurin:25-jdk-resolute@sha256:1ba05eab8e59bad9cbc9c6294b5c4a1d71150cfd00a5cdf04e67bb36a0a10916 AS builder
 WORKDIR /workspace/app
 
 # Gradle 관련 파일 복사 (캐시 레이어 활용)
@@ -32,11 +32,11 @@ RUN --mount=type=cache,target=/root/.gradle \
 # -----------------------------------------------------
 
 # 2. 실행(Final) 스테이지: 실제 운영 환경에서 사용될 이미지
-FROM eclipse-temurin:25-jre-resolute AS runtime
+FROM eclipse-temurin:25-jre-resolute@sha256:480ef64e4540d45b0301e8afb7873bd3fa61ce93c5f66273eb569420718f38e2 AS runtime
 WORKDIR /app
 
 # HEALTHCHECK에 필요한 curl 설치
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN useradd --system --uid 10001 --create-home app
 RUN mkdir -p /app/logs && chown app:app /app/logs
 

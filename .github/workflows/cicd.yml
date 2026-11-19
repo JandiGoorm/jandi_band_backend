@@ -6,6 +6,8 @@ on:
   push:
     branches: [main, develop]
   workflow_dispatch:
+  schedule:
+    - cron: '29 18 * * 0'
 
 permissions:
   contents: read
@@ -25,7 +27,36 @@ jobs:
       - name: Test in Docker
         run: docker build --target test .
       - name: Build runtime in Docker
-        run: docker build --target runtime .
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          options=()
+          if [[ $EVENT == schedule ]]; then options+=(--no-cache-filter runtime); fi
+          docker buildx build --load --pull "${options[@]}" --target runtime -t oci-candidate:test .
+      - uses: ./.github/actions/scan-image
+        with:
+          image: oci-candidate:test
+          platform: linux/amd64
+          report: candidate-jandi-band
+
+  verify-gateway:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Resolve declared gateway image
+        id: gateway
+        run: |
+          image=$(docker compose -f gateway/compose.yaml config --images)
+          [[ $image =~ ^nginx:[0-9]+\.[0-9]+\.[0-9]+-alpine@sha256:[0-9a-f]{64}$ ]]
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/scan-image
+        with:
+          image: ${{ steps.gateway.outputs.image }}
+          platform: linux/amd64
+          report: gateway-candidate-spring
 
   publish:
     needs: verify
@@ -53,6 +84,8 @@ jobs:
           context: .
           target: runtime
           platforms: linux/amd64
+          pull: true
+          no-cache-filters: ${{ github.event_name == 'schedule' && 'runtime' || '' }}
           push: true
           tags: |
             ghcr.io/jandigoorm/jandi-band:${{ github.ref_name }}
@@ -63,8 +96,30 @@ jobs:
           cache-from: type=gha,scope=runtime-${{ github.ref_name }}
           cache-to: type=gha,mode=max,scope=runtime-${{ github.ref_name }}
 
-  deploy:
+  scan-published:
     needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/scan-image
+        with:
+          image: ${{ needs.publish.outputs.image }}
+          platform: linux/amd64
+          report: published-jandi-band
+
+  deploy:
+    needs: [publish, scan-published]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:

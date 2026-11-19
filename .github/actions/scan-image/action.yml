@@ -1,0 +1,58 @@
+name: Scan container image
+description: Report all high and critical findings and reject findings with a vendor fix
+inputs:
+  image:
+    description: Local candidate tag or immutable registry reference
+    required: true
+  platform:
+    description: Production OS and architecture
+    required: true
+  report:
+    description: Unique artifact name for this job
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      env:
+        TRIVY_PLATFORM: ${{ inputs.platform }}
+        TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2,mirror.gcr.io/aquasec/trivy-db:2
+        TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1,mirror.gcr.io/aquasec/trivy-java-db:1
+      with:
+        version: v0.76.2
+        timeout: 15m
+        image-ref: ${{ inputs.image }}
+        scanners: vuln
+        severity: HIGH,CRITICAL
+        format: json
+        output: ${{ runner.temp }}/${{ inputs.report }}.json
+        exit-code: '0'
+    - name: Keep image identity and CVE evidence in the artifact
+      shell: bash
+      env:
+        REPORT: ${{ runner.temp }}/${{ inputs.report }}.json
+        IMAGE: ${{ inputs.image }}
+        PLATFORM: ${{ inputs.platform }}
+      run: |
+        jq --arg image "$IMAGE" --arg platform "$PLATFORM" '{
+          SchemaVersion, image: $image, platform: $platform, Metadata: {OS: .Metadata.OS},
+          Results: [.Results[]? | {Type, Class, Vulnerabilities: [.Vulnerabilities[]? |
+            {VulnerabilityID, PkgName, InstalledVersion, FixedVersion, Severity, PrimaryURL}]}]
+        }' "$REPORT" > "$REPORT.summary"
+        mv "$REPORT.summary" "$REPORT"
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ inputs.report }}
+        path: ${{ runner.temp }}/${{ inputs.report }}.json
+        if-no-files-found: error
+        retention-days: 14
+    - shell: bash
+      env:
+        REPORT: ${{ runner.temp }}/${{ inputs.report }}.json
+        IMAGE: ${{ inputs.image }}
+      run: |
+        set -euo pipefail
+        jq -e '.SchemaVersion == 2 and (.Metadata.OS.Family | type == "string")' "$REPORT" >/dev/null
+        counts=$(jq '[.Results[]?.Vulnerabilities[]?] | {total: length, fixable: map(select((.FixedVersion // "") != "")) | length}' -c "$REPORT")
+        printf '%s — %s\n' "$IMAGE" "$counts" | tee -a "$GITHUB_STEP_SUMMARY"
+        jq -e '.fixable == 0' <<< "$counts" >/dev/null

@@ -1,0 +1,27 @@
+name: Merge verified dependency patch
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  merge:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && startsWith(github.event.workflow_run.head_branch, 'dependabot/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify signed Dependabot patch and merge the tested SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PATCH_FILES: 'Dockerfile build.gradle gradle/libs.versions.toml gateway/compose.yaml'
+        run: ruby .github/scripts/merge-patch.rb
