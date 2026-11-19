@@ -36,7 +36,8 @@ def main():
 
     payload = io.BytesIO()
     with tarfile.open(fileobj=payload, mode="w:gz") as archive:
-        files = [Path("compose.yaml"), Path("compose.override.yaml"), Path("scripts/deploy.sh")]
+        files = [Path("compose.yaml"), Path("compose.override.yaml"), Path("scripts/deploy.sh"),
+                 Path("scripts/record_startup.py")]
         files.extend(sorted(Path("config").glob("*.properties")))
         for path in files:
             if path.is_symlink():

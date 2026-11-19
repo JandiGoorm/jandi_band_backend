@@ -33,6 +33,8 @@ jobs:
           options=()
           if [[ $EVENT == schedule ]]; then options+=(--no-cache-filter runtime); fi
           docker buildx build --load --pull "${options[@]}" --target runtime -t oci-candidate:test .
+      - name: Verify startup evidence survives container replacement
+        run: bash scripts/test-startup-diagnostics.sh oci-candidate:test
       - uses: ./.github/actions/scan-image
         with:
           image: oci-candidate:test
