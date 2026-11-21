@@ -40,7 +40,7 @@ updates:
       interval: quarterly
     groups:
       gateway-images:
-        patterns: ["nginx"]
+        patterns: ["ghcr.io/kyj0503/backtest-console"]
         update-types: ["minor", "major"]
   - package-ecosystem: "github-actions"
     target-branch: main
