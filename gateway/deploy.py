@@ -14,8 +14,9 @@ import time
 APPS = ["jandi-band"]
 CERTIFICATE = "ssl/origin/cloudflare-origin-ca.pem"
 HEALTH_URLS = ["https://rhythmeet-be.yeonjae.kr/actuator/health"]
-IMAGE = re.compile(r"nginx:(\d+\.\d+\.\d+-alpine)@sha256:[0-9a-f]{64}")
-FIELD = re.compile(rb"(?m)^(\s*image:[ \t]+)nginx(?::[\w.-]+)?(?:@sha256:[0-9a-f]{64})?([ \t]*)(?=\r?$)")
+PATCHED_REPO = "ghcr.io/kyj0503/backtest-console"
+IMAGE = re.compile(re.escape(PATCHED_REPO) + r":\d+\.\d+\.\d+-gateway-alpine@sha256:[0-9a-f]{64}")
+FIELD = re.compile(rb"(?m)^(\s*image:[ \t]+)(?:(?:docker\.io/library/)?nginx|ghcr\.io/kyj0503/backtest-console)(?::[\w.-]+)?(?:@sha256:[0-9a-f]{64})?([ \t]*)(?=\r?$)")
 
 def run(*args):
     return subprocess.check_output(args, text=True, timeout=120).strip()
@@ -33,7 +34,7 @@ def probe(urls, ca):
 
 def change(image, directory, locks, ca, urls):
     if not IMAGE.fullmatch(image):
-        raise ValueError("Expected an immutable official nginx Alpine image")
+        raise ValueError("Expected an immutable patched Nginx gateway image")
     base = directory / "compose.gateway.yaml"
     with ExitStack() as stack:
         for path in [directory / ".image-update.lock", *locks]:
@@ -53,8 +54,14 @@ def change(image, directory, locks, ca, urls):
         if not info["State"]["Running"] or info["Config"]["Labels"]["com.docker.compose.project"] != model["name"]:
             raise ValueError("Unexpected running gateway")
         old_id = info["Image"]
-        prior = next(ref for ref in json.loads(run("docker","image","inspect",old_id))[0]["RepoDigests"]
-                     if re.fullmatch(r"(?:docker.io/library/)?nginx@sha256:[0-9a-f]{64}",ref))
+        configured = info["Config"]["Image"].removeprefix("docker.io/library/")
+        repository = configured.split("@")[0].split(":")[0]
+        if repository not in {"nginx", PATCHED_REPO}:
+            raise ValueError("Unexpected running gateway image repository")
+        digests = json.loads(run("docker", "image", "inspect", old_id))[0]["RepoDigests"]
+        prior = next(ref for ref in digests
+                     if re.fullmatch(re.escape(repository) + r"@sha256:[0-9a-f]{64}", ref.removeprefix("docker.io/library/"))
+                     and ("@" not in configured or ref.split("@")[1] == configured.split("@")[1]))
         probe(urls, ca)
         run("docker", "pull", image)
         def temp_file(content, mode):

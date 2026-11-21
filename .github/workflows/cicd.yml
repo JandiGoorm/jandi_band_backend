@@ -52,7 +52,7 @@ jobs:
         id: gateway
         run: |
           image=$(docker compose -f gateway/compose.yaml config --images)
-          [[ $image =~ ^nginx:[0-9]+\.[0-9]+\.[0-9]+-alpine@sha256:[0-9a-f]{64}$ ]]
+          [[ $image =~ ^ghcr\.io/kyj0503/backtest-console:[0-9]+\.[0-9]+\.[0-9]+-gateway-alpine@sha256:[0-9a-f]{64}$ ]]
           echo "image=$image" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/scan-image
         with:
